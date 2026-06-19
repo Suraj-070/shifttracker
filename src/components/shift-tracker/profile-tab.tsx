@@ -138,7 +138,7 @@ export function ProfileTab({
     .toUpperCase()
     .slice(0, 2);
 
-  const rawDate = profile.createdAt ?? profile.created_at ?? null;
+  const rawDate = profile.createdAt ?? null;
   const joinDate =
     rawDate && !isNaN(new Date(rawDate).getTime())
       ? new Date(rawDate).toLocaleDateString("en-AU", {
