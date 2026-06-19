@@ -1,0 +1,1313 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useEffect, useMemo, useCallback } from "react";
+     4→import { motion, AnimatePresence } from "framer-motion";
+     5→import {
+     6→  LayoutDashboard,
+     7→  CalendarDays,
+     8→  BarChart3,
+     9→  Plus,
+    10→  Trash2,
+    11→  ChevronRight,
+    12→  DollarSign,
+    13→  Clock,
+    14→  CheckCircle2,
+    15→  XCircle,
+    16→  TrendingUp,
+    17→  Wallet,
+    18→  ArrowUpRight,
+    19→  ArrowDownRight,
+    20→  Loader2,
+    21→  MapPin,
+    22→  Calendar,
+    23→  CircleDollarSign,
+    24→  User,
+    25→} from "lucide-react";
+    26→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+    27→import { Button } from "@/components/ui/button";
+    28→import { Badge } from "@/components/ui/badge";
+    29→import { Input } from "@/components/ui/input";
+    30→import { Label } from "@/components/ui/label";
+    31→import { Separator } from "@/components/ui/separator";
+    32→import { Switch } from "@/components/ui/switch";
+    33→import {
+    34→  Dialog,
+    35→  DialogContent,
+    36→  DialogHeader,
+    37→  DialogTitle,
+    38→  DialogDescription,
+    39→  DialogFooter,
+    40→  DialogTrigger,
+    41→  DialogClose,
+    42→} from "@/components/ui/dialog";
+    43→import {
+    44→  Select,
+    45→  SelectContent,
+    46→  SelectItem,
+    47→  SelectTrigger,
+    48→  SelectValue,
+    49→} from "@/components/ui/select";
+    50→import {
+    51→  ChartContainer,
+    52→  ChartTooltip,
+    53→  ChartTooltipContent,
+    54→  type ChartConfig,
+    55→} from "@/components/ui/chart";
+    56→import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Cell, Pie, PieChart as RechartsPieChart } from "recharts";
+    57→import { useToast } from "@/hooks/use-toast";
+    58→import { useIsMobile } from "@/hooks/use-mobile";
+    59→import type { Shift, ShiftStatus, MonthGroup, AnalyticsSummary, MonthlyEarning, ShiftCreateInput } from "@/types/database.types";
+    60→
+    61→// ============================================================
+    62→// Constants
+    63→// ============================================================
+    64→const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    65→const LOCATIONS = ["Eastgardens", "Town Hall", "Bondi Junction", "Parramatta", "Circular Quay"];
+    66→const COVER_NAMES = ["Sarah Mitchell", "James Chen", "Emily Watson", "Daniel Park", "Olivia Brown", "Marcus Thompson", "Jessica Nguyen", "Ryan O'Brien", "Aisha Patel", "Tom Williams"];
+    67→
+    68→const CHART_CONFIG: ChartConfig = {
+    69→  paid: { label: "Paid", color: "oklch(0.7 0.17 155)" },
+    70→  unpaid: { label: "Unpaid", color: "oklch(0.65 0.2 25)" },
+    71→  earned: { label: "Earned", color: "oklch(0.7 0.17 155)" },
+    72→};
+    73→
+    74→// ============================================================
+    75→// Tab Navigation
+    76→// ============================================================
+    77→type TabKey = "dashboard" | "shifts" | "analytics";
+    78→
+    79→interface TabConfig {
+    80→  key: TabKey;
+    81→  label: string;
+    82→  icon: React.ElementType;
+    83→}
+    84→
+    85→const TABS: TabConfig[] = [
+    86→  { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    87→  { key: "shifts", label: "Shifts", icon: CalendarDays },
+    88→  { key: "analytics", label: "Analytics", icon: BarChart3 },
+    89→];
+    90→
+    91→// ============================================================
+    92→// Utility functions
+    93→// ============================================================
+    94→function formatCurrency(amount: number): string {
+    95→  return new Intl.NumberFormat("en-AU", {
+    96→    style: "currency",
+    97→    currency: "AUD",
+    98→    minimumFractionDigits: 2,
+    99→  }).format(amount);
+   100→}
+   101→
+   102→function getDayFromDate(dateStr: string): string {
+   103→  const d = new Date(dateStr + "T00:00:00");
+   104→  return DAYS_OF_WEEK[d.getDay()];
+   105→}
+   106→
+   107→function formatShortDate(dateStr: string): string {
+   108→  const d = new Date(dateStr + "T00:00:00");
+   109→  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+   110→}
+   111→
+   112→function formatFullDate(dateStr: string): string {
+   113→  const d = new Date(dateStr + "T00:00:00");
+   114→  return d.toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+   115→}
+   116→
+   117→function groupShiftsByMonth(shifts: Shift[]): MonthGroup[] {
+   118→  const map = new Map<string, Shift[]>();
+   119→
+   120→  for (const shift of shifts) {
+   121→    const d = new Date(shift.shiftDate + "T00:00:00");
+   122→    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+   123→    const existing = map.get(monthKey) ?? [];
+   124→    existing.push(shift);
+   125→    map.set(monthKey, existing);
+   126→  }
+   127→
+   128→  return Array.from(map.entries())
+   129→    .sort(([a], [b]) => b.localeCompare(a))
+   130→    .map(([monthKey, monthShifts]) => {
+   131→      const [year, month] = monthKey.split("-");
+   132→      const monthLabel = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString("en-US", {
+   133→        year: "numeric",
+   134→        month: "long",
+   135→      });
+   136→
+   137→      const totalEarned = monthShifts.reduce((sum, s) => sum + parseFloat(s.amountEarned), 0);
+   138→      const paidCount = monthShifts.filter((s) => s.status === "Paid").length;
+   139→      const unpaidCount = monthShifts.filter((s) => s.status === "Unpaid").length;
+   140→
+   141→      // Sort shifts within month by date descending
+   142→      monthShifts.sort((a, b) => b.shiftDate.localeCompare(a.shiftDate));
+   143→
+   144→      return { monthKey, monthLabel, shifts: monthShifts, totalEarned, paidCount, unpaidCount };
+   145→    });
+   146→}
+   147→
+   148→// ============================================================
+   149→// Main Page Component
+   150→// ============================================================
+   151→export default function ShiftTrackerPage() {
+   152→  const { toast } = useToast();
+   153→  const isMobile = useIsMobile();
+   154→  const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
+   155→
+   156→  // Data state
+   157→  const [shifts, setShifts] = useState<Shift[]>([]);
+   158→  const [isLoading, setIsLoading] = useState(true);
+   159→  const [userId, setUserId] = useState<string>("");
+   160→  const [isSeeding, setIsSeeding] = useState(false);
+   161→
+   162→  // Dialog state
+   163→  const [addDialogOpen, setAddDialogOpen] = useState(false);
+   164→  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+   165→  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
+   166→
+   167→  // Form state
+   168→  const [formCoveringFor, setFormCoveringFor] = useState("");
+   169→  const [formDate, setFormDate] = useState("");
+   170→  const [formLocation, setFormLocation] = useState("");
+   171→  const [formAmount, setFormAmount] = useState("");
+   172→  const [formStatus, setFormStatus] = useState<ShiftStatus>("Unpaid");
+   173→  const [isSubmitting, setIsSubmitting] = useState(false);
+   174→
+   175→  // Fetch shifts
+   176→  const fetchShifts = useCallback(async () => {
+   177→    try {
+   178→      const res = await fetch("/api/shifts");
+   179→      const data = await res.json();
+   180→      if (res.ok) {
+   181→        setShifts(data.shifts);
+   182→        setUserId(data.userId);
+   183→      }
+   184→    } catch (err) {
+   185→      console.error("Failed to fetch shifts:", err);
+   186→    } finally {
+   187→      setIsLoading(false);
+   188→    }
+   189→  }, []);
+   190→
+   191→  useEffect(() => {
+   192→    fetchShifts();
+   193→  }, [fetchShifts]);
+   194→
+   195→  // Seed demo data
+   196→  const handleSeed = useCallback(async () => {
+   197→    setIsSeeding(true);
+   198→    try {
+   199→      const res = await fetch("/api/seed", { method: "POST" });
+   200→      const data = await res.json();
+   201→      if (res.ok) {
+   202→        toast({ title: "Demo data seeded!", description: `${data.count} shifts created.` });
+   203→        await fetchShifts();
+   204→      }
+   205→    } catch {
+   206→      toast({ title: "Error", description: "Failed to seed data", variant: "destructive" });
+   207→    } finally {
+   208→      setIsSeeding(false);
+   209→    }
+   210→  }, [fetchShifts, toast]);
+   211→
+   212→  // Toggle shift status
+   213→  const toggleStatus = useCallback(
+   214→    async (shift: Shift) => {
+   215→      const newStatus: ShiftStatus = shift.status === "Paid" ? "Unpaid" : "Paid";
+   216→
+   217→      // Optimistic update
+   218→      setShifts((prev) =>
+   219→        prev.map((s) => (s.id === shift.id ? { ...s, status: newStatus } : s))
+   220→      );
+   221→
+   222→      try {
+   223→        const res = await fetch(`/api/shifts/${shift.id}`, {
+   224→          method: "PATCH",
+   225→          headers: { "Content-Type": "application/json" },
+   226→          body: JSON.stringify({ status: newStatus }),
+   227→        });
+   228→        if (!res.ok) {
+   229→          // Revert on failure
+   230→          setShifts((prev) =>
+   231→            prev.map((s) => (s.id === shift.id ? { ...s, status: shift.status } : s))
+   232→          );
+   233→          toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+   234→        }
+   235→      } catch {
+   236→        setShifts((prev) =>
+   237→          prev.map((s) => (s.id === shift.id ? { ...s, status: shift.status } : s))
+   238→        );
+   239→      }
+   240→    },
+   241→    [toast]
+   242→  );
+   243→
+   244→  // Add shift
+   245→  const handleAddShift = useCallback(async () => {
+   246→    if (!formCoveringFor || !formDate || !formLocation || !formAmount) {
+   247→      toast({ title: "Missing fields", description: "Please fill in all required fields.", variant: "destructive" });
+   248→      return;
+   249→    }
+   250→
+   251→    setIsSubmitting(true);
+   252→    try {
+   253→      const shiftDay = getDayFromDate(formDate);
+   254→      const input: ShiftCreateInput = {
+   255→        coveringFor: formCoveringFor,
+   256→        shiftDate: formDate,
+   257→        locationName: formLocation,
+   258→        shiftDay,
+   259→        amountEarned: parseFloat(formAmount).toFixed(2),
+   260→        status: formStatus,
+   261→      };
+   262→
+   263→      const res = await fetch("/api/shifts", {
+   264→        method: "POST",
+   265→        headers: { "Content-Type": "application/json" },
+   266→        body: JSON.stringify({ ...input, userId }),
+   267→      });
+   268→
+   269→      if (res.ok) {
+   270→        const data = await res.json();
+   271→        setShifts((prev) => [data.shift, ...prev]);
+   272→        setAddDialogOpen(false);
+   273→        resetForm();
+   274→        toast({ title: "Shift added!", description: `${input.coveringFor} @ ${input.locationName} — ${formatCurrency(parseFloat(input.amountEarned))}` });
+   275→      }
+   276→    } catch {
+   277→      toast({ title: "Error", description: "Failed to add shift", variant: "destructive" });
+   278→    } finally {
+   279→      setIsSubmitting(false);
+   280→    }
+   281→  }, [formCoveringFor, formDate, formLocation, formAmount, formStatus, userId, toast]);
+   282→
+   283→  // Delete shift
+   284→  const handleDeleteShift = useCallback(async () => {
+   285→    if (!shiftToDelete) return;
+   286→
+   287→    try {
+   288→      const res = await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
+   289→      if (res.ok) {
+   290→        setShifts((prev) => prev.filter((s) => s.id !== shiftToDelete.id));
+   291→        toast({ title: "Shift deleted", description: "The shift has been removed." });
+   292→      }
+   293→    } catch {
+   294→      toast({ title: "Error", description: "Failed to delete shift", variant: "destructive" });
+   295→    } finally {
+   296→      setDeleteDialogOpen(false);
+   297→      setShiftToDelete(null);
+   298→    }
+   299→  }, [shiftToDelete, toast]);
+   300→
+   301→  // Reset form
+   302→  const resetForm = () => {
+   303→    setFormCoveringFor("");
+   304→    setFormDate("");
+   305→    setFormLocation("");
+   306→    setFormAmount("");
+   307→    setFormStatus("Unpaid");
+   308→  };
+   309→
+   310→  // Computed values
+   311→  const monthGroups = useMemo(() => groupShiftsByMonth(shifts), [shifts]);
+   312→
+   313→  const summary = useMemo<AnalyticsSummary>(() => {
+   314→    const totalEarned = shifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
+   315→    const paidShifts = shifts.filter((s) => s.status === "Paid");
+   316→    const unpaidShifts = shifts.filter((s) => s.status === "Unpaid");
+   317→    return {
+   318→      totalEarned,
+   319→      totalPaid: paidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
+   320→      totalUnpaid: unpaidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
+   321→      totalShifts: shifts.length,
+   322→      paidShifts: paidShifts.length,
+   323→      unpaidShifts: unpaidShifts.length,
+   324→      averagePerShift: shifts.length > 0 ? totalEarned / shifts.length : 0,
+   325→    };
+   326→  }, [shifts]);
+   327→
+   328→  const monthlyEarnings = useMemo<MonthlyEarning[]>(() => {
+   329→    return monthGroups.map((mg) => ({
+   330→      monthKey: mg.monthKey,
+   331→      monthLabel: mg.monthLabel,
+   332→      earned: mg.totalEarned,
+   333→      paid: mg.shifts.filter((s) => s.status === "Paid").reduce((sum, s) => sum + parseFloat(s.amountEarned), 0),
+   334→      unpaid: mg.shifts.filter((s) => s.status === "Unpaid").reduce((sum, s) => sum + parseFloat(s.amountEarned), 0),
+   335→      shiftCount: mg.shifts.length,
+   336→    }));
+   337→  }, [monthGroups]);
+   338→
+   339→  // Recent shifts for dashboard
+   340→  const recentShifts = useMemo(() => shifts.slice(0, 5), [shifts]);
+   341→
+   342→  // Empty state
+   343→  if (!isLoading && shifts.length === 0) {
+   344→    return (
+   345→      <div className="min-h-screen flex flex-col bg-background">
+   346→        <main className="flex-1 flex items-center justify-center p-6">
+   347→          <motion.div
+   348→            initial={{ opacity: 0, y: 20 }}
+   349→            animate={{ opacity: 1, y: 0 }}
+   350→            className="text-center max-w-md"
+   351→          >
+   352→            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+   353→              <CalendarDays className="w-8 h-8 text-emerald-600" />
+   354→            </div>
+   355→            <h2 className="text-2xl font-semibold tracking-tight mb-2">No shifts yet</h2>
+   356→            <p className="text-muted-foreground mb-8">
+   357→              Start tracking your shifts and payments. Add your first shift or load demo data to explore.
+   358→            </p>
+   359→            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+   360→              <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+   361→                <Plus className="w-4 h-4" /> Add Shift
+   362→              </Button>
+   363→              <Button variant="outline" onClick={handleSeed} disabled={isSeeding} className="gap-2">
+   364→                {isSeeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wallet className="w-4 h-4" />}
+   365→                Load Demo Data
+   366→              </Button>
+   367→            </div>
+   368→          </motion.div>
+   369→        </main>
+   370→        <AddShiftDialog
+   371→          open={addDialogOpen}
+   372→          onOpenChange={setAddDialogOpen}
+   373→          formCoveringFor={formCoveringFor}
+   374→          formDate={formDate}
+   375→          formLocation={formLocation}
+   376→          formAmount={formAmount}
+   377→          formStatus={formStatus}
+   378→          setFormCoveringFor={setFormCoveringFor}
+   379→          setFormDate={setFormDate}
+   380→          setFormLocation={setFormLocation}
+   381→          setFormAmount={setFormAmount}
+   382→          setFormStatus={setFormStatus}
+   383→          onSubmit={handleAddShift}
+   384→          isSubmitting={isSubmitting}
+   385→        />
+   386→        <footer className="border-t py-4 text-center text-xs text-muted-foreground">
+   387→          Shift & Payment Tracker
+   388→        </footer>
+   389→      </div>
+   390→    );
+   391→  }
+   392→
+   393→  return (
+   394→    <div className="min-h-screen flex flex-col bg-background">
+   395→      {/* Header */}
+   396→      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
+   397→        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   398→          <div className="flex items-center justify-between h-14">
+   399→            <div className="flex items-center gap-2.5">
+   400→              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
+   401→                <Clock className="w-4 h-4 text-white" />
+   402→              </div>
+   403→              <span className="font-semibold text-lg tracking-tight">ShiftTracker</span>
+   404→            </div>
+   405→            <div className="flex items-center gap-2">
+   406→              <Button variant="outline" size="sm" onClick={handleSeed} disabled={isSeeding} className="gap-1.5 hidden sm:flex">
+   407→                {isSeeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wallet className="w-3.5 h-3.5" />}
+   408→                Seed Data
+   409→              </Button>
+   410→              <Button size="sm" onClick={() => setAddDialogOpen(true)} className="gap-1.5">
+   411→                <Plus className="w-3.5 h-3.5" /> Add Shift
+   412→              </Button>
+   413→            </div>
+   414→          </div>
+   415→        </div>
+   416→      </header>
+   417→
+   418→      {/* Main Content */}
+   419→      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
+   420→        <AnimatePresence mode="wait">
+   421→          {activeTab === "dashboard" && (
+   422→            <motion.div
+   423→              key="dashboard"
+   424→              initial={{ opacity: 0, y: 8 }}
+   425→              animate={{ opacity: 1, y: 0 }}
+   426→              exit={{ opacity: 0, y: -8 }}
+   427→              transition={{ duration: 0.2 }}
+   428→            >
+   429→              <DashboardTab
+   430→                summary={summary}
+   431→                recentShifts={recentShifts}
+   432→                isLoading={isLoading}
+   433→                onToggleStatus={toggleStatus}
+   434→                onAddShift={() => setAddDialogOpen(true)}
+   435→                onViewAllShifts={() => setActiveTab("shifts")}
+   436→              />
+   437→            </motion.div>
+   438→          )}
+   439→          {activeTab === "shifts" && (
+   440→            <motion.div
+   441→              key="shifts"
+   442→              initial={{ opacity: 0, y: 8 }}
+   443→              animate={{ opacity: 1, y: 0 }}
+   444→              exit={{ opacity: 0, y: -8 }}
+   445→              transition={{ duration: 0.2 }}
+   446→            >
+   447→              <ShiftsTab
+   448→                monthGroups={monthGroups}
+   449→                isLoading={isLoading}
+   450→                onToggleStatus={toggleStatus}
+   451→                onDeleteShift={(shift) => {
+   452→                  setShiftToDelete(shift);
+   453→                  setDeleteDialogOpen(true);
+   454→                }}
+   455→              />
+   456→            </motion.div>
+   457→          )}
+   458→          {activeTab === "analytics" && (
+   459→            <motion.div
+   460→              key="analytics"
+   461→              initial={{ opacity: 0, y: 8 }}
+   462→              animate={{ opacity: 1, y: 0 }}
+   463→              exit={{ opacity: 0, y: -8 }}
+   464→              transition={{ duration: 0.2 }}
+   465→            >
+   466→              <AnalyticsTab summary={summary} monthlyEarnings={monthlyEarnings} isLoading={isLoading} />
+   467→            </motion.div>
+   468→          )}
+   469→        </AnimatePresence>
+   470→      </main>
+   471→
+   472→      {/* Bottom Tab Bar (mobile) / Desktop Tabs */}
+   473→      {isMobile ? (
+   474→        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t safe-area-inset-bottom">
+   475→          <div className="flex items-center justify-around h-16">
+   476→            {TABS.map((tab) => {
+   477→              const Icon = tab.icon;
+   478→              const isActive = activeTab === tab.key;
+   479→              return (
+   480→                <button
+   481→                  key={tab.key}
+   482→                  onClick={() => setActiveTab(tab.key)}
+   483→                  className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+   484→                    isActive ? "text-emerald-600" : "text-muted-foreground"
+   485→                  }`}
+   486→                >
+   487→                  <Icon className="w-5 h-5" />
+   488→                  <span className="text-[10px] font-medium">{tab.label}</span>
+   489→                </button>
+   490→              );
+   491→            })}
+   492→          </div>
+   493→        </nav>
+   494→      ) : (
+   495→        <nav className="border-b bg-background/80 backdrop-blur-lg">
+   496→          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   497→            <div className="flex items-center gap-1 h-10">
+   498→              {TABS.map((tab) => {
+   499→                const Icon = tab.icon;
+   500→                const isActive = activeTab === tab.key;
+   501→                return (
+   502→                  <button
+   503→                    key={tab.key}
+   504→                    onClick={() => setActiveTab(tab.key)}
+   505→                    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+   506→                      isActive
+   507→                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+   508→                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+   509→                    }`}
+   510→                  >
+   511→                    <Icon className="w-4 h-4" />
+   512→                    {tab.label}
+   513→                  </button>
+   514→                );
+   515→              })}
+   516→            </div>
+   517→          </div>
+   518→        </nav>
+   519→      )}
+   520→
+   521→      {/* Dialogs */}
+   522→      <AddShiftDialog
+   523→        open={addDialogOpen}
+   524→        onOpenChange={setAddDialogOpen}
+   525→        formCoveringFor={formCoveringFor}
+   526→        formDate={formDate}
+   527→        formLocation={formLocation}
+   528→        formAmount={formAmount}
+   529→        formStatus={formStatus}
+   530→        setFormCoveringFor={setFormCoveringFor}
+   531→        setFormDate={setFormDate}
+   532→        setFormLocation={setFormLocation}
+   533→        setFormAmount={setFormAmount}
+   534→        setFormStatus={setFormStatus}
+   535→        onSubmit={handleAddShift}
+   536→        isSubmitting={isSubmitting}
+   537→      />
+   538→
+   539→      <DeleteShiftDialog
+   540→        open={deleteDialogOpen}
+   541→        onOpenChange={setDeleteDialogOpen}
+   542→        shift={shiftToDelete}
+   543→        onConfirm={handleDeleteShift}
+   544→      />
+   545→
+   546→      {/* Footer */}
+   547→      <footer className="border-t py-4 text-center text-xs text-muted-foreground mt-auto">
+   548→        Shift & Payment Tracker — Built with Next.js & Supabase
+   549→      </footer>
+   550→    </div>
+   551→  );
+   552→}
+   553→
+   554→// ============================================================
+   555→// Dashboard Tab
+   556→// ============================================================
+   557→interface DashboardTabProps {
+   558→  summary: AnalyticsSummary;
+   559→  recentShifts: Shift[];
+   560→  isLoading: boolean;
+   561→  onToggleStatus: (shift: Shift) => void;
+   562→  onAddShift: () => void;
+   563→  onViewAllShifts: () => void;
+   564→}
+   565→
+   566→function DashboardTab({ summary, recentShifts, isLoading, onToggleStatus, onAddShift, onViewAllShifts }: DashboardTabProps) {
+   567→  if (isLoading) {
+   568→    return <LoadingSkeleton />;
+   569→  }
+   570→
+   571→  const paidPercent = summary.totalShifts > 0 ? Math.round((summary.paidShifts / summary.totalShifts) * 100) : 0;
+   572→
+   573→  return (
+   574→    <div className="space-y-6">
+   575→      {/* Summary Cards */}
+   576→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+   577→        <SummaryCard
+   578→          title="Total Earned"
+   579→          value={formatCurrency(summary.totalEarned)}
+   580→          icon={DollarSign}
+   581→          trend={null}
+   582→          accent="emerald"
+   583→        />
+   584→        <SummaryCard
+   585→          title="Paid"
+   586→          value={formatCurrency(summary.totalPaid)}
+   587→          icon={CheckCircle2}
+   588→          trend={{ value: paidPercent, label: `${paidPercent}% collected`, up: true }}
+   589→          accent="emerald"
+   590→        />
+   591→        <SummaryCard
+   592→          title="Unpaid"
+   593→          value={formatCurrency(summary.totalUnpaid)}
+   594→          icon={XCircle}
+   595→          trend={{ value: 100 - paidPercent, label: `${100 - paidPercent}% pending`, up: false }}
+   596→          accent="rose"
+   597→        />
+   598→        <SummaryCard
+   599→          title="Avg / Shift"
+   600→          value={formatCurrency(summary.averagePerShift)}
+   601→          icon={TrendingUp}
+   602→          trend={null}
+   603→          accent="amber"
+   604→        />
+   605→      </div>
+   606→
+   607→      {/* Quick Actions + Recent */}
+   608→      <div className="grid lg:grid-cols-3 gap-6">
+   609→        {/* Quick Actions */}
+   610→        <Card className="lg:col-span-1">
+   611→          <CardHeader>
+   612→            <CardTitle className="text-base">Quick Actions</CardTitle>
+   613→          </CardHeader>
+   614→          <CardContent className="space-y-3">
+   615→            <Button className="w-full justify-start gap-3" onClick={onAddShift}>
+   616→              <Plus className="w-4 h-4" /> Add New Shift
+   617→            </Button>
+   618→            <Button variant="outline" className="w-full justify-start gap-3" onClick={onViewAllShifts}>
+   619→              <CalendarDays className="w-4 h-4" /> View All Shifts
+   620→            </Button>
+   621→            <div className="pt-2">
+   622→              <div className="flex items-center justify-between text-sm mb-2">
+   623→                <span className="text-muted-foreground">Collection rate</span>
+   624→                <span className="font-semibold text-emerald-600">{paidPercent}%</span>
+   625→              </div>
+   626→              <div className="h-2 rounded-full bg-muted overflow-hidden">
+   627→                <motion.div
+   628→                  className="h-full rounded-full bg-emerald-500"
+   629→                  initial={{ width: 0 }}
+   630→                  animate={{ width: `${paidPercent}%` }}
+   631→                  transition={{ duration: 0.8, ease: "easeOut" }}
+   632→                />
+   633→              </div>
+   634→            </div>
+   635→          </CardContent>
+   636→        </Card>
+   637→
+   638→        {/* Recent Shifts */}
+   639→        <Card className="lg:col-span-2">
+   640→          <CardHeader className="flex flex-row items-center justify-between">
+   641→            <CardTitle className="text-base">Recent Shifts</CardTitle>
+   642→            <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onViewAllShifts}>
+   643→              View all <ChevronRight className="w-3.5 h-3.5" />
+   644→            </Button>
+   645→          </CardHeader>
+   646→          <CardContent>
+   647→            {recentShifts.length === 0 ? (
+   648→              <p className="text-sm text-muted-foreground text-center py-8">No shifts recorded yet</p>
+   649→            ) : (
+   650→              <div className="space-y-2">
+   651→                {recentShifts.map((shift) => (
+   652→                  <ShiftRow key={shift.id} shift={shift} onToggleStatus={onToggleStatus} compact />
+   653→                ))}
+   654→              </div>
+   655→            )}
+   656→          </CardContent>
+   657→        </Card>
+   658→      </div>
+   659→    </div>
+   660→  );
+   661→}
+   662→
+   663→// ============================================================
+   664→// Shifts Tab — Month-Grouped Grid
+   665→// ============================================================
+   666→interface ShiftsTabProps {
+   667→  monthGroups: MonthGroup[];
+   668→  isLoading: boolean;
+   669→  onToggleStatus: (shift: Shift) => void;
+   670→  onDeleteShift: (shift: Shift) => void;
+   671→}
+   672→
+   673→function ShiftsTab({ monthGroups, isLoading, onToggleStatus, onDeleteShift }: ShiftsTabProps) {
+   674→  const [filter, setFilter] = useState<"all" | "Paid" | "Unpaid">("all");
+   675→
+   676→  const filteredGroups = useMemo(() => {
+   677→    if (filter === "all") return monthGroups;
+   678→    return monthGroups.map((mg) => ({
+   679→      ...mg,
+   680→      shifts: mg.shifts.filter((s) => s.status === filter),
+   681→    })).filter((mg) => mg.shifts.length > 0);
+   682→  }, [monthGroups, filter]);
+   683→
+   684→  if (isLoading) {
+   685→    return <LoadingSkeleton />;
+   686→  }
+   687→
+   688→  return (
+   689→    <div className="space-y-6">
+   690→      {/* Filter Bar */}
+   691→      <div className="flex items-center justify-between">
+   692→        <h2 className="text-xl font-semibold tracking-tight">Shift Log</h2>
+   693→        <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+   694→          {(["all", "Paid", "Unpaid"] as const).map((f) => (
+   695→            <button
+   696→              key={f}
+   697→              onClick={() => setFilter(f)}
+   698→              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+   699→                filter === f
+   700→                  ? f === "Paid"
+   701→                    ? "bg-emerald-500 text-white shadow-sm"
+   702→                    : f === "Unpaid"
+   703→                    ? "bg-rose-500 text-white shadow-sm"
+   704→                    : "bg-background text-foreground shadow-sm"
+   705→                  : "text-muted-foreground hover:text-foreground"
+   706→              }`}
+   707→            >
+   708→              {f === "all" ? "All" : f}
+   709→            </button>
+   710→          ))}
+   711→        </div>
+   712→      </div>
+   713→
+   714→      {/* Month Groups */}
+   715→      {filteredGroups.length === 0 ? (
+   716→        <Card>
+   717→          <CardContent className="py-12 text-center">
+   718→            <p className="text-muted-foreground">No shifts found for this filter.</p>
+   719→          </CardContent>
+   720→        </Card>
+   721→      ) : (
+   722→        <div className="space-y-8">
+   723→          {filteredGroups.map((group) => (
+   724→            <MonthSection
+   725→              key={group.monthKey}
+   726→              group={group}
+   727→              onToggleStatus={onToggleStatus}
+   728→              onDeleteShift={onDeleteShift}
+   729→            />
+   730→          ))}
+   731→        </div>
+   732→      )}
+   733→    </div>
+   734→  );
+   735→}
+   736→
+   737→// ============================================================
+   738→// Month Section
+   739→// ============================================================
+   740→interface MonthSectionProps {
+   741→  group: MonthGroup;
+   742→  onToggleStatus: (shift: Shift) => void;
+   743→  onDeleteShift: (shift: Shift) => void;
+   744→}
+   745→
+   746→function MonthSection({ group, onToggleStatus, onDeleteShift }: MonthSectionProps) {
+   747→  return (
+   748→    <div>
+   749→      {/* Month Header */}
+   750→      <div className="flex items-center justify-between mb-4">
+   751→        <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
+   752→        <div className="flex items-center gap-3 text-sm">
+   753→          <span className="text-emerald-600 font-medium">{formatCurrency(group.totalEarned)}</span>
+   754→          <Separator orientation="vertical" className="h-4" />
+   755→          <span className="text-muted-foreground">
+   756→            {group.paidCount} paid / {group.unpaidCount} unpaid
+   757→          </span>
+   758→        </div>
+   759→      </div>
+   760→
+   761→      {/* Shifts Grid */}
+   762→      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+   763→        {group.shifts.map((shift, i) => (
+   764→          <ShiftCard
+   765→            key={shift.id}
+   766→            shift={shift}
+   767→            index={i}
+   768→            onToggleStatus={onToggleStatus}
+   769→            onDelete={onDeleteShift}
+   770→          />
+   771→        ))}
+   772→      </div>
+   773→    </div>
+   774→  );
+   775→}
+   776→
+   777→// ============================================================
+   778→// Shift Card — Premium design with status accent border
+   779→// ============================================================
+   780→interface ShiftCardProps {
+   781→  shift: Shift;
+   782→  index: number;
+   783→  onToggleStatus: (shift: Shift) => void;
+   784→  onDelete: (shift: Shift) => void;
+   785→}
+   786→
+   787→function ShiftCard({ shift, index, onToggleStatus, onDelete }: ShiftCardProps) {
+   788→  const isPaid = shift.status === "Paid";
+   789→  const accentColor = isPaid ? "bg-emerald-500" : "bg-rose-500";
+   790→  const statusBadgeClass = isPaid
+   791→    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
+   792→    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-400 dark:border-rose-800";
+   793→
+   794→  return (
+   795→    <motion.div
+   796→      initial={{ opacity: 0, y: 12 }}
+   797→      animate={{ opacity: 1, y: 0 }}
+   798→      transition={{ duration: 0.25, delay: index * 0.03 }}
+   799→    >
+   800→      <Card className="group relative overflow-hidden hover:shadow-md transition-shadow duration-200 py-0 gap-0">
+   801→        {/* Accent bar */}
+   802→        <div className={`h-1 w-full ${accentColor} transition-colors duration-300`} />
+   803→
+   804→        <div className="p-4 space-y-3">
+   805→          {/* Header row */}
+   806→          <div className="flex items-start justify-between gap-2">
+   807→            <div>
+   808→              <div className="flex items-center gap-1.5 mb-0.5">
+   809→                <User className="w-3.5 h-3.5 text-foreground/60" />
+   810→                <span className="text-sm font-semibold text-foreground/80">{shift.coveringFor}</span>
+   811→              </div>
+   812→              <div className="flex items-baseline gap-2">
+   813→                <span className="text-2xl font-bold tracking-tight">
+   814→                  {new Date(shift.shiftDate + "T00:00:00").getDate()}
+   815→                </span>
+   816→                <span className="text-sm text-muted-foreground">
+   817→                  {new Date(shift.shiftDate + "T00:00:00").toLocaleDateString("en-AU", { month: "short" })}
+   818→                </span>
+   819→              </div>
+   820→              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
+   821→                <MapPin className="w-3 h-3" />
+   822→                {shift.locationName}
+   823→              </div>
+   824→            </div>
+   825→            <button
+   826→              onClick={() => onDelete(shift)}
+   827→              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-rose-600"
+   828→              aria-label="Delete shift"
+   829→            >
+   830→              <Trash2 className="w-3.5 h-3.5" />
+   831→            </button>
+   832→          </div>
+   833→
+   834→          {/* Amount & Day */}
+   835→          <div className="flex items-center justify-between">
+   836→            <span className="text-lg font-semibold tabular-nums">
+   837→              {formatCurrency(parseFloat(shift.amountEarned))}
+   838→            </span>
+   839→            <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+   840→              {shift.shiftDay}
+   841→            </span>
+   842→          </div>
+   843→
+   844→          {/* Status toggle */}
+   845→          <div className="flex items-center justify-between pt-1 border-t">
+   846→            <Badge variant="outline" className={statusBadgeClass}>
+   847→              {shift.status}
+   848→            </Badge>
+   849→            <div className="flex items-center gap-1.5">
+   850→              <span className="text-xs font-medium text-muted-foreground">Toggle</span>
+   851→              <Switch
+   852→                checked={isPaid}
+   853→                onCheckedChange={() => onToggleStatus(shift)}
+   854→                className="data-[state=checked]:bg-emerald-500 data-[state=unchecked]:bg-rose-400"
+   855→              />
+   856→            </div>
+   857→          </div>
+   858→        </div>
+   859→      </Card>
+   860→    </motion.div>
+   861→  );
+   862→}
+   863→
+   864→// ============================================================
+   865→// Shift Row (for Dashboard recent list)
+   866→// ============================================================
+   867→interface ShiftRowProps {
+   868→  shift: Shift;
+   869→  onToggleStatus: (shift: Shift) => void;
+   870→  compact?: boolean;
+   871→}
+   872→
+   873→function ShiftRow({ shift, onToggleStatus, compact }: ShiftRowProps) {
+   874→  const isPaid = shift.status === "Paid";
+   875→
+   876→  return (
+   877→    <div className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
+   878→      <div className={`w-1 h-8 rounded-full ${isPaid ? "bg-emerald-500" : "bg-rose-500"}`} />
+   879→      <div className="flex-1 min-w-0">
+   880→        <div className="flex items-center gap-2">
+   881→          <span className="text-sm font-medium">{formatShortDate(shift.shiftDate)}</span>
+   882→          <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
+   883→        </div>
+   884→        <div className="flex items-center gap-2 text-xs text-muted-foreground truncate">
+   885→          <span className="flex items-center gap-1 truncate">
+   886→            <User className="w-3 h-3 shrink-0" />
+   887→            {shift.coveringFor}
+   888→          </span>
+   889→          <span className="text-border">·</span>
+   890→          <span className="truncate">{shift.locationName}</span>
+   891→        </div>
+   892→      </div>
+   893→      <span className="text-sm font-semibold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
+   894→      <button onClick={() => onToggleStatus(shift)}>
+   895→        <Badge
+   896→          variant="outline"
+   897→          className={
+   898→            isPaid
+   899→              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800 cursor-pointer"
+   900→              : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-400 dark:border-rose-800 cursor-pointer"
+   901→          }
+   902→        >
+   903→          {shift.status}
+   904→        </Badge>
+   905→      </button>
+   906→    </div>
+   907→  );
+   908→}
+   909→
+   910→// ============================================================
+   911→// Analytics Tab
+   912→// ============================================================
+   913→interface AnalyticsTabProps {
+   914→  summary: AnalyticsSummary;
+   915→  monthlyEarnings: MonthlyEarning[];
+   916→  isLoading: boolean;
+   917→}
+   918→
+   919→function AnalyticsTab({ summary, monthlyEarnings, isLoading }: AnalyticsTabProps) {
+   920→  if (isLoading) {
+   921→    return <LoadingSkeleton />;
+   922→  }
+   923→
+   924→  const chartData = [...monthlyEarnings].reverse().map((m) => ({
+   925→    month: m.monthLabel.split(" ")[0].substring(0, 3),
+   926→    paid: Math.round(m.paid),
+   927→    unpaid: Math.round(m.unpaid),
+   928→  }));
+   929→
+   930→  const pieData = [
+   931→    { name: "Paid", value: Math.round(summary.totalPaid), fill: "oklch(0.7 0.17 155)" },
+   932→    { name: "Unpaid", value: Math.round(summary.totalUnpaid), fill: "oklch(0.65 0.2 25)" },
+   933→  ];
+   934→
+   935→  return (
+   936→    <div className="space-y-6">
+   937→      {/* Overview Cards */}
+   938→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+   939→        <StatCard title="Total Shifts" value={summary.totalShifts.toString()} icon={Calendar} accent="default" />
+   940→        <StatCard title="Paid Shifts" value={summary.paidShifts.toString()} icon={CheckCircle2} accent="emerald" />
+   941→        <StatCard title="Unpaid Shifts" value={summary.unpaidShifts.toString()} icon={XCircle} accent="rose" />
+   942→        <StatCard title="Total Earned" value={formatCurrency(summary.totalEarned)} icon={CircleDollarSign} accent="emerald" />
+   943→      </div>
+   944→
+   945→      {/* Charts */}
+   946→      <div className="grid lg:grid-cols-3 gap-6">
+   947→        {/* Bar Chart */}
+   948→        <Card className="lg:col-span-2">
+   949→          <CardHeader>
+   950→            <CardTitle className="text-base">Monthly Earnings</CardTitle>
+   951→            <CardDescription>Paid vs Unpaid breakdown by month</CardDescription>
+   952→          </CardHeader>
+   953→          <CardContent>
+   954→            <ChartContainer config={CHART_CONFIG} className="h-[300px] w-full">
+   955→              <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+   956→                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+   957→                <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} />
+   958→                <YAxis tickLine={false} axisLine={false} fontSize={12} tickFormatter={(v: number) => `$${v}`} />
+   959→                <ChartTooltip content={<ChartTooltipContent />} />
+   960→                <Bar dataKey="paid" radius={[4, 4, 0, 0]} fill="var(--color-paid)" />
+   961→                <Bar dataKey="unpaid" radius={[4, 4, 0, 0]} fill="var(--color-unpaid)" />
+   962→              </BarChart>
+   963→            </ChartContainer>
+   964→          </CardContent>
+   965→        </Card>
+   966→
+   967→        {/* Pie Chart */}
+   968→        <Card>
+   969→          <CardHeader>
+   970→            <CardTitle className="text-base">Paid vs Unpaid</CardTitle>
+   971→            <CardDescription>Collection status</CardDescription>
+   972→          </CardHeader>
+   973→          <CardContent>
+   974→            <ChartContainer config={CHART_CONFIG} className="h-[220px] w-full">
+   975→              <RechartsPieChart>
+   976→                <ChartTooltip content={<ChartTooltipContent />} />
+   977→                <Pie
+   978→                  data={pieData}
+   979→                  cx="50%"
+   980→                  cy="50%"
+   981→                  innerRadius={50}
+   982→                  outerRadius={80}
+   983→                  dataKey="value"
+   984→                  strokeWidth={2}
+   985→                  stroke="var(--color-background)"
+   986→                >
+   987→                  {pieData.map((entry, index) => (
+   988→                    <Cell key={`cell-${index}`} fill={entry.fill} />
+   989→                  ))}
+   990→                </Pie>
+   991→              </RechartsPieChart>
+   992→            </ChartContainer>
+   993→            <div className="flex items-center justify-center gap-6 mt-2">
+   994→              <div className="flex items-center gap-2 text-sm">
+   995→                <div className="w-3 h-3 rounded-full" style={{ background: "oklch(0.7 0.17 155)" }} />
+   996→                Paid {formatCurrency(summary.totalPaid)}
+   997→              </div>
+   998→              <div className="flex items-center gap-2 text-sm">
+   999→                <div className="w-3 h-3 rounded-full" style={{ background: "oklch(0.65 0.2 25)" }} />
+  1000→                Unpaid {formatCurrency(summary.totalUnpaid)}
+  1001→              </div>
+  1002→            </div>
+  1003→          </CardContent>
+  1004→        </Card>
+  1005→      </div>
+  1006→
+  1007→      {/* Monthly Breakdown Table */}
+  1008→      <Card>
+  1009→        <CardHeader>
+  1010→          <CardTitle className="text-base">Monthly Breakdown</CardTitle>
+  1011→          <CardDescription>Detailed earnings by month</CardDescription>
+  1012→        </CardHeader>
+  1013→        <CardContent>
+  1014→          <div className="overflow-x-auto">
+  1015→            <table className="w-full text-sm">
+  1016→              <thead>
+  1017→                <tr className="border-b">
+  1018→                  <th className="text-left py-3 font-medium text-muted-foreground">Month</th>
+  1019→                  <th className="text-right py-3 font-medium text-muted-foreground">Shifts</th>
+  1020→                  <th className="text-right py-3 font-medium text-muted-foreground">Earned</th>
+  1021→                  <th className="text-right py-3 font-medium text-muted-foreground">Paid</th>
+  1022→                  <th className="text-right py-3 font-medium text-muted-foreground">Unpaid</th>
+  1023→                  <th className="text-right py-3 font-medium text-muted-foreground">Rate</th>
+  1024→                </tr>
+  1025→              </thead>
+  1026→              <tbody>
+  1027→                {monthlyEarnings.map((m) => {
+  1028→                  const rate = m.earned > 0 ? Math.round((m.paid / m.earned) * 100) : 0;
+  1029→                  return (
+  1030→                    <tr key={m.monthKey} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+  1031→                      <td className="py-3 font-medium">{m.monthLabel}</td>
+  1032→                      <td className="py-3 text-right tabular-nums">{m.shiftCount}</td>
+  1033→                      <td className="py-3 text-right tabular-nums font-semibold">{formatCurrency(m.earned)}</td>
+  1034→                      <td className="py-3 text-right tabular-nums text-emerald-600">{formatCurrency(m.paid)}</td>
+  1035→                      <td className="py-3 text-right tabular-nums text-rose-600">{formatCurrency(m.unpaid)}</td>
+  1036→                      <td className="py-3 text-right">
+  1037→                        <Badge
+  1038→                          variant="outline"
+  1039→                          className={
+  1040→                            rate >= 80
+  1041→                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
+  1042→                              : rate >= 50
+  1043→                              ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950 dark:text-amber-400 dark:border-amber-800"
+  1044→                              : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-400 dark:border-rose-800"
+  1045→                          }
+  1046→                        >
+  1047→                          {rate}%
+  1048→                        </Badge>
+  1049→                      </td>
+  1050→                    </tr>
+  1051→                  );
+  1052→                })}
+  1053→              </tbody>
+  1054→            </table>
+  1055→          </div>
+  1056→        </CardContent>
+  1057→      </Card>
+  1058→    </div>
+  1059→  );
+  1060→}
+  1061→
+  1062→// ============================================================
+  1063→// Reusable Sub-Components
+  1064→// ============================================================
+  1065→
+  1066→interface SummaryCardProps {
+  1067→  title: string;
+  1068→  value: string;
+  1069→  icon: React.ElementType;
+  1070→  trend: { value: number; label: string; up: boolean } | null;
+  1071→  accent: "emerald" | "rose" | "amber";
+  1072→}
+  1073→
+  1074→function SummaryCard({ title, value, icon: Icon, trend, accent }: SummaryCardProps) {
+  1075→  const accentClasses = {
+  1076→    emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+  1077→    rose: "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400",
+  1078→    amber: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
+  1079→  };
+  1080→
+  1081→  return (
+  1082→    <Card className="py-0 gap-0">
+  1083→      <CardContent className="p-4 sm:p-5">
+  1084→        <div className="flex items-start justify-between">
+  1085→          <div className="space-y-1">
+  1086→            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
+  1087→            <p className="text-xl sm:text-2xl font-bold tracking-tight tabular-nums">{value}</p>
+  1088→          </div>
+  1089→          <div className={`p-2 rounded-lg ${accentClasses[accent]}`}>
+  1090→            <Icon className="w-4 h-4" />
+  1091→          </div>
+  1092→        </div>
+  1093→        {trend && (
+  1094→          <div className="flex items-center gap-1 mt-2 text-xs">
+  1095→            {trend.up ? (
+  1096→              <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+  1097→            ) : (
+  1098→              <ArrowDownRight className="w-3 h-3 text-rose-600" />
+  1099→            )}
+  1100→            <span className={trend.up ? "text-emerald-600" : "text-rose-600"}>{trend.label}</span>
+  1101→          </div>
+  1102→        )}
+  1103→      </CardContent>
+  1104→    </Card>
+  1105→  );
+  1106→}
+  1107→
+  1108→interface StatCardProps {
+  1109→  title: string;
+  1110→  value: string;
+  1111→  icon: React.ElementType;
+  1112→  accent: "default" | "emerald" | "rose";
+  1113→}
+  1114→
+  1115→function StatCard({ title, value, icon: Icon, accent }: StatCardProps) {
+  1116→  const iconClass = {
+  1117→    default: "bg-muted text-muted-foreground",
+  1118→    emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+  1119→    rose: "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400",
+  1120→  };
+  1121→
+  1122→  return (
+  1123→    <Card className="py-0 gap-0">
+  1124→      <CardContent className="p-4 flex items-center gap-3">
+  1125→        <div className={`p-2 rounded-lg ${iconClass[accent]}`}>
+  1126→          <Icon className="w-4 h-4" />
+  1127→        </div>
+  1128→        <div>
+  1129→          <p className="text-xs text-muted-foreground">{title}</p>
+  1130→          <p className="text-lg font-bold tracking-tight tabular-nums">{value}</p>
+  1131→        </div>
+  1132→      </CardContent>
+  1133→    </Card>
+  1134→  );
+  1135→}
+  1136→
+  1137→// ============================================================
+  1138→// Add Shift Dialog
+  1139→// ============================================================
+  1140→interface AddShiftDialogProps {
+  1141→  open: boolean;
+  1142→  onOpenChange: (open: boolean) => void;
+  1143→  formCoveringFor: string;
+  1144→  formDate: string;
+  1145→  formLocation: string;
+  1146→  formAmount: string;
+  1147→  formStatus: ShiftStatus;
+  1148→  setFormCoveringFor: (v: string) => void;
+  1149→  setFormDate: (v: string) => void;
+  1150→  setFormLocation: (v: string) => void;
+  1151→  setFormAmount: (v: string) => void;
+  1152→  setFormStatus: (v: ShiftStatus) => void;
+  1153→  onSubmit: () => void;
+  1154→  isSubmitting: boolean;
+  1155→}
+  1156→
+  1157→function AddShiftDialog({
+  1158→  open,
+  1159→  onOpenChange,
+  1160→  formCoveringFor,
+  1161→  formDate,
+  1162→  formLocation,
+  1163→  formAmount,
+  1164→  formStatus,
+  1165→  setFormCoveringFor,
+  1166→  setFormDate,
+  1167→  setFormLocation,
+  1168→  setFormAmount,
+  1169→  setFormStatus,
+  1170→  onSubmit,
+  1171→  isSubmitting,
+  1172→}: AddShiftDialogProps) {
+  1173→  return (
+  1174→    <Dialog open={open} onOpenChange={onOpenChange}>
+  1175→      <DialogContent className="sm:max-w-md">
+  1176→        <DialogHeader>
+  1177→          <DialogTitle>Add New Shift</DialogTitle>
+  1178→          <DialogDescription>Record a new work shift — who you're covering for, location and earnings.</DialogDescription>
+  1179→        </DialogHeader>
+  1180→        <div className="space-y-4 py-2">
+  1181→          <div className="space-y-2">
+  1182→            <Label htmlFor="covering-for">Covering For</Label>
+  1183→            <Select value={formCoveringFor} onValueChange={setFormCoveringFor}>
+  1184→              <SelectTrigger id="covering-for" className="w-full">
+  1185→                <SelectValue placeholder="Select person" />
+  1186→              </SelectTrigger>
+  1187→              <SelectContent>
+  1188→                {COVER_NAMES.map((name) => (
+  1189→                  <SelectItem key={name} value={name}>
+  1190→                    {name}
+  1191→                  </SelectItem>
+  1192→                ))}
+  1193→              </SelectContent>
+  1194→            </Select>
+  1195→          </div>
+  1196→          <div className="space-y-2">
+  1197→            <Label htmlFor="shift-date">Date</Label>
+  1198→            <Input
+  1199→              id="shift-date"
+  1200→              type="date"
+  1201→              value={formDate}
+  1202→              onChange={(e) => setFormDate(e.target.value)}
+  1203→            />
+  1204→          </div>
+  1205→          <div className="space-y-2">
+  1206→            <Label htmlFor="location">Location</Label>
+  1207→            <Select value={formLocation} onValueChange={setFormLocation}>
+  1208→              <SelectTrigger id="location" className="w-full">
+  1209→                <SelectValue placeholder="Select location" />
+  1210→              </SelectTrigger>
+  1211→              <SelectContent>
+  1212→                {LOCATIONS.map((loc) => (
+  1213→                  <SelectItem key={loc} value={loc}>
+  1214→                    {loc}
+  1215→                  </SelectItem>
+  1216→                ))}
+  1217→              </SelectContent>
+  1218→            </Select>
+  1219→          </div>
+  1220→          <div className="space-y-2">
+  1221→            <Label htmlFor="amount">Amount Earned ($)</Label>
+  1222→            <Input
+  1223→              id="amount"
+  1224→              type="number"
+  1225→              step="0.01"
+  1226→              min="0"
+  1227→              placeholder="0.00"
+  1228→              value={formAmount}
+  1229→              onChange={(e) => setFormAmount(e.target.value)}
+  1230→            />
+  1231→          </div>
+  1232→          <div className="space-y-2">
+  1233→            <Label>Payment Status</Label>
+  1234→            <div className="flex items-center gap-3">
+  1235→              <Select value={formStatus} onValueChange={(v: string) => setFormStatus(v as ShiftStatus)}>
+  1236→                <SelectTrigger className="w-full">
+  1237→                  <SelectValue />
+  1238→                </SelectTrigger>
+  1239→                <SelectContent>
+  1240→                  <SelectItem value="Unpaid">Unpaid</SelectItem>
+  1241→                  <SelectItem value="Paid">Paid</SelectItem>
+  1242→                </SelectContent>
+  1243→              </Select>
+  1244→            </div>
+  1245→          </div>
+  1246→        </div>
+  1247→        <DialogFooter>
+  1248→          <DialogClose asChild>
+  1249→            <Button variant="outline">Cancel</Button>
+  1250→          </DialogClose>
+  1251→          <Button onClick={onSubmit} disabled={isSubmitting}>
+  1252→            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Plus className="w-4 h-4 mr-1.5" />}
+  1253→            Add Shift
+  1254→          </Button>
+  1255→        </DialogFooter>
+  1256→      </DialogContent>
+  1257→    </Dialog>
+  1258→  );
+  1259→}
+  1260→
+  1261→// ============================================================
+  1262→// Delete Shift Dialog
+  1263→// ============================================================
+  1264→interface DeleteShiftDialogProps {
+  1265→  open: boolean;
+  1266→  onOpenChange: (open: boolean) => void;
+  1267→  shift: Shift | null;
+  1268→  onConfirm: () => void;
+  1269→}
+  1270→
+  1271→function DeleteShiftDialog({ open, onOpenChange, shift, onConfirm }: DeleteShiftDialogProps) {
+  1272→  return (
+  1273→    <Dialog open={open} onOpenChange={onOpenChange}>
+  1274→      <DialogContent className="sm:max-w-md">
+  1275→        <DialogHeader>
+  1276→          <DialogTitle>Delete Shift</DialogTitle>
+  1277→          <DialogDescription>
+  1278→            Are you sure you want to delete the shift on{" "}
+  1279→            {shift ? formatFullDate(shift.shiftDate) : ""} at {shift?.locationName}? This action cannot be undone.
+  1280→          </DialogDescription>
+  1281→        </DialogHeader>
+  1282→        <DialogFooter>
+  1283→          <DialogClose asChild>
+  1284→            <Button variant="outline">Cancel</Button>
+  1285→          </DialogClose>
+  1286→          <Button variant="destructive" onClick={onConfirm} className="gap-1.5">
+  1287→            <Trash2 className="w-4 h-4" /> Delete
+  1288→          </Button>
+  1289→        </DialogFooter>
+  1290→      </DialogContent>
+  1291→    </Dialog>
+  1292→  );
+  1293→}
+  1294→
+  1295→// ============================================================
+  1296→// Loading Skeleton
+  1297→// ============================================================
+  1298→function LoadingSkeleton() {
+  1299→  return (
+  1300→    <div className="space-y-6 animate-pulse">
+  1301→      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  1302→        {Array.from({ length: 4 }).map((_, i) => (
+  1303→          <div key={i} className="h-24 rounded-xl bg-muted" />
+  1304→        ))}
+  1305→      </div>
+  1306→      <div className="grid lg:grid-cols-3 gap-6">
+  1307→        <div className="h-48 rounded-xl bg-muted" />
+  1308→        <div className="lg:col-span-2 h-48 rounded-xl bg-muted" />
+  1309→      </div>
+  1310→    </div>
+  1311→  );
+  1312→}
+  1313→
