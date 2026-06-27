@@ -245,7 +245,7 @@ export function DashboardTab({
                           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
                           <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
                         </div>
-                        <AnimatedNumber value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" />
+                        <AnimatedCurrency value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" duration={600} />
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -357,7 +357,7 @@ export function DashboardTab({
                               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
                               <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
                             </div>
-                            <AnimatedNumber value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" />
+                            <AnimatedCurrency value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" duration={600} />
                           </CardContent>
                         </Card>
                       </motion.div>
