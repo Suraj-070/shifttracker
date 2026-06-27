@@ -29,6 +29,7 @@ import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
 
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useTabSwipe } from "@/hooks/use-tab-swipe";
 import {
   isStationShift,
 } from "@/types/database.types";
@@ -76,23 +77,56 @@ export default function ShiftTrackerPage() {
   }, [status, router]);
 
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
-  // ── Android back button — intercept to navigate tabs ───────
-  // Push a history entry whenever we move away from dashboard.
-  // On back press, popstate fires → we go back to dashboard.
+  // Tab order for swipe navigation (mobile only — no analytics)
+  const MOBILE_TABS: TabKey[] = ["dashboard", "shifts", "profile", "settings"];
+
   const navigateTab = useCallback((key: TabKey) => {
     if (key === "dashboard") {
-      // Always set tab immediately — history.back() may not fire popstate
-      // if there's no history entry (e.g. fresh app open)
+      setSwipeDirection("right");
       setActiveTab("dashboard");
       if (window.history.state?.shiftTrackerTab) {
         window.history.back();
       }
     } else {
+      setSwipeDirection("left");
       window.history.pushState({ shiftTrackerTab: key }, "");
       setActiveTab(key);
     }
   }, []);
+
+  const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
+    setSwipeDirection(direction);
+    if (key === "dashboard") {
+      setActiveTab("dashboard");
+      if (window.history.state?.shiftTrackerTab) window.history.back();
+    } else {
+      window.history.pushState({ shiftTrackerTab: key }, "");
+      setActiveTab(key);
+    }
+  }, []);
+
+  // Swipe left → next tab, swipe right → prev tab
+  useTabSwipe({
+    disabled: !isMobile,
+    onSwipeLeft: () => {
+      const tabs = MOBILE_TABS;
+      const idx = tabs.indexOf(activeTab);
+      if (idx < tabs.length - 1) {
+        haptics(6);
+        navigateTabWithDirection(tabs[idx + 1], "left");
+      }
+    },
+    onSwipeRight: () => {
+      const tabs = MOBILE_TABS;
+      const idx = tabs.indexOf(activeTab);
+      if (idx > 0) {
+        haptics(6);
+        navigateTabWithDirection(tabs[idx - 1], "right");
+      }
+    },
+  });
 
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
@@ -399,16 +433,8 @@ export default function ShiftTrackerPage() {
     [hallShifts],
   );
 
-  // show spinner while session loads
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
-  // prevent flash while redirecting
+  // Don't block render on session loading — show skeleton immediately
+  // Only redirect once we KNOW user is unauthenticated
   if (status === "unauthenticated") return null;
 
   if (!isLoading && shifts.length === 0) {
@@ -495,7 +521,11 @@ export default function ShiftTrackerPage() {
                   return (
                     <button
                       key={tab.key}
-                      onClick={() => navigateTab(tab.key as TabKey)}
+                      onClick={() => {
+                        const allTabs: TabKey[] = ["dashboard", "shifts", "analytics", "profile", "settings"];
+                        const dir = allTabs.indexOf(tab.key as TabKey) > allTabs.indexOf(activeTab) ? "left" : "right";
+                        navigateTabWithDirection(tab.key as TabKey, dir);
+                      }}
                       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                         isActive
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
@@ -513,7 +543,7 @@ export default function ShiftTrackerPage() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 pb-28 md:py-6 md:pb-6">
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 pb-28 md:py-6 md:pb-6 overflow-x-hidden">
           {/* Pull to refresh indicator */}
           {isMobile && (isPulling || isRefreshing) && (
             <div className="flex items-center justify-center py-3 mb-2">
@@ -525,37 +555,49 @@ export default function ShiftTrackerPage() {
               />
             </div>
           )}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false} custom={swipeDirection}>
             {activeTab === "dashboard" && (
               <motion.div
                 key="dashboard"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <DashboardTab
                   summary={summary}
                   recentShifts={recentShifts}
                   stationShifts={stationShifts}
-                  isLoading={isLoading}
+                  isLoading={isLoading || status === "loading"}
                   onToggleStatus={toggleStatus}
                   onAddShift={() => setAddDialogOpen(true)}
-                  onViewAllShifts={() => navigateTab("shifts")}
+                  onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
                 />
               </motion.div>
             )}
             {activeTab === "shifts" && (
               <motion.div
                 key="shifts"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <ShiftsTab
                   shifts={shifts}
-                  isLoading={isLoading}
+                  isLoading={isLoading || status === "loading"}
                   onToggleStatus={toggleStatus}
                   onBulkPaid={handleBulkPaid}
                   onDeleteShift={(shift) => {
@@ -576,29 +618,41 @@ export default function ShiftTrackerPage() {
             {activeTab === "analytics" && (
               <motion.div
                 key="analytics"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <AnalyticsTab
                   summary={summary}
                   monthlyEarnings={monthlyEarnings}
-                  isLoading={isLoading}
+                  isLoading={isLoading || status === "loading"}
                 />
               </motion.div>
             )}
             {activeTab === "profile" && (
               <motion.div
                 key="profile"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <ProfileTab
                   profile={profile}
-                  isLoading={isLoading}
+                  isLoading={isLoading || status === "loading"}
                   onRefresh={fetchProfile}
                   totalShifts={summary.totalShifts}
                   totalEarnings={summary.totalEarned}
@@ -608,10 +662,16 @@ export default function ShiftTrackerPage() {
             {activeTab === "settings" && (
               <motion.div
                 key="settings"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <SettingsTab />
               </motion.div>
@@ -629,7 +689,11 @@ export default function ShiftTrackerPage() {
                 : undefined,
             }))}
             activeTab={activeTab}
-            onTabChange={(key) => navigateTab(key as TabKey)}
+            onTabChange={(key) => {
+              const tabs: TabKey[] = ["dashboard", "shifts", "profile", "settings"];
+              const dir = tabs.indexOf(key as TabKey) > tabs.indexOf(activeTab) ? "left" : "right";
+              navigateTabWithDirection(key as TabKey, dir);
+            }}
           />
         )}
 
