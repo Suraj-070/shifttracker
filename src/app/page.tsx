@@ -26,7 +26,6 @@ import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
 import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
 import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
-import { SuccessBurst } from "@/components/shift-tracker/success-burst";
 
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
@@ -160,7 +159,6 @@ export default function ShiftTrackerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("Shift added!");
 
   // Fetch shifts
   const fetchShifts = useCallback(async () => {
@@ -698,13 +696,6 @@ export default function ShiftTrackerPage() {
             }}
           />
         )}
-
-        {/* Success burst */}
-        <SuccessBurst
-          show={showSuccessBurst}
-          message={successMessage}
-          onDone={() => setShowSuccessBurst(false)}
-        />
 
         {/* Success burst overlay */}
         {showSuccessBurst && (
