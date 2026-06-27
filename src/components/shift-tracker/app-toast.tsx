@@ -53,7 +53,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
   const idRef = useRef(0);
 
   const showToast = useCallback((data: ToastData) => {
-    clearTimeout(timerRef.current);
+    if (timerRef.current) clearTimeout(timerRef.current);
     const id = ++idRef.current;
     setToast({ ...data, id });
     timerRef.current = setTimeout(() => {
@@ -62,7 +62,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const dismiss = () => {
-    clearTimeout(timerRef.current);
+    if (timerRef.current) clearTimeout(timerRef.current);
     setToast(null);
   };
 
