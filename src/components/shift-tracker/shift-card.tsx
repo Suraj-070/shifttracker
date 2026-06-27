@@ -254,13 +254,11 @@ export function ShiftCard({
               onClick={() => { haptics(6); onEdit(shift); }}>
               <Pencil className="w-3.5 h-3.5" /> Edit
             </Button>
-            {!isMobile && (
-              <Button variant="ghost" size="sm"
+            <Button variant="ghost" size="sm"
                 className="h-9 gap-1.5 text-xs flex-1 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
-                onClick={() => onDelete(shift)}>
+                onClick={() => { haptics(12); onDelete(shift); }}>
                 <Trash2 className="w-3.5 h-3.5" /> Delete
               </Button>
-            )}
           </div>
         </div>
       </div>

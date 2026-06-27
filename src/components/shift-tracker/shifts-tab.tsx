@@ -538,105 +538,129 @@ export function ShiftsTab({
         )}
       </AnimatePresence>
 
-      {/* Content */}
-      <AnimatePresence mode="wait">
+      {/* Content — no nested AnimatePresence to avoid mobile lag */}
+      <AnimatePresence mode="wait" initial={false}>
         {shiftKind === "hall" ? (
-          <motion.div key="hall" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <motion.div
+            key="hall"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+          >
             {filteredHall.length === 0 ? (
-              <Card><CardContent className="py-12 text-center"><p className="text-muted-foreground">{selectedPerson !== "__all__" ? `No shifts found for ${shortName(selectedPerson, allNames)}.` : "No hall shifts found."}</p></CardContent></Card>
-            ) : (
-              <AnimatePresence mode="wait">
-                {viewMode === "card" && (
-                  <motion.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <div className="space-y-8">
-                      {hallMonthGroups.map((group) => (
-                        <div key={group.monthKey}>
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
-                            <div className="flex items-center gap-3 text-sm">
-                              <span className="text-primary font-medium">{formatCurrency(group.totalEarned)}</span>
-                              <Separator orientation="vertical" className="h-4" />
-                              <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {group.shifts.map((shift, i) => (
-                              <SelectableCard
-                                key={shift.id}
-                                shift={shift}
-                                index={i}
-                                selected={hallSelected.has(shift.id)}
-                                selecting={hallSelecting}
-                                onToggle={() => toggleHallSelect(shift.id)}
-                                onToggleStatus={onToggleStatus}
-                                onDelete={onDeleteShift}
-                                onEdit={onEditShift}
-                              />
-                            ))}
-                          </div>
-                        </div>
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">
+                    {selectedPerson !== "__all__"
+                      ? `No shifts found for ${shortName(selectedPerson, allNames)}.`
+                      : "No hall shifts found."}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : viewMode === "card" ? (
+              <div className="space-y-8">
+                {hallMonthGroups.map((group) => (
+                  <div key={group.monthKey}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="text-primary font-medium">{formatCurrency(group.totalEarned)}</span>
+                        <Separator orientation="vertical" className="h-4" />
+                        <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {group.shifts.map((shift, i) => (
+                        <SelectableCard
+                          key={shift.id}
+                          shift={shift}
+                          index={i}
+                          selected={hallSelected.has(shift.id)}
+                          selecting={hallSelecting}
+                          onToggle={() => toggleHallSelect(shift.id)}
+                          onToggleStatus={onToggleStatus}
+                          onDelete={onDeleteShift}
+                          onEdit={onEditShift}
+                        />
                       ))}
                     </div>
-                  </motion.div>
-                )}
-                {viewMode === "list" && (
-                  <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <SelectableListView monthGroups={hallMonthGroups} selected={hallSelected} selecting={hallSelecting} onToggle={toggleHallSelect} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
-                  </motion.div>
-                )}
-                {viewMode === "table" && (
-                  <motion.div key="table" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <ShiftTableView shifts={filteredHall} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+            ) : viewMode === "list" ? (
+              <SelectableListView
+                monthGroups={hallMonthGroups}
+                selected={hallSelected}
+                selecting={hallSelecting}
+                onToggle={toggleHallSelect}
+                onToggleStatus={onToggleStatus}
+                onDelete={onDeleteShift}
+                onEdit={onEditShift}
+              />
+            ) : (
+              <ShiftTableView
+                shifts={filteredHall}
+                onToggleStatus={onToggleStatus}
+                onDelete={onDeleteShift}
+                onEdit={onEditShift}
+              />
             )}
           </motion.div>
         ) : (
-          <motion.div key="station" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+          <motion.div
+            key="station"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+          >
             {filteredStation.length === 0 ? (
-              <Card><CardContent className="py-12 text-center"><p className="text-muted-foreground">No station shifts found.</p></CardContent></Card>
-            ) : (
-              <AnimatePresence mode="wait">
-                {viewMode === "card" && (
-                  <motion.div key="card" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <div className="space-y-8">
-                      {stationMonthGroups.map((group) => (
-                        <div key={group.monthKey}>
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
-                            <div className="flex items-center gap-3 text-sm">
-                              <span className="text-blue-600 dark:text-blue-400 font-medium">{formatCurrency(group.totalEarned)}</span>
-                              <Separator orientation="vertical" className="h-4" />
-                              <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {group.shifts.map((shift, i) => (
-                              <SelectableCard
-                                key={shift.id}
-                                shift={shift}
-                                index={i}
-                                selected={stationSelected.has(shift.id)}
-                                selecting={stationSelecting}
-                                onToggle={() => toggleStationSelect(shift.id)}
-                                onToggleStatus={onToggleStatus}
-                                onDelete={onDeleteShift}
-                                onEdit={onEditShift}
-                              />
-                            ))}
-                          </div>
-                        </div>
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground">No station shifts found.</p>
+                </CardContent>
+              </Card>
+            ) : viewMode === "card" ? (
+              <div className="space-y-8">
+                {stationMonthGroups.map((group) => (
+                  <div key={group.monthKey}>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="text-blue-600 dark:text-blue-400 font-medium">{formatCurrency(group.totalEarned)}</span>
+                        <Separator orientation="vertical" className="h-4" />
+                        <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {group.shifts.map((shift, i) => (
+                        <SelectableCard
+                          key={shift.id}
+                          shift={shift}
+                          index={i}
+                          selected={stationSelected.has(shift.id)}
+                          selecting={stationSelecting}
+                          onToggle={() => toggleStationSelect(shift.id)}
+                          onToggleStatus={onToggleStatus}
+                          onDelete={onDeleteShift}
+                          onEdit={onEditShift}
+                        />
                       ))}
                     </div>
-                  </motion.div>
-                )}
-                {(viewMode === "list" || viewMode === "table") && (
-                  <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-                    <SelectableListView monthGroups={stationMonthGroups} selected={stationSelected} selecting={stationSelecting} onToggle={toggleStationSelect} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <SelectableListView
+                monthGroups={stationMonthGroups}
+                selected={stationSelected}
+                selecting={stationSelecting}
+                onToggle={toggleStationSelect}
+                onToggleStatus={onToggleStatus}
+                onDelete={onDeleteShift}
+                onEdit={onEditShift}
+              />
             )}
           </motion.div>
         )}
