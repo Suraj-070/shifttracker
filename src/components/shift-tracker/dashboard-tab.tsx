@@ -18,39 +18,44 @@ import type { Shift, AnalyticsSummary } from "@/types/database.types";
 
 // ─── Fortnight logic ─────────────────────────────────────────────────────────
 //
-// Anchor: 25 June 2026 = payslip Wednesday
+// Anchor: Wed 24 Jun 2026 = actual payslip Wednesday (verified)
 // Period: Wednesday → Tuesday (14 days)
-//   - Work done Wed 11 Jun → Tue 24 Jun
-//   - Payslip issued Wed 25 Jun (covers up to Tue 24 Jun)
-//   - Pay arrives Thu 26 Jun
+//   - Work period idx 0: Wed 10 Jun → Tue 23 Jun | payslip Wed 24 Jun | pay Thu 25 Jun
+//   - Work period idx 1: Wed 24 Jun → Tue 7 Jul  | payslip Wed 8 Jul  | pay Thu 9 Jul
 //
-// So the WORK period ends on TUESDAY before the payslip Wednesday.
-// ANCHOR_WORK_END = Tuesday 24 Jun 2026 (day before payslip)
+// Formula:
+//   payslip(idx) = ANCHOR + idx * 14
+//   start(idx)   = payslip(idx) - 14   (Wednesday, 2 weeks before payslip)
+//   end(idx)     = payslip(idx) - 1    (Tuesday, day before payslip)
+//   pay(idx)     = payslip(idx) + 1    (Thursday, day after payslip)
 
-const ANCHOR_WORK_END = new Date("2026-06-24T00:00:00"); // Tuesday before payslip Wed
+const ANCHOR_PAYSLIP = new Date("2026-06-24T00:00:00"); // Wednesday 24 Jun 2026
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const FORTNIGHT_MS = 14 * DAY_MS;
 
-function fortnightIndexForDate(date: Date): number {
-  const msSinceAnchorEnd = date.getTime() - ANCHOR_WORK_END.getTime();
-  if (msSinceAnchorEnd <= 0) {
-    return Math.floor(msSinceAnchorEnd / FORTNIGHT_MS);
-  }
-  return Math.floor(msSinceAnchorEnd / FORTNIGHT_MS) + 1;
+function fortnightBounds(index: number): { start: Date; end: Date; payslipDate: Date; payDate: Date } {
+  const payslipMs = ANCHOR_PAYSLIP.getTime() + index * FORTNIGHT_MS;
+  return {
+    payslipDate: new Date(payslipMs),                    // Wednesday
+    start:       new Date(payslipMs - FORTNIGHT_MS),     // Wednesday 2 weeks before
+    end:         new Date(payslipMs - DAY_MS),           // Tuesday before payslip
+    payDate:     new Date(payslipMs + DAY_MS),           // Thursday after payslip
+  };
 }
 
-function fortnightBounds(index: number): { start: Date; end: Date; payslipDate: Date; payDate: Date } {
-  // Work period: end = ANCHOR_WORK_END + index*14 (Tuesday)
-  //              start = end - 13 (Wednesday 2 weeks prior)
-  // Payslip: day after work end (Wednesday)
-  // Pay arrives: 2 days after work end (Thursday)
-  const endMs = ANCHOR_WORK_END.getTime() + index * FORTNIGHT_MS;
-  const end = new Date(endMs);           // Tuesday — last work day
-  const start = new Date(endMs - 13 * DAY_MS); // Wednesday — first work day
-  const payslipDate = new Date(endMs + DAY_MS);     // Wednesday after work end
-  const payDate = new Date(endMs + 2 * DAY_MS);     // Thursday
-  return { start, end, payslipDate, payDate };
+function fortnightIndexForDate(date: Date): number {
+  // Which index does this date fall into?
+  // date is in period idx N if: start(N) <= date <= end(N)
+  // start(N) = ANCHOR + N*14 - 14, end(N) = ANCHOR + N*14 - 1
+  // => ANCHOR + (N-1)*14 <= date <= ANCHOR + N*14 - 1
+  // => (date - ANCHOR) / 14 gives fractional index, ceil it
+  const msSinceAnchor = date.getTime() - ANCHOR_PAYSLIP.getTime();
+  // Days since anchor (can be negative for past periods)
+  const daysSinceAnchor = msSinceAnchor / DAY_MS;
+  // Index: anchor period (idx 0) covers days -14 to -1 relative to anchor
+  // idx 1 covers days 0 to 13, idx 2 covers 14 to 27, etc.
+  return Math.floor(daysSinceAnchor / 14) + 1;
 }
 
 function isInFortnight(shiftDate: string, index: number): boolean {
@@ -72,9 +77,7 @@ function daysUntil(d: Date): number {
 function currentFortnightIndex(): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const diff = today.getTime() - ANCHOR_WORK_END.getTime();
-  if (diff <= 0) return 0;
-  return Math.floor(diff / FORTNIGHT_MS) + 1;
+  return fortnightIndexForDate(today);
 }
 
 interface FortnightData {
