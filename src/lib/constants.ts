@@ -13,3 +13,18 @@ export const CHART_CONFIG = {
   unpaid: { label: 'Unpaid', color: 'oklch(0.65 0.2 25)' },
   earned: { label: 'Earned', color: 'oklch(0.7 0.17 155)' },
 } as const
+
+// ============================================
+// Station Cleaning — Level 1 Casual rates
+// ============================================
+
+export const STATION_RATES = {
+  Afternoon: 36.19,  // weekday afternoon rate
+  Saturday: 45.24,
+  Sunday: 58.16,
+} as const
+
+export type StationRateKey = keyof typeof STATION_RATES
+
+/** Estimated tax rate (~18.6% from payslip) */
+export const STATION_TAX_RATE = 0.186

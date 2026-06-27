@@ -10,10 +10,8 @@ import {
   Settings,
   Plus,
   Clock,
-  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeProvider } from "next-themes";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -29,6 +27,11 @@ import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
 import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
 
+import { useHaptics } from "@/hooks/use-haptics";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import {
+  isStationShift,
+} from "@/types/database.types";
 import type {
   Shift,
   ShiftStatus,
@@ -63,21 +66,49 @@ const TABS: TabConfig[] = [
 export default function ShiftTrackerPage() {
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const haptics = useHaptics();
   const { status } = useSession();
   const router = useRouter();
 
-  // FIX: redirect if not authenticated
+  // redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
+
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
+
+  // ── Android back button — intercept to navigate tabs ───────
+  // Push a history entry whenever we move away from dashboard.
+  // On back press, popstate fires → we go back to dashboard.
+  const navigateTab = useCallback((key: TabKey) => {
+    if (key === "dashboard") {
+      // Always set tab immediately — history.back() may not fire popstate
+      // if there's no history entry (e.g. fresh app open)
+      setActiveTab("dashboard");
+      if (window.history.state?.shiftTrackerTab) {
+        window.history.back();
+      }
+    } else {
+      window.history.pushState({ shiftTrackerTab: key }, "");
+      setActiveTab(key);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // Back was pressed — always go to dashboard
+      setActiveTab("dashboard");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Redirect away from analytics on mobile
   useEffect(() => {
     if (isMobile && activeTab === "analytics") {
-      setActiveTab("dashboard");
+      navigateTab("dashboard");
     }
-  }, [isMobile, activeTab]);
+  }, [isMobile, activeTab, navigateTab]);
 
   // Data state
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -136,6 +167,7 @@ export default function ShiftTrackerPage() {
     async (shift: Shift) => {
       const newStatus: ShiftStatus =
         shift.status === "Paid" ? "Unpaid" : "Paid";
+      haptics(8);
       setShifts((prev) =>
         prev.map((s) => (s.id === shift.id ? { ...s, status: newStatus } : s)),
       );
@@ -182,9 +214,12 @@ export default function ShiftTrackerPage() {
           const data = await res.json();
           setShifts((prev) => [data.shift, ...prev]);
           setAddDialogOpen(false);
+          haptics(15);
           toast({
             title: "Shift added!",
-            description: `${input.coveringFor} @ ${input.locationName}`,
+            description: isStationShift(data.shift)
+              ? `Station: ${data.shift.coveringFor}`
+              : `${input.coveringFor} @ ${input.locationName}`,
           });
           await fetchProfile();
         }
@@ -239,60 +274,96 @@ export default function ShiftTrackerPage() {
 
   // Delete shift
   const handleDeleteShift = useCallback(async () => {
-  if (!shiftToDelete) return;
-  try {
-    const res = await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
-    if (res.ok) {
-      setShifts((prev) => prev.filter((s) => s.id !== shiftToDelete.id));
-      toast({ title: "Shift deleted", description: "The shift has been removed." });
-      await fetchProfile();
-    } else {
-      const data = await res.json().catch(() => null);
-      toast({
-        title: "Couldn't delete shift",
-        description: data?.error ?? `Server responded with ${res.status}.`,
-        variant: "destructive",
-      });
+    if (!shiftToDelete) return;
+    try {
+      const res = await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setShifts((prev) => prev.filter((s) => s.id !== shiftToDelete.id));
+        haptics(20);
+        toast({ title: "Shift deleted", description: "The shift has been removed." });
+        await fetchProfile();
+      } else {
+        const data = await res.json().catch(() => null);
+        toast({
+          title: "Couldn't delete shift",
+          description: data?.error ?? `Server responded with ${res.status}.`,
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to delete shift", variant: "destructive" });
+    } finally {
+      setDeleteDialogOpen(false);
+      setShiftToDelete(null);
     }
-  } catch {
-    toast({ title: "Error", description: "Failed to delete shift", variant: "destructive" });
-  } finally {
-    setDeleteDialogOpen(false);
-    setShiftToDelete(null);
-  }
-}, [shiftToDelete, toast, fetchProfile]);
+  }, [shiftToDelete, toast, fetchProfile]);
 
-  // Computed values
+  // Bulk paid
+  const handleBulkPaid = useCallback(async (ids: string[]) => {
+    try {
+      const res = await fetch("/api/shifts/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status: "Paid" }),
+      });
+      if (res.ok) {
+        setShifts((prev) =>
+          prev.map((s) => ids.includes(s.id) ? { ...s, status: "Paid" as const } : s)
+        );
+        toast({ title: `${ids.length} shift${ids.length !== 1 ? "s" : ""} marked as Paid` });
+        await fetchProfile();
+      } else {
+        toast({ title: "Failed to bulk update", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Error", description: "Failed to bulk update shifts", variant: "destructive" });
+    }
+  }, [toast, fetchProfile]);
+
+  const handlePullRefresh = useCallback(async () => {
+    haptics(10);
+    await fetchShifts();
+    await fetchProfile();
+  }, [haptics, fetchShifts, fetchProfile]);
+
+  const { isPulling, isRefreshing, pullProgress } = usePullToRefresh(handlePullRefresh);
+
+  // ── Split shifts: hall vs station ──────────────────────────
+  const hallShifts = useMemo(
+    () => shifts.filter((s) => !isStationShift(s)),
+    [shifts],
+  );
+  const stationShifts = useMemo(
+    () => shifts.filter(isStationShift),
+    [shifts],
+  );
+
+  // ── Computed values (hall shifts only) ─────────────────────
   const summary = useMemo<AnalyticsSummary>(() => {
-    const totalEarned = shifts.reduce(
+    const totalEarned = hallShifts.reduce(
       (s, sh) => s + parseFloat(sh.amountEarned),
       0,
     );
-    const paidShifts = shifts.filter((s) => s.status === "Paid");
-    const unpaidShifts = shifts.filter((s) => s.status === "Unpaid");
+    const paidShifts = hallShifts.filter((s) => s.status === "Paid");
+    const unpaidShifts = hallShifts.filter((s) => s.status === "Unpaid");
     return {
       totalEarned,
-      totalPaid: paidShifts.reduce(
-        (s, sh) => s + parseFloat(sh.amountEarned),
-        0,
-      ),
-      totalUnpaid: unpaidShifts.reduce(
-        (s, sh) => s + parseFloat(sh.amountEarned),
-        0,
-      ),
-      totalShifts: shifts.length,
+      totalPaid: paidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
+      totalUnpaid: unpaidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
+      totalShifts: hallShifts.length,
       paidShifts: paidShifts.length,
       unpaidShifts: unpaidShifts.length,
-      averagePerShift: shifts.length > 0 ? totalEarned / shifts.length : 0,
+      averagePerShift: hallShifts.length > 0 ? totalEarned / hallShifts.length : 0,
     };
-  }, [shifts]);
+  }, [hallShifts]);
 
   const monthlyEarnings = useMemo<MonthlyEarning[]>(() => {
     const map = new Map<
       string,
       { earned: number; paid: number; unpaid: number; shiftCount: number }
     >();
-    for (const s of shifts) {
+    // analytics uses hall shifts only
+    for (const s of hallShifts) {
       const d = new Date(s.shiftDate + "T00:00:00");
       const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const existing = map.get(monthKey) ?? {
@@ -318,18 +389,17 @@ export default function ShiftTrackerPage() {
         ).toLocaleDateString("en-US", { year: "numeric", month: "long" });
         return { monthKey, monthLabel, ...data };
       });
-  }, [shifts]);
+  }, [hallShifts]);
 
   const recentShifts = useMemo(
     () =>
-      [...shifts]
+      [...hallShifts]
         .sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))
         .slice(0, 5),
-    [shifts],
+    [hallShifts],
   );
 
-  // Empty state
-  // FIX: show spinner while session loads
+  // show spinner while session loads
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -338,7 +408,7 @@ export default function ShiftTrackerPage() {
     );
   }
 
-  // FIX: prevent flash while redirecting
+  // prevent flash while redirecting
   if (status === "unauthenticated") return null;
 
   if (!isLoading && shifts.length === 0) {
@@ -425,7 +495,7 @@ export default function ShiftTrackerPage() {
                   return (
                     <button
                       key={tab.key}
-                      onClick={() => setActiveTab(tab.key)}
+                      onClick={() => navigateTab(tab.key as TabKey)}
                       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                         isActive
                           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
@@ -444,6 +514,17 @@ export default function ShiftTrackerPage() {
 
         {/* Main Content */}
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 pb-28 md:py-6 md:pb-6">
+          {/* Pull to refresh indicator */}
+          {isMobile && (isPulling || isRefreshing) && (
+            <div className="flex items-center justify-center py-3 mb-2">
+              <div
+                className={`w-6 h-6 rounded-full border-2 border-primary border-t-transparent transition-all ${
+                  isRefreshing ? "animate-spin" : ""
+                }`}
+                style={{ opacity: isRefreshing ? 1 : pullProgress, transform: `scale(${0.5 + pullProgress * 0.5})` }}
+              />
+            </div>
+          )}
           <AnimatePresence mode="wait">
             {activeTab === "dashboard" && (
               <motion.div
@@ -456,10 +537,11 @@ export default function ShiftTrackerPage() {
                 <DashboardTab
                   summary={summary}
                   recentShifts={recentShifts}
+                  stationShifts={stationShifts}
                   isLoading={isLoading}
                   onToggleStatus={toggleStatus}
                   onAddShift={() => setAddDialogOpen(true)}
-                  onViewAllShifts={() => setActiveTab("shifts")}
+                  onViewAllShifts={() => navigateTab("shifts")}
                 />
               </motion.div>
             )}
@@ -475,6 +557,7 @@ export default function ShiftTrackerPage() {
                   shifts={shifts}
                   isLoading={isLoading}
                   onToggleStatus={toggleStatus}
+                  onBulkPaid={handleBulkPaid}
                   onDeleteShift={(shift) => {
                     setShiftToDelete(shift);
                     setDeleteDialogOpen(true);
@@ -539,9 +622,14 @@ export default function ShiftTrackerPage() {
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
-            tabs={TABS.filter((t) => t.key !== "analytics")}
+            tabs={TABS.filter((t) => t.key !== "analytics").map((t) => ({
+              ...t,
+              badge: t.key === "shifts"
+                ? shifts.filter((s) => s.status === "Unpaid").length
+                : undefined,
+            }))}
             activeTab={activeTab}
-            onTabChange={(key) => setActiveTab(key as TabKey)}
+            onTabChange={(key) => navigateTab(key as TabKey)}
           />
         )}
 

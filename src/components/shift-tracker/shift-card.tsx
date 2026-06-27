@@ -1,11 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { User, MapPin, Pencil, Trash2, StickyNote, ChevronDown } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { User, MapPin, Pencil, Trash2, StickyNote, ChevronDown, Train } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
+import { useHaptics } from "@/hooks/use-haptics";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  isStationShift,
+  parseStationTax,
+  parseStationUserNote,
+} from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import type { CardDensity } from "@/stores/settings-store";
 
@@ -15,6 +22,7 @@ interface ShiftCardProps {
   onEdit: (shift: Shift) => void;
   onDelete: (shift: Shift) => void;
   density?: CardDensity;
+  disableSwipe?: boolean;
 }
 
 const DENSITY_STYLES: Record<CardDensity, { pad: string; gap: string; amount: string; actionPad: string; actionGap: string }> = {
@@ -23,23 +31,100 @@ const DENSITY_STYLES: Record<CardDensity, { pad: string; gap: string; amount: st
   spacious: { pad: "p-5", gap: "mb-3", amount: "text-lg", actionPad: "mt-4 pt-4", actionGap: "gap-2.5" },
 };
 
-export function ShiftCard({ shift, onToggleStatus, onEdit, onDelete, density = "comfortable" }: ShiftCardProps) {
+const SWIPE_THRESHOLD = -72;
+
+// Swipe wrapper — only mounted on mobile to avoid wasted motion values on desktop
+function SwipeWrapper({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
+  const haptics = useHaptics();
+  const [swiped, setSwiped] = useState(false);
+  const x = useMotionValue(0);
+  const deleteOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
+  const deleteScale = useTransform(x, [0, SWIPE_THRESHOLD], [0.7, 1]);
+
+  const handleDragEnd = (_: unknown, info: { offset: { x: number } }) => {
+    if (info.offset.x < SWIPE_THRESHOLD) {
+      haptics(12);
+      setSwiped(true);
+      animate(x, SWIPE_THRESHOLD, { type: "spring", stiffness: 400, damping: 30 });
+    } else {
+      setSwiped(false);
+      animate(x, 0, { type: "spring", stiffness: 400, damping: 30 });
+    }
+  };
+
+  const handleTap = () => {
+    if (swiped) {
+      setSwiped(false);
+      animate(x, 0, { type: "spring", stiffness: 400, damping: 30 });
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    haptics(20);
+    animate(x, -400, { duration: 0.2 }).then(onDelete);
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-xl">
+      {/* Delete bg */}
+      <motion.div
+        className="absolute inset-y-0 right-0 flex items-center justify-center bg-rose-500 rounded-xl px-5"
+        style={{ opacity: deleteOpacity }}
+      >
+        <motion.div style={{ scale: deleteScale }}>
+          <Trash2 className="w-5 h-5 text-white" />
+        </motion.div>
+      </motion.div>
+
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: SWIPE_THRESHOLD, right: 0 }}
+        dragElastic={0.1}
+        onDragEnd={handleDragEnd}
+        onTap={handleTap}
+        style={{ x }}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        {children}
+      </motion.div>
+
+      {/* Confirm delete button appears below when swiped */}
+      {swiped && (
+        <div className="flex">
+          <button
+            onClick={handleDeleteConfirm}
+            className="flex-1 py-2 text-xs font-medium text-rose-600 bg-rose-50 dark:bg-rose-950 border-t border-rose-200 dark:border-rose-800"
+          >
+            Confirm Delete
+          </button>
+          <button
+            onClick={handleTap}
+            className="px-4 py-2 text-xs font-medium text-muted-foreground bg-muted border-t border-border"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ShiftCard({ shift, onToggleStatus, onEdit, onDelete, density = "comfortable", disableSwipe = false }: ShiftCardProps) {
+  const haptics = useHaptics();
+  const isMobile = useIsMobile();
   const isPaid = shift.status === "Paid";
-  const hasNotes = Boolean(shift.notes && shift.notes.trim());
+  const station = isStationShift(shift);
+  const taxWithheld = station ? parseStationTax(shift.notes) : 0;
+  const afterTax = station ? Math.max(0, parseFloat(shift.amountEarned) - taxWithheld) : 0;
+  const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
+  const hasNotes = Boolean(userNote && userNote.trim());
   const [notesOpen, setNotesOpen] = useState(false);
   const d = DENSITY_STYLES[density];
 
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98 }}
-      className="bg-card border border-border/60 rounded-xl overflow-hidden"
-    >
+  const card = (
+    <div className={`bg-card border rounded-xl overflow-hidden ${station ? "border-blue-200 dark:border-blue-800" : "border-border/60"}`}>
       <div className="flex items-stretch">
-        {/* Color bar */}
-        <div className={`w-1 shrink-0 ${isPaid ? "bg-emerald-500" : "bg-rose-400"}`} />
+        <div className={`w-1 shrink-0 ${station ? "bg-blue-500" : isPaid ? "bg-emerald-500" : "bg-rose-400"}`} />
 
         <div className={`flex-1 min-w-0 ${d.pad}`}>
           {/* Top row */}
@@ -48,13 +133,27 @@ export function ShiftCard({ shift, onToggleStatus, onEdit, onDelete, density = "
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">{formatShortDate(shift.shiftDate)}</span>
                 <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
+                {station && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800 gap-0.5">
+                    <Train className="w-2.5 h-2.5" />
+                    Station
+                  </Badge>
+                )}
               </div>
+              {station && (
+                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">{shift.coveringFor}</p>
+              )}
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className={`font-bold tabular-nums ${d.amount}`}>{formatCurrency(parseFloat(shift.amountEarned))}</span>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              <span className={`font-bold tabular-nums ${d.amount}`}>
+                {formatCurrency(parseFloat(shift.amountEarned))}
+              </span>
+              {station && (
+                <span className="text-[11px] text-muted-foreground">after tax: {formatCurrency(afterTax)}</span>
+              )}
               <Badge
                 variant="outline"
-                onClick={() => onToggleStatus(shift)}
+                onClick={() => { haptics(8); onToggleStatus(shift); }}
                 className={`text-[10px] px-2 py-0 h-5 cursor-pointer select-none ${
                   isPaid
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800"
@@ -66,55 +165,70 @@ export function ShiftCard({ shift, onToggleStatus, onEdit, onDelete, density = "
             </div>
           </div>
 
-          {/* Details row */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <User className="w-3 h-3 shrink-0" />
-              <span>{shift.coveringFor}</span>
+          {/* Hall details */}
+          {!station && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <User className="w-3 h-3 shrink-0" /><span>{shift.coveringFor}</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <MapPin className="w-3 h-3 shrink-0" /><span>{shift.locationName}</span>
+              </div>
+              {hasNotes && (
+                <button onClick={() => setNotesOpen((v) => !v)} className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline">
+                  <StickyNote className="w-3 h-3 shrink-0" /><span>Note</span>
+                  <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${notesOpen ? "rotate-180" : ""}`} />
+                </button>
+              )}
             </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="w-3 h-3 shrink-0" />
-              <span>{shift.locationName}</span>
+          )}
+
+          {/* Station details */}
+          {station && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span className="text-xs text-muted-foreground">{shift.hoursWorked}h worked</span>
+              <span className="text-xs text-muted-foreground">Tax: {formatCurrency(taxWithheld)}</span>
+              {hasNotes && (
+                <button onClick={() => setNotesOpen((v) => !v)} className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline">
+                  <StickyNote className="w-3 h-3 shrink-0" /><span>Note</span>
+                  <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${notesOpen ? "rotate-180" : ""}`} />
+                </button>
+              )}
             </div>
-            {hasNotes && (
-              <button
-                onClick={() => setNotesOpen((v) => !v)}
-                className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:underline"
-              >
-                <StickyNote className="w-3 h-3 shrink-0" />
-                <span>Note</span>
-                <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${notesOpen ? "rotate-180" : ""}`} />
-              </button>
-            )}
-          </div>
+          )}
 
           {hasNotes && notesOpen && (
-            <p className="mt-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-2.5 leading-relaxed">
-              {shift.notes}
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground bg-muted/50 rounded-lg p-2.5 leading-relaxed">{userNote}</p>
           )}
 
           {/* Action row */}
           <div className={`flex items-center ${d.actionGap} ${d.actionPad} border-t border-border/40`}>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1.5 text-xs flex-1"
-              onClick={() => onEdit(shift)}
-            >
+            <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-xs flex-1"
+              onClick={() => { haptics(6); onEdit(shift); }}>
               <Pencil className="w-3.5 h-3.5" /> Edit
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 gap-1.5 text-xs flex-1 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
-              onClick={() => onDelete(shift)}
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
-            </Button>
+            {/* Desktop delete — simple button. Mobile uses swipe */}
+            {!isMobile && (
+              <Button variant="ghost" size="sm"
+                className="h-9 gap-1.5 text-xs flex-1 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
+                onClick={() => onDelete(shift)}>
+                <Trash2 className="w-3.5 h-3.5" /> Delete
+              </Button>
+            )}
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
+
+  // On mobile wrap with swipe gesture, on desktop render plain
+  if (isMobile && !disableSwipe) {
+    return (
+      <SwipeWrapper onDelete={() => onDelete(shift)}>
+        {card}
+      </SwipeWrapper>
+    );
+  }
+
+  return <motion.div layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }}>{card}</motion.div>;
 }

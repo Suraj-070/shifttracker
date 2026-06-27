@@ -17,6 +17,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         notes: body.notes,
         shift_day: body.shiftDay,
         amount_earned: body.amountEarned,
+        hours_worked: body.hoursWorked ?? 0,   // FIX: was missing
         status: body.status,
       })
       .eq('id', id)
@@ -35,6 +36,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         notes: shift.notes ?? '',
         shiftDay: shift.shift_day,
         amountEarned: shift.amount_earned,
+        hoursWorked: shift.hours_worked ?? 0,  // FIX: was missing from response
         status: shift.status,
         createdAt: shift.created_at,
       }
@@ -57,9 +59,6 @@ export async function DELETE(_: Request, { params }: RouteContext) {
 
     if (error) throw error
 
-    // Supabase returns an empty array (not an error) when the id simply
-    // doesn't match any row — catch that case explicitly so it doesn't
-    // look like a silent success.
     if (!data || data.length === 0) {
       return NextResponse.json(
         { error: 'No shift was deleted. It may have already been removed.' },
