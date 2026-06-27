@@ -247,7 +247,6 @@ export default function ShiftTrackerPage() {
           setShifts((prev) => [data.shift, ...prev]);
           setAddDialogOpen(false);
           haptics(15);
-          setSuccessMessage(isStationShift(data.shift) ? "Station shift added! 🚉" : "Shift added! ✓");
           setShowSuccessBurst(true);
           toast({
             title: "Shift added!",
