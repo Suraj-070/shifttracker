@@ -49,7 +49,7 @@ const COLORS: Record<ToastType, { bg: string; icon: string; bar: string }> = {
 
 export function AppToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<(ToastData & { id: number }) | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idRef = useRef(0);
 
   const showToast = useCallback((data: ToastData) => {
