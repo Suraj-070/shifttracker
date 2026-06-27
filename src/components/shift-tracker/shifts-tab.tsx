@@ -133,6 +133,7 @@ function SelectableCard({
   onToggleStatus,
   onDelete,
   onEdit,
+  index = 0,
 }: {
   shift: Shift;
   selected: boolean;
@@ -141,6 +142,7 @@ function SelectableCard({
   onToggleStatus: (s: Shift) => void;
   onDelete: (s: Shift) => void;
   onEdit: (s: Shift) => void;
+  index?: number;
 }) {
   return (
     <div className="relative">
@@ -161,11 +163,10 @@ function SelectableCard({
       >
         <ShiftCard
           shift={shift}
-          // When selecting: disable all card actions so swipe/edit/delete don't fire
+          index={index}
           onToggleStatus={selecting ? () => {} : onToggleStatus}
           onDelete={selecting ? () => {} : onDelete}
           onEdit={selecting ? () => {} : onEdit}
-          // Pass selecting state so ShiftCard can disable swipe gesture
           disableSwipe={selecting}
         />
       </div>
@@ -559,10 +560,11 @@ export function ShiftsTab({
                             </div>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {group.shifts.map((shift) => (
+                            {group.shifts.map((shift, i) => (
                               <SelectableCard
                                 key={shift.id}
                                 shift={shift}
+                                index={i}
                                 selected={hallSelected.has(shift.id)}
                                 selecting={hallSelecting}
                                 onToggle={() => toggleHallSelect(shift.id)}
@@ -610,10 +612,11 @@ export function ShiftsTab({
                             </div>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            {group.shifts.map((shift) => (
+                            {group.shifts.map((shift, i) => (
                               <SelectableCard
                                 key={shift.id}
                                 shift={shift}
+                                index={i}
                                 selected={stationSelected.has(shift.id)}
                                 selecting={stationSelecting}
                                 onToggle={() => toggleStationSelect(shift.id)}

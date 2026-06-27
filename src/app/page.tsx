@@ -26,6 +26,7 @@ import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
 import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
 import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
+import { SuccessBurst } from "@/components/shift-tracker/success-burst";
 
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
@@ -157,10 +158,9 @@ export default function ShiftTrackerPage() {
   const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
   const [shiftToEdit, setShiftToEdit] = useState<Shift | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addShiftDefaults, setAddShiftDefaults] = useState<{
-    person?: string;
-    location?: string;
-  }>({});
+  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
+  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("Shift added!");
 
   // Fetch shifts
   const fetchShifts = useCallback(async () => {
@@ -249,6 +249,8 @@ export default function ShiftTrackerPage() {
           setShifts((prev) => [data.shift, ...prev]);
           setAddDialogOpen(false);
           haptics(15);
+          setSuccessMessage(isStationShift(data.shift) ? "Station shift added! 🚉" : "Shift added! ✓");
+          setShowSuccessBurst(true);
           toast({
             title: "Shift added!",
             description: isStationShift(data.shift)
@@ -695,6 +697,32 @@ export default function ShiftTrackerPage() {
               navigateTabWithDirection(key as TabKey, dir);
             }}
           />
+        )}
+
+        {/* Success burst */}
+        <SuccessBurst
+          show={showSuccessBurst}
+          message={successMessage}
+          onDone={() => setShowSuccessBurst(false)}
+        />
+
+        {/* Success burst overlay */}
+        {showSuccessBurst && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 3, opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="fixed top-16 right-4 z-50 pointer-events-none w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center"
+          >
+            <motion.span
+              initial={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-white text-lg font-bold"
+            >
+              ✓
+            </motion.span>
+          </motion.div>
         )}
 
         {/* Dialogs */}

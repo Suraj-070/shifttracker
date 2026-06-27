@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote } from "@/types/database.types";
+import { AnimatedCurrency } from "./animated-number";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
 
 // ─── Fortnight logic ─────────────────────────────────────────────────────────
@@ -225,10 +226,10 @@ export function DashboardTab({
           <motion.div key="hall" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { title: "Total Earned", value: formatCurrency(summary.totalEarned), icon: DollarSign, color: "emerald" },
-                { title: "Paid", value: formatCurrency(summary.totalPaid), icon: CheckCircle2, color: "emerald" },
-                { title: "Unpaid", value: formatCurrency(summary.totalUnpaid), icon: XCircle, color: "rose" },
-                { title: "Avg / Shift", value: formatCurrency(summary.averagePerShift), icon: TrendingUp, color: "amber" },
+                { title: "Total Earned", value: summary.totalEarned, icon: DollarSign, color: "emerald" },
+                { title: "Paid", value: summary.totalPaid, icon: CheckCircle2, color: "emerald" },
+                { title: "Unpaid", value: summary.totalUnpaid, icon: XCircle, color: "rose" },
+                { title: "Avg / Shift", value: summary.averagePerShift, icon: TrendingUp, color: "amber" },
               ].map((stat, i) => {
                 const Icon = stat.icon;
                 const colorMap: Record<string, string> = {
@@ -244,7 +245,7 @@ export function DashboardTab({
                           <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
                           <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
                         </div>
-                        <p className="text-lg font-bold tabular-nums tracking-tight">{stat.value}</p>
+                        <AnimatedNumber value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" />
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -338,10 +339,10 @@ export function DashboardTab({
                 {/* Overall station stats */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { title: "Gross Earned", value: formatCurrency(stationGross), icon: Wallet, color: "blue" },
-                    { title: "Tax Withheld", value: formatCurrency(stationTax), icon: Receipt, color: "amber" },
-                    { title: "Net Take-home", value: formatCurrency(stationNet), icon: DollarSign, color: "blue" },
-                    { title: "Avg / Shift", value: formatCurrency(stationCount > 0 ? stationGross / stationCount : 0), icon: TrendingUp, color: "blue" },
+                    { title: "Gross Earned", value: stationGross, icon: Wallet, color: "blue" },
+                    { title: "Tax Withheld", value: stationTax, icon: Receipt, color: "amber" },
+                    { title: "Net Take-home", value: stationNet, icon: DollarSign, color: "blue" },
+                    { title: "Avg / Shift", value: stationCount > 0 ? stationGross / stationCount : 0, icon: TrendingUp, color: "blue" },
                   ].map((stat, i) => {
                     const Icon = stat.icon;
                     const colorMap: Record<string, string> = {
@@ -356,7 +357,7 @@ export function DashboardTab({
                               <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
                               <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
                             </div>
-                            <p className="text-lg font-bold tabular-nums tracking-tight">{stat.value}</p>
+                            <AnimatedNumber value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" />
                           </CardContent>
                         </Card>
                       </motion.div>
