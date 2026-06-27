@@ -7,53 +7,71 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullProgress, setPullProgress] = useState(0);
 
-  const startY = useRef(0);
+  const startY = useRef(-1);
+  const startX = useRef(0);
   const pulling = useRef(false);
   const refreshing = useRef(false);
   const progress = useRef(0);
 
-  // Higher threshold = less sensitive. 120px feels intentional on mobile.
-  const THRESHOLD = 120;
-  // Min distance before we even start tracking — filters accidental micro-pulls
-  const DEAD_ZONE = 12;
+  const THRESHOLD = 110;
+  const DEAD_ZONE = 14;
+  const MAX_HORIZONTAL_RATIO = 1.5; // cancel if more horizontal than vertical
 
   const onRefreshRef = useRef(onRefresh);
   useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
 
   useEffect(() => {
     const onTouchStart = (e: TouchEvent) => {
-      // Only track if we're truly at the top
+      const touch = e.touches[0];
+      if (!touch) return;
       if (window.scrollY <= 0) {
-        startY.current = e.touches[0].clientY;
+        startY.current = touch.clientY;
+        startX.current = touch.clientX;
         pulling.current = false;
         progress.current = 0;
       } else {
-        startY.current = -1; // sentinel — ignore this touch sequence
+        startY.current = -1;
       }
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (refreshing.current || startY.current < 0) return;
-      const dy = e.touches[0].clientY - startY.current;
-      // Dead zone — ignore tiny movements
-      if (dy < DEAD_ZONE) return;
-      // Only downward pull
-      if (dy > 0 && window.scrollY <= 0) {
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      const dy = touch.clientY - startY.current;
+      const dx = Math.abs(touch.clientX - startX.current);
+
+      // Cancel if horizontal movement dominates (tab swipe)
+      if (dx > dy * MAX_HORIZONTAL_RATIO && dx > 20) {
+        startY.current = -1;
+        return;
+      }
+
+      if (dy > DEAD_ZONE && window.scrollY <= 0) {
         const p = Math.min((dy - DEAD_ZONE) / THRESHOLD, 1);
         progress.current = p;
-        if (!pulling.current) { pulling.current = true; setIsPulling(true); }
+        if (!pulling.current) {
+          pulling.current = true;
+          setIsPulling(true);
+        }
         setPullProgress(p);
       }
     };
 
-    const onTouchEnd = async () => {
+    const onTouchEnd = async (e: TouchEvent) => {
       if (startY.current < 0) return;
-      if (progress.current >= 1 && !refreshing.current) {
+
+      const didComplete = progress.current >= 1;
+      pulling.current = false;
+      startY.current = -1;
+
+      if (didComplete && !refreshing.current) {
         refreshing.current = true;
-        pulling.current = false;
         setIsRefreshing(true);
         setIsPulling(false);
         setPullProgress(0);
+        progress.current = 0;
         try {
           await onRefreshRef.current();
         } finally {
@@ -61,17 +79,15 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
           setIsRefreshing(false);
         }
       } else {
-        pulling.current = false;
         progress.current = 0;
         setIsPulling(false);
         setPullProgress(0);
       }
-      startY.current = -1;
     };
 
     document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("touchmove", onTouchMove, { passive: true });
-    document.addEventListener("touchend", onTouchEnd);
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
     return () => {
       document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("touchmove", onTouchMove);

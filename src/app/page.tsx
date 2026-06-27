@@ -12,7 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -65,7 +65,7 @@ const TABS: TabConfig[] = [
 // Main Page Component
 // ============================================================
 export default function ShiftTrackerPage() {
-  const { toast } = useToast();
+  const { showToast } = useAppToast();
   const isMobile = useIsMobile();
   const haptics = useHaptics();
   const { status } = useSession();
@@ -221,11 +221,7 @@ export default function ShiftTrackerPage() {
               s.id === shift.id ? { ...s, status: shift.status } : s,
             ),
           );
-          toast({
-            title: "Error",
-            description: "Failed to update status",
-            variant: "destructive",
-          });
+          showToast({ type: "error", title: "Failed to update status" });
         }
       } catch {
         setShifts((prev) =>
@@ -235,7 +231,7 @@ export default function ShiftTrackerPage() {
         );
       }
     },
-    [toast],
+    [showToast],
   );
 
   // Add shift
@@ -254,25 +250,22 @@ export default function ShiftTrackerPage() {
           setAddDialogOpen(false);
           haptics(15);
           setShowSuccessBurst(true);
-          toast({
+          showToast({
+            type: isStationShift(data.shift) ? "station" : "success",
             title: "Shift added!",
             description: isStationShift(data.shift)
-              ? `Station: ${data.shift.coveringFor}`
+              ? `${data.shift.coveringFor} · Station`
               : `${input.coveringFor} @ ${input.locationName}`,
           });
           await fetchProfile();
         }
       } catch {
-        toast({
-          title: "Error",
-          description: "Failed to add shift",
-          variant: "destructive",
-        });
+        showToast({ type: "error", title: "Failed to add shift" });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [userId, toast, fetchProfile],
+    [userId, showToast, fetchProfile],
   );
 
   // Edit shift
@@ -292,50 +285,52 @@ export default function ShiftTrackerPage() {
           );
           setEditDialogOpen(false);
           setShiftToEdit(null);
-          toast({
-            title: "Shift updated!",
-            description: "Changes saved successfully.",
-          });
+          showToast({ type: "edit", title: "Shift updated!", description: "Changes saved." });
           await fetchProfile();
         }
       } catch {
-        toast({
-          title: "Error",
-          description: "Failed to update shift",
-          variant: "destructive",
+        showToast({ type: "error", title: "Failed to update shift",
         });
       } finally {
         setIsSubmitting(false);
       }
     },
-    [toast, fetchProfile],
+    [showToast, fetchProfile],
   );
 
   // Delete shift
-  const handleDeleteShift = useCallback(async () => {
+  // Optimistic delete — remove immediately, confirm after toast timer
+  const handleDeleteStart = useCallback((shift: Shift) => {
+    haptics(12);
+    setShiftToDelete(shift);
+    // Optimistically remove from UI
+    setShifts((prev) => prev.filter((s) => s.id !== shift.id));
+    setDeleteDialogOpen(true);
+  }, [haptics]);
+
+  // Called after toast timer expires — actually delete from DB
+  const handleDeleteConfirm = useCallback(async () => {
     if (!shiftToDelete) return;
     try {
-      const res = await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
-      if (res.ok) {
-        setShifts((prev) => prev.filter((s) => s.id !== shiftToDelete.id));
-        haptics(20);
-        toast({ title: "Shift deleted", description: "The shift has been removed." });
-        await fetchProfile();
-      } else {
-        const data = await res.json().catch(() => null);
-        toast({
-          title: "Couldn't delete shift",
-          description: data?.error ?? `Server responded with ${res.status}.`,
-          variant: "destructive",
-        });
-      }
+      await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
+      haptics(20);
+      await fetchProfile();
     } catch {
-      toast({ title: "Error", description: "Failed to delete shift", variant: "destructive" });
+      // Restore shift if delete failed
+      setShifts((prev) => [shiftToDelete, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate)));
+      showToast({ type: "error", title: "Delete failed", description: "Shift restored." });
     } finally {
-      setDeleteDialogOpen(false);
       setShiftToDelete(null);
     }
-  }, [shiftToDelete, toast, fetchProfile]);
+  }, [shiftToDelete, haptics, fetchProfile, showToast]);
+
+  // Called if user taps Undo — restore shift
+  const handleDeleteUndo = useCallback(() => {
+    if (!shiftToDelete) return;
+    setShifts((prev) => [shiftToDelete, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate)));
+    haptics(8);
+    setShiftToDelete(null);
+  }, [shiftToDelete, haptics]);
 
   // Bulk paid
   const handleBulkPaid = useCallback(async (ids: string[]) => {
@@ -349,15 +344,15 @@ export default function ShiftTrackerPage() {
         setShifts((prev) =>
           prev.map((s) => ids.includes(s.id) ? { ...s, status: "Paid" as const } : s)
         );
-        toast({ title: `${ids.length} shift${ids.length !== 1 ? "s" : ""} marked as Paid` });
+        showToast({ type: "success", title: `${ids.length} shift${ids.length !== 1 ? "s" : ""} marked as Paid` });
         await fetchProfile();
       } else {
-        toast({ title: "Failed to bulk update", variant: "destructive" });
+        showToast({ type: "error", title: "Failed to bulk update" });
       }
     } catch {
-      toast({ title: "Error", description: "Failed to bulk update shifts", variant: "destructive" });
+      showToast({ type: "error", title: "Failed to bulk update shifts" });
     }
-  }, [toast, fetchProfile]);
+  }, [showToast, fetchProfile]);
 
   const handlePullRefresh = useCallback(async () => {
     haptics(10);
@@ -605,10 +600,7 @@ export default function ShiftTrackerPage() {
                   isLoading={isLoading || status === "loading"}
                   onToggleStatus={toggleStatus}
                   onBulkPaid={handleBulkPaid}
-                  onDeleteShift={(shift) => {
-                    setShiftToDelete(shift);
-                    setDeleteDialogOpen(true);
-                  }}
+                  onDeleteShift={handleDeleteStart}
                   onEditShift={(shift) => {
                     setShiftToEdit(shift);
                     setEditDialogOpen(true);
@@ -746,7 +738,8 @@ export default function ShiftTrackerPage() {
           open={deleteDialogOpen}
           onOpenChange={setDeleteDialogOpen}
           shift={shiftToDelete}
-          onConfirm={handleDeleteShift}
+          onConfirm={handleDeleteConfirm}
+          onUndo={handleDeleteUndo}
         />
 
         {/* Footer */}

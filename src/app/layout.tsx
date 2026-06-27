@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { SessionProvider } from "@/components/session-provider";
 import { SettingsApplier } from "@/components/settings-applier";
+import { AppToastProvider } from "@/components/shift-tracker/app-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ShiftTracker — Shift & Payment Tracker",
-  description: "Track your work shifts and payments with a premium, minimalist interface. Built with Next.js, Supabase, and shadcn/ui.",
-  keywords: ["shift tracker", "payment tracker", "work shifts", "earnings", "Next.js", "Supabase"],
+  description: "Track your work shifts and payments with a premium, minimalist interface.",
+  keywords: ["shift tracker", "payment tracker", "work shifts", "earnings"],
   authors: [{ name: "ShiftTracker" }],
   manifest: "/manifest.json",
   icons: {
@@ -58,10 +58,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <SessionProvider>
-          <SettingsApplier />
-          {children}
+          <AppToastProvider>
+            <SettingsApplier />
+            {children}
+          </AppToastProvider>
         </SessionProvider>
-        <Toaster />
         <ServiceWorkerRegister />
       </body>
     </html>

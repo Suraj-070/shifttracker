@@ -265,22 +265,26 @@ export function ShiftCard({
     </div>
   );
 
+  // On mobile: no stagger animation (too expensive), just render
+  // On desktop: light fade+slide entrance
+  if (isMobile) {
+    return isMobile && !disableSwipe ? (
+      <SwipeWrapper onDelete={() => onDelete(shift)}>{card}</SwipeWrapper>
+    ) : <>{card}</>;
+  }
+
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scaleY: 0, height: 0, marginBottom: 0 }}
+      exit={{ opacity: 0, scale: 0.97 }}
       transition={{
-        opacity: { duration: 0.18 },
-        y: { duration: 0.22, ease: "easeOut" },
-        delay: index * 0.045,
+        opacity: { duration: 0.15 },
+        y: { duration: 0.18, ease: "easeOut" },
+        delay: Math.min(index * 0.04, 0.2), // cap stagger at 200ms
       }}
-      style={{ transformOrigin: "top", overflow: "hidden" }}
     >
-      {isMobile && !disableSwipe ? (
-        <SwipeWrapper onDelete={() => onDelete(shift)}>{card}</SwipeWrapper>
-      ) : card}
+      {card}
     </motion.div>
   );
 }
