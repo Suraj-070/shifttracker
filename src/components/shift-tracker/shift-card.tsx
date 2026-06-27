@@ -276,7 +276,6 @@ export function ShiftCard({
       transition={{
         opacity: { duration: 0.18 },
         y: { duration: 0.22, ease: "easeOut" },
-        exit: { duration: 0.2 },
         delay: index * 0.045,
       }}
       style={{ transformOrigin: "top", overflow: "hidden" }}
