@@ -49,11 +49,11 @@ const COLORS: Record<ToastType, { bg: string; icon: string; bar: string }> = {
 
 export function AppToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<(ToastData & { id: number }) | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const idRef = useRef(0);
 
   const showToast = useCallback((data: ToastData) => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    clearTimeout(timerRef.current);
     const id = ++idRef.current;
     setToast({ ...data, id });
     timerRef.current = setTimeout(() => {
@@ -62,11 +62,11 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const dismiss = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+    clearTimeout(timerRef.current);
     setToast(null);
   };
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  useEffect(() => () => { clearTimeout(timerRef.current); }, []);
 
   const Icon = toast ? ICONS[toast.type] : CheckCircle2;
   const colors = toast ? COLORS[toast.type] : COLORS.success;

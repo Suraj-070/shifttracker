@@ -27,7 +27,7 @@ export function DeleteShiftDialog({
   onUndo,
   onOpenChange,
 }: DeleteToastProps) {
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const confirmedRef = useRef(false);
 
   useEffect(() => {
