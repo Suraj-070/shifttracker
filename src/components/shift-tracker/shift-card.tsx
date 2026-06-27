@@ -165,13 +165,7 @@ export function ShiftCard({
   const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
   const hasNotes = Boolean(userNote && userNote.trim());
   const [notesOpen, setNotesOpen] = useState(false);
-  const [deleted, setDeleted] = useState(false);
   const d = DENSITY_STYLES[density];
-
-  const handleDelete = () => {
-    // Collapse animation before actual delete
-    setDeleted(true);
-  };
 
   const card = (
     <div className={`bg-card border rounded-xl overflow-hidden ${station ? "border-blue-200 dark:border-blue-800" : "border-border/60"}`}>
@@ -263,7 +257,7 @@ export function ShiftCard({
             {!isMobile && (
               <Button variant="ghost" size="sm"
                 className="h-9 gap-1.5 text-xs flex-1 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950"
-                onClick={handleDelete}>
+                onClick={() => onDelete(shift)}>
                 <Trash2 className="w-3.5 h-3.5" /> Delete
               </Button>
             )}
@@ -273,30 +267,23 @@ export function ShiftCard({
     </div>
   );
 
-  // Delete collapse animation
-  const wrapper = (
-    <AnimatePresence onExitComplete={() => onDelete(shift)}>
-      {!deleted && (
-        <motion.div
-          layout
-          initial={{ opacity: 0, y: 12, scale: 0.97 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scaleY: 0, height: 0, marginBottom: 0 }}
-          transition={{
-            layout: { type: "spring", stiffness: 400, damping: 30 },
-            opacity: { duration: 0.18 },
-            scaleY: { duration: 0.22, ease: "easeIn" },
-            delay: index * 0.045, // stagger
-          }}
-          style={{ transformOrigin: "top" }}
-        >
-          {isMobile && !disableSwipe ? (
-            <SwipeWrapper onDelete={handleDelete}>{card}</SwipeWrapper>
-          ) : card}
-        </motion.div>
-      )}
-    </AnimatePresence>
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scaleY: 0, height: 0, marginBottom: 0 }}
+      transition={{
+        opacity: { duration: 0.18 },
+        y: { duration: 0.22, ease: "easeOut" },
+        exit: { duration: 0.2 },
+        delay: index * 0.045,
+      }}
+      style={{ transformOrigin: "top", overflow: "hidden" }}
+    >
+      {isMobile && !disableSwipe ? (
+        <SwipeWrapper onDelete={() => onDelete(shift)}>{card}</SwipeWrapper>
+      ) : card}
+    </motion.div>
   );
-
-  return wrapper;
 }

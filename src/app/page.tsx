@@ -79,8 +79,16 @@ export default function ShiftTrackerPage() {
   const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
-  // Tab order for swipe navigation (mobile only — no analytics)
-  const MOBILE_TABS: TabKey[] = ["dashboard", "shifts", "profile", "settings"];
+  // Tab order — defined as const outside to avoid recreation
+  // (defined here so TypeScript can see TabKey; values are stable)
+  const MOBILE_TABS = useMemo<TabKey[]>(
+    () => ["dashboard", "shifts", "profile", "settings"],
+    []
+  );
+
+  // Keep activeTab in a ref so swipe callbacks never go stale
+  const activeTabRef = React.useRef(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
   const navigateTab = useCallback((key: TabKey) => {
     if (key === "dashboard") {
@@ -111,19 +119,17 @@ export default function ShiftTrackerPage() {
   useTabSwipe({
     disabled: !isMobile,
     onSwipeLeft: () => {
-      const tabs = MOBILE_TABS;
-      const idx = tabs.indexOf(activeTab);
-      if (idx < tabs.length - 1) {
+      const idx = MOBILE_TABS.indexOf(activeTabRef.current);
+      if (idx < MOBILE_TABS.length - 1) {
         haptics(6);
-        navigateTabWithDirection(tabs[idx + 1], "left");
+        navigateTabWithDirection(MOBILE_TABS[idx + 1], "left");
       }
     },
     onSwipeRight: () => {
-      const tabs = MOBILE_TABS;
-      const idx = tabs.indexOf(activeTab);
+      const idx = MOBILE_TABS.indexOf(activeTabRef.current);
       if (idx > 0) {
         haptics(6);
-        navigateTabWithDirection(tabs[idx - 1], "right");
+        navigateTabWithDirection(MOBILE_TABS[idx - 1], "right");
       }
     },
   });

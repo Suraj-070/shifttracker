@@ -252,7 +252,7 @@ export function ShiftsTab({
   onAddShift,
   onBulkPaid,
 }: ShiftsTabProps) {
-  const { viewMode, setViewMode, enableAnimations } = useSettingsStore();
+  const { viewMode, setViewMode } = useSettingsStore();
   const [shiftKind, setShiftKind] = useState<ShiftKind>("hall");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
