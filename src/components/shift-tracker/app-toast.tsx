@@ -66,7 +66,7 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
     setToast(null);
   };
 
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   const Icon = toast ? ICONS[toast.type] : CheckCircle2;
   const colors = toast ? COLORS[toast.type] : COLORS.success;
