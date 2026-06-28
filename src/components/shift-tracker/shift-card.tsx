@@ -22,9 +22,10 @@ interface ShiftCardProps {
   onToggleStatus: (shift: Shift) => void;
   onEdit: (shift: Shift) => void;
   onDelete: (shift: Shift) => void;
+  onLongPress?: (shift: Shift) => void;
   density?: CardDensity;
   disableSwipe?: boolean;
-  index?: number; // for stagger
+  index?: number;
 }
 
 const DENSITY_STYLES: Record<CardDensity, { pad: string; gap: string; amount: string; actionPad: string; actionGap: string }> = {
@@ -153,6 +154,7 @@ export function ShiftCard({
   onToggleStatus,
   onEdit,
   onDelete,
+  onLongPress,
   density = "comfortable",
   disableSwipe = false,
   index = 0,
