@@ -67,6 +67,7 @@ interface ShiftsTabProps {
   onEditShift: (shift: Shift) => void;
   onAddShift: (defaultPerson?: string, defaultLocation?: string) => void;
   onBulkPaid?: (ids: string[]) => Promise<void>;
+  onLongPress?: (shift: Shift) => void;
 }
 
 type ShiftKind = "hall" | "station";
@@ -133,6 +134,7 @@ function SelectableCard({
   onToggleStatus,
   onDelete,
   onEdit,
+  onLongPress,
   index = 0,
 }: {
   shift: Shift;
@@ -142,6 +144,7 @@ function SelectableCard({
   onToggleStatus: (s: Shift) => void;
   onDelete: (s: Shift) => void;
   onEdit: (s: Shift) => void;
+  onLongPress?: (s: Shift) => void;
   index?: number;
 }) {
   return (
@@ -167,6 +170,7 @@ function SelectableCard({
           onToggleStatus={selecting ? () => {} : onToggleStatus}
           onDelete={selecting ? () => {} : onDelete}
           onEdit={selecting ? () => {} : onEdit}
+          onLongPress={selecting ? undefined : onLongPress}
           disableSwipe={selecting}
         />
       </div>
@@ -251,6 +255,7 @@ export function ShiftsTab({
   onEditShift,
   onAddShift,
   onBulkPaid,
+  onLongPress,
 }: ShiftsTabProps) {
   const { viewMode, setViewMode } = useSettingsStore();
   const [shiftKind, setShiftKind] = useState<ShiftKind>("hall");

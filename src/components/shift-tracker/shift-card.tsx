@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
+import { useLongPress } from "@/hooks/use-long-press";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   isStationShift,
@@ -159,6 +160,9 @@ export function ShiftCard({
   const haptics = useHaptics();
   const isMobile = useIsMobile();
   const isPaid = shift.status === "Paid";
+  const longPressProps = useLongPress(() => {
+    if (onLongPress) { haptics(20); onLongPress(shift); }
+  }, 450);
   const station = isStationShift(shift);
   const taxWithheld = station ? parseStationTax(shift.notes) : 0;
   const afterTax = station ? Math.max(0, parseFloat(shift.amountEarned) - taxWithheld) : 0;
@@ -168,7 +172,7 @@ export function ShiftCard({
   const d = DENSITY_STYLES[density];
 
   const card = (
-    <div className={`bg-card border rounded-xl overflow-hidden ${station ? "border-blue-200 dark:border-blue-800" : "border-border/60"}`}>
+    <div {...longPressProps} className={`bg-card border rounded-xl overflow-hidden ${station ? "border-blue-200 dark:border-blue-800" : "border-border/60"}`}>
       <div className="flex items-stretch">
         <div className={`w-1 shrink-0 ${station ? "bg-blue-500" : isPaid ? "bg-emerald-500" : "bg-rose-400"}`} />
         <div className={`flex-1 min-w-0 ${d.pad}`}>

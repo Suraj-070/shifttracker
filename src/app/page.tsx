@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   CalendarDays,
+  Calendar,
   BarChart3,
   User,
   Settings,
@@ -20,6 +21,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { DashboardTab } from "@/components/shift-tracker/dashboard-tab";
 import { ShiftsTab } from "@/components/shift-tracker/shifts-tab";
 import { AnalyticsTab } from "@/components/shift-tracker/analytics-tab";
+import { CalendarTab } from "@/components/shift-tracker/calendar-tab";
+import { ShiftActionsSheet } from "@/components/shift-tracker/shift-actions-sheet";
 import { ProfileTab } from "@/components/shift-tracker/profile-tab";
 import { SettingsTab } from "@/components/shift-tracker/settings-tab";
 import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
@@ -45,7 +48,7 @@ import type {
 // ============================================================
 // Tab Navigation
 // ============================================================
-type TabKey = "dashboard" | "shifts" | "analytics" | "profile" | "settings";
+type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "profile" | "settings";
 
 interface TabConfig {
   key: TabKey;
@@ -56,6 +59,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "shifts", label: "Shifts", icon: CalendarDays },
+  { key: "calendar", label: "Calendar", icon: Calendar },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "profile", label: "Profile", icon: User },
   { key: "settings", label: "Settings", icon: Settings },
@@ -82,7 +86,7 @@ export default function ShiftTrackerPage() {
   // Tab order — defined as const outside to avoid recreation
   // (defined here so TypeScript can see TabKey; values are stable)
   const MOBILE_TABS = useMemo<TabKey[]>(
-    () => ["dashboard", "shifts", "profile", "settings"],
+    () => ["dashboard", "shifts", "calendar", "profile", "settings"],
     []
   );
 
@@ -165,6 +169,8 @@ export default function ShiftTrackerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
+  const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
 
   // Fetch shifts
   const fetchShifts = useCallback(async () => {
@@ -354,6 +360,11 @@ export default function ShiftTrackerPage() {
     }
   }, [showToast, fetchProfile]);
 
+  const handleLongPress = useCallback((shift: Shift) => {
+    setLongPressShift(shift);
+    setActionsSheetOpen(true);
+  }, []);
+
   const handlePullRefresh = useCallback(async () => {
     haptics(10);
     await fetchShifts();
@@ -522,7 +533,7 @@ export default function ShiftTrackerPage() {
                     <button
                       key={tab.key}
                       onClick={() => {
-                        const allTabs: TabKey[] = ["dashboard", "shifts", "analytics", "profile", "settings"];
+                        const allTabs: TabKey[] = ["dashboard", "shifts", "calendar", "analytics", "profile", "settings"];
                         const dir = allTabs.indexOf(tab.key as TabKey) > allTabs.indexOf(activeTab) ? "left" : "right";
                         navigateTabWithDirection(tab.key as TabKey, dir);
                       }}
@@ -601,6 +612,7 @@ export default function ShiftTrackerPage() {
                   onToggleStatus={toggleStatus}
                   onBulkPaid={handleBulkPaid}
                   onDeleteShift={handleDeleteStart}
+                  onLongPress={handleLongPress}
                   onEditShift={(shift) => {
                     setShiftToEdit(shift);
                     setEditDialogOpen(true);
@@ -630,6 +642,29 @@ export default function ShiftTrackerPage() {
                   summary={summary}
                   monthlyEarnings={monthlyEarnings}
                   isLoading={isLoading || status === "loading"}
+                />
+              </motion.div>
+            )}
+            {activeTab === "calendar" && (
+              <motion.div
+                key="calendar"
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+              >
+                <CalendarTab
+                  shifts={shifts}
+                  onShiftClick={(shift) => {
+                    setShiftToEdit(shift);
+                    setEditDialogOpen(true);
+                  }}
                 />
               </motion.div>
             )}
@@ -733,6 +768,14 @@ export default function ShiftTrackerPage() {
           shifts={shifts}
           onSave={handleEditShift}
           isSubmitting={isSubmitting}
+        />
+        <ShiftActionsSheet
+          shift={longPressShift}
+          open={actionsSheetOpen}
+          onClose={() => setActionsSheetOpen(false)}
+          onEdit={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+          onToggleStatus={toggleStatus}
+          onDelete={handleDeleteStart}
         />
         <DeleteShiftDialog
           open={deleteDialogOpen}
