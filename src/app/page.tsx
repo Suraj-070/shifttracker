@@ -645,7 +645,7 @@ export default function ShiftTrackerPage() {
                   recentShifts={recentShifts}
                   stationShifts={stationShifts}
                   hallShifts={hallShifts}
-                  isLoading={isLoading || status === "loading"}
+                  isLoading={isLoading}
                   onToggleStatus={toggleStatus}
                   onAddShift={() => setAddDialogOpen(true)}
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
@@ -669,7 +669,7 @@ export default function ShiftTrackerPage() {
               >
                 <ShiftsTab
                   shifts={shifts}
-                  isLoading={isLoading || status === "loading"}
+                  isLoading={isLoading}
                   onToggleStatus={toggleStatus}
                   onBulkPaid={handleBulkPaid}
                   onDeleteShift={handleDeleteStart}
@@ -702,7 +702,7 @@ export default function ShiftTrackerPage() {
                 <AnalyticsTab
                   summary={summary}
                   monthlyEarnings={monthlyEarnings}
-                  isLoading={isLoading || status === "loading"}
+                  isLoading={isLoading}
                 />
               </motion.div>
             )}
@@ -745,7 +745,7 @@ export default function ShiftTrackerPage() {
               >
                 <ProfileTab
                   profile={profile}
-                  isLoading={isLoading || status === "loading"}
+                  isLoading={isLoading}
                   onRefresh={fetchProfile}
                   totalShifts={summary.totalShifts}
                   totalEarnings={summary.totalEarned}
