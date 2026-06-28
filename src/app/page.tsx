@@ -82,6 +82,7 @@ export default function ShiftTrackerPage() {
   }, [status, router]);
 
   const defaultTab = useSettingsStore((s) => s.defaultTab);
+  const compactDashboard = useSettingsStore((s) => s.compactDashboard);
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
@@ -587,11 +588,12 @@ export default function ShiftTrackerPage() {
                   summary={summary}
                   recentShifts={recentShifts}
                   stationShifts={stationShifts}
+                  hallShifts={hallShifts}
                   isLoading={isLoading || status === "loading"}
                   onToggleStatus={toggleStatus}
                   onAddShift={() => setAddDialogOpen(true)}
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
-                  compact={useSettingsStore.getState().compactDashboard}
+                  compact={compactDashboard}
                 />
               </motion.div>
             )}
@@ -691,6 +693,7 @@ export default function ShiftTrackerPage() {
                   onRefresh={fetchProfile}
                   totalShifts={summary.totalShifts}
                   totalEarnings={summary.totalEarned}
+                  shifts={hallShifts}
                 />
               </motion.div>
             )}

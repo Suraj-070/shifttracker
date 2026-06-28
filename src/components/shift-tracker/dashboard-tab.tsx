@@ -14,6 +14,7 @@ import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote } from "@/types/database.types";
 import { AnimatedCurrency } from "./animated-number";
+import { EarningsChart } from "./earnings-chart";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
 
 // ─── Fortnight logic ─────────────────────────────────────────────────────────
@@ -130,6 +131,7 @@ interface DashboardTabProps {
   summary: AnalyticsSummary;
   recentShifts: Shift[];
   stationShifts: Shift[];
+  hallShifts: Shift[];
   isLoading: boolean;
   onToggleStatus: (shift: Shift) => void;
   onAddShift: () => void;
@@ -143,6 +145,7 @@ export function DashboardTab({
   summary,
   recentShifts,
   stationShifts,
+  hallShifts,
   isLoading,
   onToggleStatus,
   onAddShift,
@@ -317,6 +320,19 @@ export function DashboardTab({
                 )}
               </CardContent>
             </Card>
+
+            {/* Earnings chart */}
+            {hallShifts.length > 0 && (
+              <Card className="py-0 gap-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold">Weekly Earnings</p>
+                    <span className="text-xs text-muted-foreground">Hall shifts</span>
+                  </div>
+                  <EarningsChart shifts={hallShifts} weeks={6} />
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         )}
 

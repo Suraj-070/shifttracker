@@ -67,7 +67,7 @@ export function AnimatedNumber({
 export function AnimatedCurrency({
   value,
   className,
-  duration = 700,
+  duration = 500,
 }: {
   value: number;
   className?: string;

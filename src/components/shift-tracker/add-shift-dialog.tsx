@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useMemo, useState } from "react";
 import { Plus, Loader2, User, MapPin, StickyNote, Check, Train } from "lucide-react";
 import {
   Dialog,
@@ -29,18 +29,12 @@ import {
   STATION_LOCATION,
   buildStationNotes,
   isStationShift,
-  parseStationTax,
-  parseStationUserNote,
 } from "@/types/database.types";
-import type {
-  ShiftStatus,
-  ShiftCreateInput,
-  Shift,
-} from "@/types/database.types";
+import type { ShiftStatus, ShiftCreateInput, Shift } from "@/types/database.types";
 
 type JobKind = "Hall" | "Station";
 
-// ─── Shared status toggle ────────────────────────────────────────────────────
+// ─── Status toggle ─────────────────────────────────────────────────────────────
 
 function StatusToggle({
   value,
@@ -71,16 +65,7 @@ function StatusToggle({
   );
 }
 
-// ─── Hall form (existing, untouched) ─────────────────────────────────────────
-
-interface HallFormProps {
-  shifts: Shift[];
-  defaultPerson?: string;
-  defaultLocation?: string;
-  isSubmitting: boolean;
-  onSubmit: (data: ShiftCreateInput) => void;
-  onCancel: () => void;
-}
+// ─── Hall form ─────────────────────────────────────────────────────────────────
 
 function HallForm({
   shifts,
@@ -89,7 +74,14 @@ function HallForm({
   isSubmitting,
   onSubmit,
   onCancel,
-}: HallFormProps) {
+}: {
+  shifts: Shift[];
+  defaultPerson?: string;
+  defaultLocation?: string;
+  isSubmitting: boolean;
+  onSubmit: (data: ShiftCreateInput) => void;
+  onCancel: () => void;
+}) {
   const today = new Date().toISOString().split("T")[0];
   const [coveringFor, setCoveringFor] = useState(defaultPerson ?? "");
   const [formDate, setFormDate] = useState(today);
@@ -98,7 +90,10 @@ function HallForm({
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
 
-  const hallShifts = useMemo(() => shifts.filter((s) => !isStationShift(s)), [shifts]);
+  const hallShifts = useMemo(
+    () => shifts.filter((s) => !isStationShift(s)),
+    [shifts],
+  );
 
   const personSuggestions = useMemo(
     () => buildSuggestions(hallShifts.map((s) => s.coveringFor), DEFAULT_COVER_NAMES),
@@ -108,21 +103,21 @@ function HallForm({
     () => buildSuggestions(hallShifts.map((s) => s.locationName), DEFAULT_LOCATIONS),
     [hallShifts],
   );
-
   const personPills = useMemo(() => {
-    const fromShifts = [...new Set(hallShifts.map((s) => s.coveringFor))];
-    const extra = DEFAULT_COVER_NAMES.filter((n) => !fromShifts.includes(n));
-    return [...fromShifts, ...extra].slice(0, 12);
+    const from = [...new Set(hallShifts.map((s) => s.coveringFor))];
+    const extra = DEFAULT_COVER_NAMES.filter((n) => !from.includes(n));
+    return [...from, ...extra].slice(0, 12);
+  }, [hallShifts]);
+  const locationPills = useMemo(() => {
+    const from = [...new Set(hallShifts.map((s) => s.locationName))];
+    const extra = DEFAULT_LOCATIONS.filter((l) => !from.includes(l));
+    return [...from, ...extra].slice(0, 10);
   }, [hallShifts]);
 
-  const locationPills = useMemo(() => {
-    const fromShifts = [...new Set(hallShifts.map((s) => s.locationName))];
-    const extra = DEFAULT_LOCATIONS.filter((l) => !fromShifts.includes(l));
-    return [...fromShifts, ...extra].slice(0, 10);
-  }, [hallShifts]);
+  const canSubmit = !!coveringFor && !!formDate && !!location && !!amount;
 
   const handleSubmit = () => {
-    if (!coveringFor || !formDate || !location || !amount) return;
+    if (!canSubmit) return;
     onSubmit({
       coveringFor,
       shiftDate: formDate,
@@ -246,15 +241,10 @@ function HallForm({
         <DialogClose asChild>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
         </DialogClose>
-        <Button
-          onClick={handleSubmit}
-          disabled={isSubmitting || !coveringFor || !formDate || !location || !amount}
-        >
-          {isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-          ) : (
-            <Plus className="w-4 h-4 mr-1.5" />
-          )}
+        <Button onClick={handleSubmit} disabled={isSubmitting || !canSubmit}>
+          {isSubmitting
+            ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+            : <Plus className="w-4 h-4 mr-1.5" />}
           Add Shift
         </Button>
       </DialogFooter>
@@ -262,32 +252,43 @@ function HallForm({
   );
 }
 
-// ─── Station form ─────────────────────────────────────────────────────────────
+// ─── Station form ──────────────────────────────────────────────────────────────
 
 const RATE_KEYS: StationRateKey[] = ["Afternoon", "Saturday", "Sunday"];
 
-interface StationFormProps {
+function StationForm({
+  shifts,
+  isSubmitting,
+  onSubmit,
+  onCancel,
+}: {
   shifts: Shift[];
   isSubmitting: boolean;
   onSubmit: (data: ShiftCreateInput) => void;
   onCancel: () => void;
-}
-
-function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormProps) {
+}) {
   const today = new Date().toISOString().split("T")[0];
   const [stationName, setStationName] = useState("");
   const [rateKey, setRateKey] = useState<StationRateKey>("Afternoon");
   const [formDate, setFormDate] = useState(today);
   const [hours, setHours] = useState("5");
-  const [gross, setGross] = useState("");
-  const [tax, setTax] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
 
-  const grossTouched = useRef(false);
-  const taxTouched = useRef(false);
+  // null = use auto-calc, string = user has manually overridden
+  const [grossOverride, setGrossOverride] = useState<string | null>(null);
+  const [taxOverride, setTaxOverride] = useState<string | null>(null);
 
-  // Past station names for autocomplete
+  // Derived values — computed during render, no effects needed
+  const autoGross = (Number(hours) || 0) * STATION_RATES[rateKey];
+  const displayGross = grossOverride ?? autoGross.toFixed(2);
+  const autoTax = (Number(displayGross) || 0) * STATION_TAX_RATE;
+  const displayTax = taxOverride ?? autoTax.toFixed(2);
+
+  const grossNum = Number(displayGross) || 0;
+  const taxNum = Number(displayTax) || 0;
+  const net = Math.max(0, grossNum - taxNum);
+
   const pastStationNames = useMemo(() => {
     const seen = new Set<string>();
     for (const s of shifts) {
@@ -296,30 +297,23 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
     return Array.from(seen).sort();
   }, [shifts]);
 
-  // Auto-calc gross from hours + rate
-  useEffect(() => {
-    if (grossTouched.current) return;
-    const h = Number(hours) || 0;
-    const g = h * STATION_RATES[rateKey];
-    setGross(g.toFixed(2));
-  }, [hours, rateKey]);
-
-  // Auto-calc tax from gross
-  useEffect(() => {
-    if (taxTouched.current) return;
-    const g = Number(gross) || 0;
-    setTax((g * STATION_TAX_RATE).toFixed(2));
-  }, [gross]);
-
-  const grossNum = Number(gross) || 0;
-  const taxNum = Number(tax) || 0;
-  const net = Math.max(0, grossNum - taxNum);
-
   const canSubmit =
     stationName.trim().length > 0 &&
-    formDate.length > 0 &&
+    !!formDate &&
     Number(hours) > 0 &&
     grossNum > 0;
+
+  // Changing rate or hours resets overrides so auto-calc resumes
+  const changeRateKey = (k: StationRateKey) => {
+    setRateKey(k);
+    setGrossOverride(null);
+    setTaxOverride(null);
+  };
+  const changeHours = (h: string) => {
+    setHours(h);
+    setGrossOverride(null);
+    setTaxOverride(null);
+  };
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -337,7 +331,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
 
   return (
     <div className="space-y-5 py-2">
-      {/* Station name — pills + combo input */}
+      {/* Station name */}
       <div className="space-y-2">
         <Label className="flex items-center gap-1.5">
           <Train className="w-3.5 h-3.5" /> Station Name
@@ -365,7 +359,11 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
           list="station-name-list"
           value={stationName}
           onChange={(e) => setStationName(e.target.value)}
-          placeholder={pastStationNames.length > 0 ? "Or type a new station…" : "e.g. Central, Redfern, Sydenham..."}
+          placeholder={
+            pastStationNames.length > 0
+              ? "Or type a new station…"
+              : "e.g. Central, Redfern, Sydenham..."
+          }
         />
         <datalist id="station-name-list">
           {pastStationNames.map((n) => (
@@ -382,11 +380,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
             <button
               key={k}
               type="button"
-              onClick={() => {
-                grossTouched.current = false;
-                taxTouched.current = false;
-                setRateKey(k);
-              }}
+              onClick={() => changeRateKey(k)}
               className={`flex-1 flex flex-col items-center py-2 rounded-lg border text-xs font-medium transition-all ${
                 rateKey === k
                   ? "bg-blue-500 text-white border-blue-500"
@@ -419,11 +413,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
             step="0.25"
             min="0"
             value={hours}
-            onChange={(e) => {
-              grossTouched.current = false;
-              taxTouched.current = false;
-              setHours(e.target.value);
-            }}
+            onChange={(e) => changeHours(e.target.value)}
           />
         </div>
       </div>
@@ -436,10 +426,10 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
             type="number"
             step="0.01"
             min="0"
-            value={gross}
+            value={displayGross}
             onChange={(e) => {
-              grossTouched.current = true;
-              setGross(e.target.value);
+              setGrossOverride(e.target.value);
+              setTaxOverride(null); // re-calc tax from new gross
             }}
           />
           <p className="text-xs text-muted-foreground">Auto-calc. Editable.</p>
@@ -450,11 +440,8 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
             type="number"
             step="0.01"
             min="0"
-            value={tax}
-            onChange={(e) => {
-              taxTouched.current = true;
-              setTax(e.target.value);
-            }}
+            value={displayTax}
+            onChange={(e) => setTaxOverride(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
             Auto: {(STATION_TAX_RATE * 100).toFixed(1)}%. Editable.
@@ -473,7 +460,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
         </p>
       </div>
 
-      {/* Notes + Status */}
+      {/* Notes */}
       <div className="space-y-2">
         <Label className="flex items-center gap-1.5">
           <StickyNote className="w-3.5 h-3.5" /> Notes{" "}
@@ -487,6 +474,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
         />
       </div>
 
+      {/* Status */}
       <div className="space-y-2">
         <Label>Status</Label>
         <StatusToggle value={status} onChange={setStatus} />
@@ -497,11 +485,9 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
         </DialogClose>
         <Button onClick={handleSubmit} disabled={isSubmitting || !canSubmit}>
-          {isSubmitting ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-          ) : (
-            <Train className="w-4 h-4 mr-1.5" />
-          )}
+          {isSubmitting
+            ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+            : <Train className="w-4 h-4 mr-1.5" />}
           Add Station Shift
         </Button>
       </DialogFooter>
@@ -509,7 +495,7 @@ function StationForm({ shifts, isSubmitting, onSubmit, onCancel }: StationFormPr
   );
 }
 
-// ─── Top-level dialog ─────────────────────────────────────────────────────────
+// ─── Top-level dialog ──────────────────────────────────────────────────────────
 
 interface AddShiftDialogProps {
   open: boolean;
@@ -532,20 +518,10 @@ export function AddShiftDialog({
 }: AddShiftDialogProps) {
   const [jobKind, setJobKind] = useState<JobKind>("Hall");
 
-  // Reset to Hall whenever dialog opens
-  useEffect(() => {
-    if (open) setJobKind("Hall");
-  }, [open]);
-
-  const handleSubmit = (data: ShiftCreateInput) => {
-    onSubmit(data);
-  };
-
-  const handleCancel = () => onOpenChange(false);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      {/* key={String(open)} remounts content on open → resets jobKind to "Hall" */}
+      <DialogContent key={String(open)} className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Shift</DialogTitle>
           <DialogDescription>
@@ -589,15 +565,15 @@ export function AddShiftDialog({
             defaultPerson={defaultPerson}
             defaultLocation={defaultLocation}
             isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
+            onSubmit={onSubmit}
+            onCancel={() => onOpenChange(false)}
           />
         ) : (
           <StationForm
             shifts={shifts}
             isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
+            onSubmit={onSubmit}
+            onCancel={() => onOpenChange(false)}
           />
         )}
       </DialogContent>
