@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import {
   LayoutGrid, List, Table2, Users, DollarSign,
   CheckCircle2, Clock, Train, CheckSquare, Square, X,
@@ -98,12 +98,7 @@ function BulkBar({
     : "bg-blue-600 hover:bg-blue-700 text-white";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ring-1 ${ringColor}`}
-    >
+    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ring-1 ${ringColor}`}>
       <span className="text-sm font-medium flex-1">
         {count} shift{count !== 1 ? "s" : ""} selected
       </span>
@@ -120,7 +115,7 @@ function BulkBar({
       <button onClick={onClear} className="text-muted-foreground hover:text-foreground">
         <X className="w-4 h-4" />
       </button>
-    </motion.div>
+    </div>
   );
 }
 
@@ -454,9 +449,8 @@ export function ShiftsTab({
       )}
 
       {/* Hall person summary */}
-      <AnimatePresence>
-        {shiftKind === "hall" && selectedPerson !== "__all__" && selectedPersonSummary && (
-          <motion.div key="person-summary" initial={{ opacity: 0, y: -6, height: 0 }} animate={{ opacity: 1, y: 0, height: "auto" }} exit={{ opacity: 0, y: -6, height: 0 }} transition={{ duration: 0.18 }}>
+      {shiftKind === "hall" && selectedPerson !== "__all__" && selectedPersonSummary && (
+          <div>
             <Card className="border-primary/20 bg-primary/5">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -473,9 +467,8 @@ export function ShiftsTab({
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
 
       {/* Filter + bulk toggle row */}
       <div className="flex items-center gap-2">
@@ -518,8 +511,7 @@ export function ShiftsTab({
       </div>
 
       {/* Bulk bar — hall */}
-      <AnimatePresence>
-        {shiftKind === "hall" && hallSelecting && hallSelected.size > 0 && (
+      {shiftKind === "hall" && hallSelecting && hallSelected.size > 0 && (
           <BulkBar
             selected={hallSelected}
             total={filteredHall.length}
@@ -529,8 +521,8 @@ export function ShiftsTab({
             isLoading={bulkLoading}
             accent="emerald"
           />
-        )}
-        {shiftKind === "station" && stationSelecting && stationSelected.size > 0 && (
+      )}
+      {shiftKind === "station" && stationSelecting && stationSelected.size > 0 && (
           <BulkBar
             selected={stationSelected}
             total={filteredStation.length}
@@ -540,19 +532,11 @@ export function ShiftsTab({
             isLoading={bulkLoading}
             accent="blue"
           />
-        )}
-      </AnimatePresence>
+      )}
 
-      {/* Content — no nested AnimatePresence to avoid mobile lag */}
-      <AnimatePresence mode="wait" initial={false}>
-        {shiftKind === "hall" ? (
-          <motion.div
-            key="hall"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-          >
+      {/* Content */}
+      {shiftKind === "hall" ? (
+          <div>
             {filteredHall.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -611,15 +595,9 @@ export function ShiftsTab({
                 onEdit={onEditShift}
               />
             )}
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            key="station"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
-          >
+          <div>
             {filteredStation.length === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
@@ -667,9 +645,8 @@ export function ShiftsTab({
                 onEdit={onEditShift}
               />
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }
