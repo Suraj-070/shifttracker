@@ -123,21 +123,12 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* FIX: prevent scroll bounce/overscroll on mobile */
-    overscroll-behavior: none;
-    /* Prevent iOS rubber band scroll bug */
-    -webkit-overflow-scrolling: touch;
+    /* Allow normal scrolling, only prevent pull-to-refresh bounce */
+    overscroll-behavior-x: none;
   }
 
-  /* FIX: prevent scroll jumping when tabs switch */
   html {
     scroll-behavior: auto !important;
-    overscroll-behavior: none;
-  }
-
-  /* FIX: ensure tab content doesn't cause scroll reset */
-  main {
-    overscroll-behavior-y: contain;
   }
 }
 
