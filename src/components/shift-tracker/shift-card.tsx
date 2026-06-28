@@ -61,34 +61,40 @@ function SwipeWrapper({
 
   // Long press detection via raw touch — bypasses Framer drag interception
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
-  const longFired = useRef(false);
+  const pointerStartX = useRef(0);
+  const pointerStartY = useRef(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    longFired.current = false;
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
+  // Use pointer events — Framer Motion drag does NOT intercept these
+  // unlike touch events which Framer blocks via passive listeners
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return; // desktop handled separately
+    pointerStartX.current = e.clientX;
+    pointerStartY.current = e.clientY;
     onPressStart?.();
     if (onLongPress) {
       longPressTimer.current = setTimeout(() => {
-        longFired.current = true;
         haptics(20);
+        onPressEnd?.();
         onLongPress();
       }, 450);
     }
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
-    const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-    if (dx > 8 || dy > 8) {
+  const handlePointerMove = (e: React.PointerEvent) => {
+    const dx = Math.abs(e.clientX - pointerStartX.current);
+    const dy = Math.abs(e.clientY - pointerStartY.current);
+    if (dx > 10 || dy > 10) {
       clearTimeout(longPressTimer.current);
       onPressEnd?.();
     }
   };
 
-  const handleTouchEnd = () => {
+  const handlePointerUp = () => {
+    clearTimeout(longPressTimer.current);
+    onPressEnd?.();
+  };
+
+  const handlePointerCancel = () => {
     clearTimeout(longPressTimer.current);
     onPressEnd?.();
   };
@@ -117,9 +123,10 @@ function SwipeWrapper({
   return (
     <div
       className="relative overflow-hidden rounded-xl"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
     >
       {/* Delete background */}
       <motion.div

@@ -309,37 +309,46 @@ export default function ShiftTrackerPage() {
 
   // Delete shift
   // Optimistic delete — remove immediately, confirm after toast timer
+  // Use a ref so confirm/undo always see the latest shift — no stale closure
+  const pendingDeleteRef = React.useRef<Shift | null>(null);
+
   const handleDeleteStart = useCallback((shift: Shift) => {
     haptics(12);
+    pendingDeleteRef.current = shift;
     setShiftToDelete(shift);
-    // Optimistically remove from UI
     setShifts((prev) => prev.filter((s) => s.id !== shift.id));
     setDeleteDialogOpen(true);
   }, [haptics]);
 
-  // Called after toast timer expires — actually delete from DB
   const handleDeleteConfirm = useCallback(async () => {
-    if (!shiftToDelete) return;
+    const shift = pendingDeleteRef.current;
+    if (!shift) return;
+    pendingDeleteRef.current = null;
+    setShiftToDelete(null);
     try {
-      await fetch(`/api/shifts/${shiftToDelete.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/shifts/${shift.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
       haptics(20);
       await fetchProfile();
     } catch {
       // Restore shift if delete failed
-      setShifts((prev) => [shiftToDelete, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate)));
+      setShifts((prev) =>
+        [shift, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))
+      );
       showToast({ type: "error", title: "Delete failed", description: "Shift restored." });
-    } finally {
-      setShiftToDelete(null);
     }
-  }, [shiftToDelete, haptics, fetchProfile, showToast]);
+  }, [haptics, fetchProfile, showToast]);
 
-  // Called if user taps Undo — restore shift
   const handleDeleteUndo = useCallback(() => {
-    if (!shiftToDelete) return;
-    setShifts((prev) => [shiftToDelete, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate)));
+    const shift = pendingDeleteRef.current;
+    if (!shift) return;
+    pendingDeleteRef.current = null;
+    setShifts((prev) =>
+      [shift, ...prev].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))
+    );
     haptics(8);
     setShiftToDelete(null);
-  }, [shiftToDelete, haptics]);
+  }, [haptics]);
 
   // Bulk paid
   const handleBulkPaid = useCallback(async (ids: string[]) => {
