@@ -161,8 +161,8 @@ export function ShiftCard({
   const cardContent = (
     <div
       {...desktopLongPress}
-      className={`bg-card border rounded-xl overflow-hidden select-none transition-all duration-75 ${
-        station ? "border-blue-200 dark:border-blue-800" : "border-border/60"
+      className={`bg-card border rounded-xl overflow-hidden select-none transition-all duration-75 tap-press ${
+        station ? "border-blue-200 dark:station-border" : "border-border/60"
       } ${pressing ? "scale-[0.97] brightness-90" : ""}`}
     >
       <div className="flex items-stretch">
@@ -178,7 +178,7 @@ export function ShiftCard({
                 <span className="text-sm font-semibold">{formatShortDate(shift.shiftDate)}</span>
                 <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
                 {station && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-800 gap-0.5">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-blue-200 bg-blue-50 text-blue-700 dark:station-blue-bg dark:station-blue dark:station-border gap-0.5">
                     <Train className="w-2.5 h-2.5" />Station
                   </Badge>
                 )}

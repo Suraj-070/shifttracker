@@ -360,7 +360,7 @@ export function DashboardTab({
                   ].map((stat, i) => {
                     const Icon = stat.icon;
                     const colorMap: Record<string, string> = {
-                      blue: "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400",
+                      blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300",
                       amber: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
                     };
                     return (
@@ -384,7 +384,7 @@ export function DashboardTab({
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-sm font-medium">Collection rate</p>
-                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{stationPaidPct}%</span>
+                      <span className="text-sm font-bold text-blue-600 dark:text-blue-300">{stationPaidPct}%</span>
                     </div>
                     <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                       <motion.div className="h-full rounded-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${stationPaidPct}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
@@ -404,12 +404,12 @@ export function DashboardTab({
 
                 {/* ── Current Fortnight card ────────────────────── */}
                 {currentFortnight && (
-                  <Card className="border-blue-200 dark:border-blue-800 py-0 gap-0">
-                    <CardHeader className="px-4 py-3 border-b border-blue-100 dark:border-blue-800">
+                  <Card className="border-blue-200 dark:border-blue-700 py-0 gap-0">
+                    <CardHeader className="px-4 py-3 border-b border-blue-100 dark:border-blue-700">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Clock className="w-4 h-4 text-blue-500" />
-                          <CardTitle className="text-sm font-semibold text-blue-700 dark:text-blue-400">Current Fortnight</CardTitle>
+                          <CardTitle className="text-sm font-semibold text-blue-700 dark:text-blue-300">Current Fortnight</CardTitle>
                         </div>
                         <span className="text-xs text-muted-foreground">{formatDateShort(currentFortnight.start)} – {formatDateShort(currentFortnight.end)}</span>
                       </div>
@@ -417,9 +417,9 @@ export function DashboardTab({
                     <CardContent className="p-4 space-y-4">
 
                       {/* Countdown */}
-                      <div className="flex items-center justify-between rounded-lg bg-blue-50 dark:bg-blue-950/30 px-4 py-3">
+                      <div className="flex items-center justify-between rounded-lg bg-blue-50 dark:bg-blue-900/30/30 px-4 py-3">
                         <div>
-                          <p className="text-xs font-medium text-blue-700 dark:text-blue-400">
+                          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                             {daysToPayslip <= 0 ? "Payslip today! 🎉" : daysToPayslip === 1 ? "Payslip tomorrow!" : `Payslip in ${daysToPayslip} days`}
                           </p>
                           <p className="text-[11px] text-blue-600/70 dark:text-blue-500 mt-0.5">
@@ -427,7 +427,7 @@ export function DashboardTab({
                           </p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{Math.max(0, daysToPayslip)}</p>
+                          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{Math.max(0, daysToPayslip)}</p>
                           <p className="text-[10px] text-muted-foreground">days left</p>
                         </div>
                       </div>
@@ -526,7 +526,7 @@ export function DashboardTab({
                                           <div className="flex items-center gap-2">
                                             <span className="text-xs font-medium">{formatShortDate(shift.shiftDate)}</span>
                                             <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
-                                            <span className="text-[11px] text-blue-600 dark:text-blue-400 font-medium truncate">{shift.coveringFor}</span>
+                                            <span className="text-[11px] text-blue-600 dark:text-blue-300 font-medium truncate">{shift.coveringFor}</span>
                                           </div>
                                           <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{userNote ? ` · ${userNote}` : ""}</p>
                                         </div>
@@ -577,7 +577,7 @@ export function DashboardTab({
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Train className="w-3 h-3 shrink-0 text-blue-400" />
-                                <span className="truncate font-medium text-blue-600 dark:text-blue-400">{shift.coveringFor}</span>
+                                <span className="truncate font-medium text-blue-600 dark:text-blue-300">{shift.coveringFor}</span>
                                 {userNote && <StickyNote className="w-3 h-3 shrink-0 text-amber-500 ml-0.5" />}
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">

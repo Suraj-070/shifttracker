@@ -110,6 +110,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ── Dark mode polish for station blue ── */
+  --station-blue: oklch(0.6 0.15 230);
+  --station-blue-bg: oklch(0.22 0.04 230);
+  --station-blue-border: oklch(0.32 0.06 230);
 }
 
 @layer base {
@@ -118,12 +123,68 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* FIX: prevent scroll bounce/overscroll on mobile */
+    overscroll-behavior: none;
+    /* Prevent iOS rubber band scroll bug */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* FIX: prevent scroll jumping when tabs switch */
+  html {
+    scroll-behavior: auto !important;
+    overscroll-behavior: none;
+  }
+
+  /* FIX: ensure tab content doesn't cause scroll reset */
+  main {
+    overscroll-behavior-y: contain;
   }
 }
 
-/* Hides the scrollbar on horizontally-scrolling strips (e.g. the person
-   filter tabs) while keeping the area scrollable. scrollbarWidth: none
-   inline already covers Firefox; this adds the WebKit/Chrome/Safari side. */
+/* Hide scrollbars on horizontal strips */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* ── Premium loading shimmer ── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Tap press feedback ── */
+@keyframes tap-press {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+.tap-press:active {
+  animation: tap-press 0.15s ease-out forwards;
+}
+
+/* ── Premium app loading animation ── */
+@keyframes app-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.app-enter {
+  animation: app-fade-in 0.35s ease-out forwards;
+}
+
+/* ── Station blue dark mode polish ── */
+.dark .station-blue { color: oklch(0.68 0.14 230); }
+.dark .station-blue-bg { background-color: oklch(0.22 0.04 230); }
+.dark .station-border { border-color: oklch(0.32 0.06 230); }
+
+/* ── Tab slide — prevent content flash ── */
+.tab-content {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
