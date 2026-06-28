@@ -134,6 +134,7 @@ interface DashboardTabProps {
   onToggleStatus: (shift: Shift) => void;
   onAddShift: () => void;
   onViewAllShifts: () => void;
+  compact?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -146,6 +147,7 @@ export function DashboardTab({
   onToggleStatus,
   onAddShift,
   onViewAllShifts,
+  compact = false,
 }: DashboardTabProps) {
   const [dashKind, setDashKind] = useState<DashKind>("hall");
   const [expandedFortnight, setExpandedFortnight] = useState<number | null>(null);

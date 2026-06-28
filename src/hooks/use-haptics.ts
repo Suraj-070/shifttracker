@@ -1,16 +1,22 @@
+"use client";
+
 import { useSettingsStore } from "@/stores/settings-store";
 
-/**
- * Returns a vibrate() function that respects the enableHaptics setting.
- * Usage: const haptics = useHaptics(); haptics(10); // 10ms buzz
- */
+const STRENGTH_MULTIPLIER = {
+  light: 0.5,
+  medium: 1,
+  strong: 1.8,
+};
+
 export function useHaptics() {
   const enabled = useSettingsStore((s) => s.enableHaptics);
+  const strength = useSettingsStore((s) => s.hapticsStrength);
 
   return (duration = 8) => {
     if (!enabled) return;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate(duration);
+      const adjusted = Math.round(duration * STRENGTH_MULTIPLIER[strength]);
+      navigator.vibrate(adjusted);
     }
   };
 }

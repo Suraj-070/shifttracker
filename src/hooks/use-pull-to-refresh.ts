@@ -1,21 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSettingsStore } from "@/stores/settings-store";
+
+const SENSITIVITY_THRESHOLD = {
+  low: 160,
+  medium: 110,
+  high: 70,
+};
 
 export function usePullToRefresh(onRefresh: () => Promise<void>) {
   const [isPulling, setIsPulling] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullProgress, setPullProgress] = useState(0);
 
+  const sensitivity = useSettingsStore((s) => s.swipeSensitivity);
+  const sensitivityRef = useRef(sensitivity);
+  useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
+
   const startY = useRef(-1);
   const startX = useRef(0);
   const pulling = useRef(false);
   const refreshing = useRef(false);
   const progress = useRef(0);
-
-  const THRESHOLD = 110;
   const DEAD_ZONE = 14;
-  const MAX_HORIZONTAL_RATIO = 1.5; // cancel if more horizontal than vertical
 
   const onRefreshRef = useRef(onRefresh);
   useEffect(() => { onRefreshRef.current = onRefresh; }, [onRefresh]);
@@ -38,46 +46,31 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
       if (refreshing.current || startY.current < 0) return;
       const touch = e.touches[0];
       if (!touch) return;
-
       const dy = touch.clientY - startY.current;
       const dx = Math.abs(touch.clientX - startX.current);
-
-      // Cancel if horizontal movement dominates (tab swipe)
-      if (dx > dy * MAX_HORIZONTAL_RATIO && dx > 20) {
-        startY.current = -1;
-        return;
-      }
-
+      if (dx > dy * 1.5 && dx > 20) { startY.current = -1; return; }
       if (dy > DEAD_ZONE && window.scrollY <= 0) {
-        const p = Math.min((dy - DEAD_ZONE) / THRESHOLD, 1);
+        const threshold = SENSITIVITY_THRESHOLD[sensitivityRef.current];
+        const p = Math.min((dy - DEAD_ZONE) / threshold, 1);
         progress.current = p;
-        if (!pulling.current) {
-          pulling.current = true;
-          setIsPulling(true);
-        }
+        if (!pulling.current) { pulling.current = true; setIsPulling(true); }
         setPullProgress(p);
       }
     };
 
-    const onTouchEnd = async (e: TouchEvent) => {
+    const onTouchEnd = async () => {
       if (startY.current < 0) return;
-
       const didComplete = progress.current >= 1;
       pulling.current = false;
       startY.current = -1;
-
       if (didComplete && !refreshing.current) {
         refreshing.current = true;
         setIsRefreshing(true);
         setIsPulling(false);
         setPullProgress(0);
         progress.current = 0;
-        try {
-          await onRefreshRef.current();
-        } finally {
-          refreshing.current = false;
-          setIsRefreshing(false);
-        }
+        try { await onRefreshRef.current(); }
+        finally { refreshing.current = false; setIsRefreshing(false); }
       } else {
         progress.current = 0;
         setIsPulling(false);

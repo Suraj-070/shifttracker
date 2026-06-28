@@ -5,6 +5,9 @@ type ViewMode = 'card' | 'list' | 'table'
 type CardDensity = 'compact' | 'comfortable' | 'spacious'
 type ThemeMode = 'light' | 'dark' | 'system'
 type AccentColor = 'emerald' | 'rose' | 'amber' | 'violet' | 'sky' | 'orange'
+type DefaultTab = 'dashboard' | 'shifts' | 'calendar'
+type HapticsStrength = 'light' | 'medium' | 'strong'
+type SwipeSensitivity = 'low' | 'medium' | 'high'
 
 interface SettingsState {
   // View preferences
@@ -26,6 +29,18 @@ interface SettingsState {
   setEnableAnimations: (enabled: boolean) => void
   enableHaptics: boolean
   setEnableHaptics: (enabled: boolean) => void
+  hapticsStrength: HapticsStrength
+  setHapticsStrength: (strength: HapticsStrength) => void
+
+  // Mobile specific
+  defaultTab: DefaultTab
+  setDefaultTab: (tab: DefaultTab) => void
+  swipeSensitivity: SwipeSensitivity
+  setSwipeSensitivity: (s: SwipeSensitivity) => void
+  compactDashboard: boolean
+  setCompactDashboard: (v: boolean) => void
+  longPressDelay: number  // ms
+  setLongPressDelay: (ms: number) => void
 
   // Notifications
   weeklyReminder: boolean
@@ -38,43 +53,49 @@ interface SettingsState {
   setLastSyncTime: (time: string) => void
 }
 
-export type { ViewMode, CardDensity, ThemeMode, AccentColor, SettingsState }
+export type {
+  ViewMode, CardDensity, ThemeMode, AccentColor,
+  DefaultTab, HapticsStrength, SwipeSensitivity, SettingsState
+}
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      // View preferences
       viewMode: 'card',
       setViewMode: (mode) => set({ viewMode: mode }),
 
-      // Appearance
       theme: 'system',
       setTheme: (theme) => set({ theme }),
       accentColor: 'emerald',
       setAccentColor: (color) => set({ accentColor: color }),
 
-      // Customization
       cardDensity: 'comfortable',
       setCardDensity: (density) => set({ cardDensity: density }),
 
-      // Behavior
       enableAnimations: true,
       setEnableAnimations: (enabled) => set({ enableAnimations: enabled }),
       enableHaptics: true,
       setEnableHaptics: (enabled) => set({ enableHaptics: enabled }),
+      hapticsStrength: 'medium',
+      setHapticsStrength: (strength) => set({ hapticsStrength: strength }),
 
-      // Notifications
+      defaultTab: 'dashboard',
+      setDefaultTab: (tab) => set({ defaultTab: tab }),
+      swipeSensitivity: 'medium',
+      setSwipeSensitivity: (s) => set({ swipeSensitivity: s }),
+      compactDashboard: false,
+      setCompactDashboard: (v) => set({ compactDashboard: v }),
+      longPressDelay: 450,
+      setLongPressDelay: (ms) => set({ longPressDelay: ms }),
+
       weeklyReminder: true,
       setWeeklyReminder: (enabled) => set({ weeklyReminder: enabled }),
       paymentReminder: true,
       setPaymentReminder: (enabled) => set({ paymentReminder: enabled }),
 
-      // Data
       lastSyncTime: null,
       setLastSyncTime: (time) => set({ lastSyncTime: time }),
     }),
-    {
-      name: 'shift-tracker-settings',
-    }
+    { name: 'shift-tracker-settings' }
   )
 )

@@ -44,10 +44,14 @@ function SwipeWrapper({
   children,
   onDelete,
   onLongPress,
+  onPressStart,
+  onPressEnd,
 }: {
   children: React.ReactNode;
   onDelete: () => void;
   onLongPress?: () => void;
+  onPressStart?: () => void;
+  onPressEnd?: () => void;
 }) {
   const haptics = useHaptics();
   const [swiped, setSwiped] = useState(false);
@@ -62,28 +66,31 @@ function SwipeWrapper({
   const longFired = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!onLongPress) return;
     longFired.current = false;
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
-    longPressTimer.current = setTimeout(() => {
-      longFired.current = true;
-      haptics(20);
-      onLongPress();
-    }, 450);
+    onPressStart?.();
+    if (onLongPress) {
+      longPressTimer.current = setTimeout(() => {
+        longFired.current = true;
+        haptics(20);
+        onLongPress();
+      }, 450);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const dx = Math.abs(e.touches[0].clientX - touchStartX.current);
     const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-    // Cancel if moved more than 8px
     if (dx > 8 || dy > 8) {
       clearTimeout(longPressTimer.current);
+      onPressEnd?.();
     }
   };
 
   const handleTouchEnd = () => {
     clearTimeout(longPressTimer.current);
+    onPressEnd?.();
   };
 
   const handleDragEnd = (_: unknown, info: { offset: { x: number } }) => {
@@ -174,6 +181,7 @@ export function ShiftCard({
   const isMobile = useIsMobile();
   const station = isStationShift(shift);
   const isPaid = shift.status === "Paid";
+  const [pressing, setPressing] = useState(false);
   const taxWithheld = station ? parseStationTax(shift.notes) : 0;
   const afterTax = station ? Math.max(0, parseFloat(shift.amountEarned) - taxWithheld) : 0;
   const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
@@ -198,9 +206,9 @@ export function ShiftCard({
   const card = (
     <div
       {...(isMobile ? {} : desktopLongPress)}
-      className={`bg-card border rounded-xl overflow-hidden select-none ${
+      className={`bg-card border rounded-xl overflow-hidden select-none transition-all duration-100 ${
         station ? "border-blue-200 dark:border-blue-800" : "border-border/60"
-      }`}
+      } ${pressing ? "scale-[0.98] brightness-95" : ""}`}
     >
       <div className="flex items-stretch">
         {/* Color bar */}
@@ -320,7 +328,9 @@ export function ShiftCard({
     return (
       <SwipeWrapper
         onDelete={() => onDelete(shift)}
-        onLongPress={onLongPress ? () => onLongPress(shift) : undefined}
+        onLongPress={onLongPress ? () => { setPressing(false); onLongPress(shift); } : undefined}
+        onPressStart={() => setPressing(true)}
+        onPressEnd={() => setPressing(false)}
       >
         {card}
       </SwipeWrapper>

@@ -17,6 +17,7 @@ import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSettingsStore } from "@/stores/settings-store";
 
 import { DashboardTab } from "@/components/shift-tracker/dashboard-tab";
 import { ShiftsTab } from "@/components/shift-tracker/shifts-tab";
@@ -80,7 +81,8 @@ export default function ShiftTrackerPage() {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
-  const [activeTab, setActiveTab] = useState<TabKey>("dashboard");
+  const defaultTab = useSettingsStore((s) => s.defaultTab);
+  const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
   // Tab order — defined as const outside to avoid recreation
@@ -589,6 +591,7 @@ export default function ShiftTrackerPage() {
                   onToggleStatus={toggleStatus}
                   onAddShift={() => setAddDialogOpen(true)}
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
+                  compact={useSettingsStore.getState().compactDashboard}
                 />
               </motion.div>
             )}

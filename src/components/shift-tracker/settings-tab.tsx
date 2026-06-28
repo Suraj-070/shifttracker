@@ -2,44 +2,121 @@
 
 import React from "react";
 import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor, RefreshCw, Download, Info, Shield, FileText, Sparkles, Smartphone, Share, CheckCircle2 } from "lucide-react";
+import {
+  Moon, Sun, Monitor, RefreshCw, Download, Info, Shield,
+  FileText, Sparkles, Smartphone, Share, CheckCircle2,
+  Vibrate, Gauge, Layout, Home, Clock, LayoutDashboard,
+  CalendarDays, Calendar, ChevronRight,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useSettingsStore, type AccentColor, type CardDensity, type ViewMode } from "@/stores/settings-store";
-import { useToast } from "@/hooks/use-toast";
+import {
+  useSettingsStore,
+  type AccentColor,
+  type CardDensity,
+  type ViewMode,
+  type DefaultTab,
+  type HapticsStrength,
+  type SwipeSensitivity,
+} from "@/stores/settings-store";
+import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
+import { motion } from "framer-motion";
 
 const ACCENT_COLORS: { key: AccentColor; class: string; label: string }[] = [
   { key: "emerald", class: "bg-emerald-500", label: "Emerald" },
-  { key: "rose", class: "bg-rose-500", label: "Rose" },
-  { key: "amber", class: "bg-amber-500", label: "Amber" },
-  { key: "violet", class: "bg-violet-500", label: "Violet" },
-  { key: "sky", class: "bg-sky-500", label: "Sky" },
-  { key: "orange", class: "bg-orange-500", label: "Orange" },
+  { key: "rose",    class: "bg-rose-500",    label: "Rose" },
+  { key: "amber",   class: "bg-amber-500",   label: "Amber" },
+  { key: "violet",  class: "bg-violet-500",  label: "Violet" },
+  { key: "sky",     class: "bg-sky-500",     label: "Sky" },
+  { key: "orange",  class: "bg-orange-500",  label: "Orange" },
 ];
 
+function SettingRow({ label, description, children }: {
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-1">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium">{label}</p>
+        {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+      </div>
+      <div className="shrink-0">{children}</div>
+    </div>
+  );
+}
+
+function SegmentControl<T extends string>({
+  value,
+  options,
+  onChange,
+  size = "md",
+}: {
+  value: T;
+  options: { key: T; label: string }[];
+  onChange: (v: T) => void;
+  size?: "sm" | "md";
+}) {
+  return (
+    <div className={`flex gap-1 p-1 bg-muted rounded-xl ${size === "sm" ? "text-xs" : "text-sm"}`}>
+      {options.map((o) => (
+        <motion.button
+          key={o.key}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onChange(o.key)}
+          className={`flex-1 ${size === "sm" ? "py-1 px-2" : "py-1.5 px-3"} rounded-lg font-medium transition-all ${
+            value === o.key
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {o.label}
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+function SectionCard({ icon: Icon, title, children }: {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+          <Icon className="w-3.5 h-3.5" /> {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4 space-y-4">
+        {children}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function SettingsTab() {
-  const { toast } = useToast();
+  const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
   const { canInstall, installed, isIos, promptInstall } = usePwaInstall();
 
   const handleInstall = async () => {
     const outcome = await promptInstall();
-    if (outcome === "accepted") {
-      toast({ title: "Installed", description: "ShiftTracker added to your device." });
-    } else if (outcome === "dismissed") {
-      toast({ title: "Maybe later", description: "You can install anytime from this menu." });
-    }
+    if (outcome === "accepted") showToast({ type: "success", title: "Installed!", description: "ShiftTracker added to home screen." });
+    else if (outcome === "dismissed") showToast({ type: "info", title: "Maybe later" });
   };
 
   const handleForceSync = () => {
     store.setLastSyncTime(new Date().toISOString());
-    toast({ title: "Synced", description: "All data is up to date." });
+    showToast({ type: "success", title: "Synced", description: "All data is up to date." });
   };
 
   const handleExport = async () => {
@@ -48,240 +125,255 @@ export function SettingsTab() {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = "shifts-export.csv";
-      a.click();
+      a.href = url; a.download = "shifts-export.csv"; a.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Exported", description: "CSV file downloaded." });
+      showToast({ type: "success", title: "Exported", description: "CSV downloaded." });
     } catch {
-      toast({ title: "Error", description: "Failed to export", variant: "destructive" });
+      showToast({ type: "error", title: "Export failed" });
     }
   };
 
-  const themeOptions: { value: string; icon: React.ElementType; label: string }[] = [
-    { value: "light", icon: Sun, label: "Light" },
-    { value: "dark", icon: Moon, label: "Dark" },
-    { value: "system", icon: Monitor, label: "System" },
-  ];
-
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      {/* Appearance */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Sun className="w-4 h-4" /> Appearance
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm">Theme</Label>
-            <div className="flex gap-2">
-              {themeOptions.map((opt) => {
-                const Icon = opt.icon;
-                const active = currentTheme === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    onClick={() => setTheme(opt.value)}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      active ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 ring-2 ring-emerald-500/30" : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" /> {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="max-w-lg mx-auto space-y-4 pb-8">
 
-      {/* Customization */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> Customization
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm">Accent Color</Label>
-            <div className="flex gap-3">
-              {ACCENT_COLORS.map((c) => (
-                <button
-                  key={c.key}
-                  onClick={() => store.setAccentColor(c.key)}
-                  className={`w-8 h-8 rounded-full ${c.class} transition-all ${
-                    store.accentColor === c.key ? "ring-2 ring-offset-2 ring-offset-background ring-current scale-110" : "opacity-60 hover:opacity-100"
-                  }`}
-                  title={c.label}
-                />
-              ))}
-            </div>
+      {/* ── Appearance ── */}
+      <SectionCard icon={Sun} title="Appearance">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Theme</Label>
+          <SegmentControl
+            value={currentTheme as "light" | "dark" | "system"}
+            options={[
+              { key: "light", label: "☀️ Light" },
+              { key: "dark",  label: "🌙 Dark" },
+              { key: "system", label: "⚙️ Auto" },
+            ]}
+            onChange={(v) => setTheme(v)}
+          />
+        </div>
+        <Separator />
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Accent colour</Label>
+          <div className="flex gap-3 flex-wrap">
+            {ACCENT_COLORS.map((c) => (
+              <motion.button
+                key={c.key}
+                whileTap={{ scale: 0.85 }}
+                onClick={() => store.setAccentColor(c.key)}
+                className={`w-9 h-9 rounded-full ${c.class} transition-all ${
+                  store.accentColor === c.key
+                    ? "ring-2 ring-offset-2 ring-offset-background ring-current scale-110 shadow-lg"
+                    : "opacity-50 hover:opacity-100"
+                }`}
+                title={c.label}
+              />
+            ))}
           </div>
-          <Separator />
-          <div className="space-y-2">
-            <Label className="text-sm">Card Density</Label>
-            <div className="flex gap-2">
-              {(["compact", "comfortable", "spacious"] as CardDensity[]).map((d) => (
-                <button
-                  key={d}
-                  onClick={() => store.setCardDensity(d)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                    store.cardDensity === d ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 ring-2 ring-emerald-500/30" : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
-      {/* Behavior */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Monitor className="w-4 h-4" /> Behavior
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm">Default Shifts View</Label>
-            <div className="flex gap-2">
-              {(["card", "list", "table"] as ViewMode[]).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => store.setViewMode(v)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                    store.viewMode === v ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 ring-2 ring-emerald-500/30" : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Separator />
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Enable Animations</Label>
-            <Switch checked={store.enableAnimations} onCheckedChange={store.setEnableAnimations} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Enable Haptics</Label>
-            <Switch checked={store.enableHaptics} onCheckedChange={store.setEnableHaptics} />
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── Display ── */}
+      <SectionCard icon={Layout} title="Display">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Card density</Label>
+          <SegmentControl
+            value={store.cardDensity}
+            options={[
+              { key: "compact" as CardDensity, label: "Compact" },
+              { key: "comfortable" as CardDensity, label: "Default" },
+              { key: "spacious" as CardDensity, label: "Spacious" },
+            ]}
+            onChange={store.setCardDensity}
+          />
+        </div>
+        <Separator />
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Default shift view</Label>
+          <SegmentControl
+            value={store.viewMode}
+            options={[
+              { key: "card" as ViewMode, label: "Cards" },
+              { key: "list" as ViewMode, label: "List" },
+              { key: "table" as ViewMode, label: "Table" },
+            ]}
+            onChange={store.setViewMode}
+          />
+        </div>
+        <Separator />
+        <SettingRow label="Compact dashboard" description="Hide collection bar and avg/shift stat">
+          <Switch checked={store.compactDashboard} onCheckedChange={store.setCompactDashboard} />
+        </SettingRow>
+      </SectionCard>
 
-      {/* Install App */}
+      {/* ── Mobile ── */}
+      <SectionCard icon={Smartphone} title="Mobile">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Default tab on open</Label>
+          <SegmentControl
+            value={store.defaultTab}
+            options={[
+              { key: "dashboard" as DefaultTab, label: "Dashboard" },
+              { key: "shifts" as DefaultTab, label: "Shifts" },
+              { key: "calendar" as DefaultTab, label: "Calendar" },
+            ]}
+            onChange={store.setDefaultTab}
+          />
+        </div>
+        <Separator />
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Pull-to-refresh sensitivity</Label>
+          <SegmentControl
+            value={store.swipeSensitivity}
+            options={[
+              { key: "low" as SwipeSensitivity, label: "Low" },
+              { key: "medium" as SwipeSensitivity, label: "Medium" },
+              { key: "high" as SwipeSensitivity, label: "High" },
+            ]}
+            onChange={store.setSwipeSensitivity}
+            size="sm"
+          />
+          <p className="text-[11px] text-muted-foreground">High = easier to trigger, Low = requires more pull</p>
+        </div>
+        <Separator />
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Long press speed</Label>
+          <SegmentControl
+            value={store.longPressDelay === 300 ? "fast" : store.longPressDelay === 450 ? "medium" : "slow"}
+            options={[
+              { key: "fast",   label: "Fast (0.3s)" },
+              { key: "medium", label: "Normal (0.5s)" },
+              { key: "slow",   label: "Slow (0.7s)" },
+            ]}
+            onChange={(v) => store.setLongPressDelay(v === "fast" ? 300 : v === "medium" ? 450 : 700)}
+            size="sm"
+          />
+        </div>
+      </SectionCard>
+
+      {/* ── Haptics ── */}
+      <SectionCard icon={Vibrate} title="Haptics">
+        <SettingRow label="Enable haptic feedback" description="Vibration on actions">
+          <Switch checked={store.enableHaptics} onCheckedChange={store.setEnableHaptics} />
+        </SettingRow>
+        {store.enableHaptics && (
+          <>
+            <Separator />
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Vibration strength</Label>
+              <SegmentControl
+                value={store.hapticsStrength}
+                options={[
+                  { key: "light" as HapticsStrength, label: "Light" },
+                  { key: "medium" as HapticsStrength, label: "Medium" },
+                  { key: "strong" as HapticsStrength, label: "Strong" },
+                ]}
+                onChange={store.setHapticsStrength}
+                size="sm"
+              />
+            </div>
+          </>
+        )}
+      </SectionCard>
+
+      {/* ── Animations ── */}
+      <SectionCard icon={Sparkles} title="Animations">
+        <SettingRow label="Enable animations" description="Transitions and motion effects">
+          <Switch checked={store.enableAnimations} onCheckedChange={store.setEnableAnimations} />
+        </SettingRow>
+      </SectionCard>
+
+      {/* ── Install ── */}
       {!installed && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <Smartphone className="w-4 h-4" /> Install App
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {canInstall ? (
-              <>
-                <p className="text-sm text-muted-foreground">
-                  Install ShiftTracker on this device for a faster, full-screen experience with an app icon on your home screen.
-                </p>
-                <Button className="w-full justify-start gap-3" onClick={handleInstall}>
-                  <Download className="w-4 h-4" /> Install ShiftTracker
-                </Button>
-              </>
-            ) : isIos ? (
-              <div className="text-sm text-muted-foreground space-y-2">
-                <p>To install on iPhone or iPad:</p>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>Tap the <Share className="w-3.5 h-3.5 inline -mt-0.5" /> Share button in Safari</li>
-                  <li>Scroll down and tap "Add to Home Screen"</li>
-                  <li>Tap "Add" in the top right</li>
-                </ol>
+        <SectionCard icon={Smartphone} title="Install App">
+          {canInstall ? (
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleInstall}
+              className="w-full flex items-center gap-3 p-4 rounded-xl bg-primary text-primary-foreground font-medium text-sm"
+            >
+              <Download className="w-5 h-5" />
+              <div className="text-left">
+                <p className="font-semibold">Install ShiftTracker</p>
+                <p className="text-xs opacity-80">Add to home screen for full-screen experience</p>
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Your browser doesn't support one-tap install yet, but you can still pin this page or check your browser menu for an "Install app" or "Add to Home Screen" option.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+              <ChevronRight className="w-5 h-5 ml-auto opacity-70" />
+            </motion.button>
+          ) : isIos ? (
+            <div className="text-sm text-muted-foreground space-y-3">
+              <p className="font-medium">Install on iPhone:</p>
+              <ol className="space-y-2">
+                {[
+                  <>Tap the <Share className="w-3.5 h-3.5 inline -mt-0.5" /> Share button in Safari</>,
+                  <>Scroll down → tap <strong>"Add to Home Screen"</strong></>,
+                  <>Tap <strong>"Add"</strong> in the top right</>,
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[11px] font-bold shrink-0 mt-0.5">{i+1}</span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Check your browser menu for "Install app" or "Add to Home Screen".</p>
+          )}
+        </SectionCard>
       )}
       {installed && (
         <Card>
-          <CardContent className="py-4">
+          <CardContent className="py-4 px-4">
             <div className="flex items-center gap-3 text-sm text-emerald-700 dark:text-emerald-400">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>ShiftTracker is installed on this device.</span>
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="font-semibold">App installed</p>
+                <p className="text-xs opacity-70">ShiftTracker is on your home screen</p>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Data */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Shield className="w-4 h-4" /> Data
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Last sync</span>
-            <span className="font-medium">{store.lastSyncTime ? new Date(store.lastSyncTime).toLocaleString() : "Never"}</span>
-          </div>
-          <Button variant="outline" className="w-full justify-start gap-3" onClick={handleForceSync}>
-            <RefreshCw className="w-4 h-4" /> Force Sync
-          </Button>
-          <Button variant="outline" className="w-full justify-start gap-3" onClick={handleExport}>
+      {/* ── Notifications ── */}
+      <SectionCard icon={Info} title="Notifications">
+        <SettingRow label="Weekly earnings reminder" description="Summary every Monday">
+          <Switch checked={store.weeklyReminder} onCheckedChange={store.setWeeklyReminder} />
+        </SettingRow>
+        <Separator />
+        <SettingRow label="Pay day reminder" description="Alert on payment Thursdays">
+          <Switch checked={store.paymentReminder} onCheckedChange={store.setPaymentReminder} />
+        </SettingRow>
+      </SectionCard>
+
+      {/* ── Data ── */}
+      <SectionCard icon={Shield} title="Data & Privacy">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Last sync</span>
+          <span className="font-medium text-xs">{store.lastSyncTime ? new Date(store.lastSyncTime).toLocaleString() : "Never"}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <motion.button whileTap={{ scale: 0.97 }}
+            onClick={handleForceSync}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-muted text-sm font-medium"
+          >
+            <RefreshCw className="w-4 h-4" /> Sync
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.97 }}
+            onClick={handleExport}
+            className="flex items-center justify-center gap-2 py-3 rounded-xl bg-muted text-sm font-medium"
+          >
             <Download className="w-4 h-4" /> Export CSV
-          </Button>
-        </CardContent>
-      </Card>
+          </motion.button>
+        </div>
+        <p className="text-[11px] text-muted-foreground">Your data is private and stored only in your Supabase instance. We never share your information.</p>
+      </SectionCard>
 
-      {/* Notifications */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <Info className="w-4 h-4" /> Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Weekly earnings reminder</Label>
-            <Switch checked={store.weeklyReminder} onCheckedChange={store.setWeeklyReminder} />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label className="text-sm">Shift payment reminder</Label>
-            <Switch checked={store.paymentReminder} onCheckedChange={store.setPaymentReminder} />
-          </div>
-        </CardContent>
-      </Card>
+      {/* ── About ── */}
+      <SectionCard icon={FileText} title="About">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Version</span>
+          <Badge variant="secondary">2.0.0</Badge>
+        </div>
+      </SectionCard>
 
-      {/* About */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-            <FileText className="w-4 h-4" /> About
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Version</span>
-            <Badge variant="secondary">1.0.0</Badge>
-          </div>
-          <Separator />
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>Shift & Payment Tracker helps you manage your work shifts, track payments, and analyze earnings.</p>
-            <p className="font-medium">Privacy Policy: Your data stays on your device and your Supabase instance. We never share your information.</p>
-            <p className="font-medium">Terms: This app is provided as-is. Use at your own risk.</p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
