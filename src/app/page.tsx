@@ -615,7 +615,7 @@ export default function ShiftTrackerPage() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           {/* Pull to refresh indicator */}
           {isMobile && (isPulling || isRefreshing) && (
             <div className="flex items-center justify-center py-3 mb-2">

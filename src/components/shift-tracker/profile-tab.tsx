@@ -38,10 +38,10 @@ function StatBadge({ icon: Icon, label, value, color }: {
   color: string;
 }) {
   return (
-    <div className={`flex flex-col items-center gap-1 p-3 rounded-2xl ${color}`}>
-      <Icon className="w-4 h-4 opacity-70" />
-      <p className="text-lg font-bold tabular-nums leading-none">{value}</p>
-      <p className="text-[10px] opacity-70 font-medium text-center leading-tight">{label}</p>
+    <div className={`flex flex-col items-center gap-1.5 p-3.5 rounded-2xl ${color}`}>
+      <Icon className="w-4 h-4 opacity-80" />
+      <p className="text-base font-bold tabular-nums leading-none">{value}</p>
+      <p className="text-[10px] opacity-60 font-semibold text-center leading-tight uppercase tracking-wide">{label}</p>
     </div>
   );
 }
@@ -294,20 +294,20 @@ export function ProfileTab({
 
       {/* ── Main stats ── */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="py-0 gap-0">
-          <CardContent className="p-4 text-center">
-            <Hash className="w-5 h-5 mx-auto text-muted-foreground mb-1.5" />
-            <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Total Shifts</p>
-          </CardContent>
-        </Card>
-        <Card className="py-0 gap-0">
-          <CardContent className="p-4 text-center">
-            <DollarSign className="w-5 h-5 mx-auto text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums" duration={800} />
-            <p className="text-xs text-muted-foreground mt-0.5">Total Earned</p>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted mx-auto flex items-center justify-center mb-2">
+            <Hash className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5 uppercase tracking-wide">Total Shifts</p>
+        </div>
+        <div className="hero-gradient border border-primary/10 rounded-2xl p-4 text-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 mx-auto flex items-center justify-center mb-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+          </div>
+          <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums text-primary" duration={800} />
+          <p className="text-xs text-primary/60 font-medium mt-0.5 uppercase tracking-wide">Total Earned</p>
+        </div>
       </div>
 
       {/* ── Personal records ── */}
