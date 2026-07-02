@@ -25,8 +25,17 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange }: Glassmorphism
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="bg-background/95 backdrop-blur-xl border-t border-border/60 shadow-[0_-1px_20px_rgba(0,0,0,0.08)]">
-        <div className="flex items-stretch justify-around h-16 max-w-lg mx-auto relative">
+      {/* Frosted glass background */}
+      <div
+        className="relative border-t border-border/40"
+        style={{
+          background: "oklch(var(--background-raw, 1 0 0) / 0.92)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          boxShadow: "0 -1px 0 oklch(0 0 0 / 0.06), 0 -8px 32px oklch(0 0 0 / 0.06)",
+        }}
+      >
+        <div className="flex items-stretch justify-around h-[60px] max-w-lg mx-auto px-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.key;
@@ -35,55 +44,53 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange }: Glassmorphism
               <button
                 key={tab.key}
                 onClick={() => {
-                  if (!isActive) haptics(6);
+                  if (!isActive) haptics(8);
                   onTabChange(tab.key);
                 }}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 relative touch-manipulation z-10"
-                style={{ minWidth: 44 }}
+                className="flex flex-col items-center justify-center flex-1 relative touch-manipulation py-1 gap-0.5"
+                style={{ minWidth: 44, minHeight: 44 }}
               >
-                {/* Sliding pill indicator */}
+                {/* Active pill background */}
                 {isActive && (
                   <motion.div
-                    layoutId="nav-active-pill"
-                    className="absolute inset-x-1.5 inset-y-1.5 rounded-2xl bg-primary/10 dark:bg-primary/20"
+                    layoutId="nav-pill"
+                    className="absolute inset-x-1 inset-y-1 rounded-2xl bg-primary/[0.08]"
                     transition={{
                       type: "spring",
-                      stiffness: 500,
+                      stiffness: 480,
                       damping: 38,
-                      mass: 0.6,
+                      mass: 0.5,
                     }}
                   />
                 )}
 
-                {/* Icon with bounce */}
+                {/* Icon */}
                 <motion.div
                   animate={{
-                    y: isActive ? -2 : 0,
-                    scale: isActive ? 1.12 : 1,
+                    y: isActive ? -1 : 0,
+                    scale: isActive ? 1.1 : 1,
                   }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 28,
-                  }}
-                  className="relative"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="relative z-10"
                 >
                   <Icon
-                    className={`w-5 h-5 transition-colors duration-150 ${
-                      isActive ? "text-primary" : "text-muted-foreground"
+                    className={`w-[22px] h-[22px] transition-all duration-150 ${
+                      isActive
+                        ? "text-primary stroke-[2.2px]"
+                        : "text-muted-foreground stroke-[1.8px]"
                     }`}
                   />
 
-                  {/* Unpaid badge */}
+                  {/* Badge */}
                   <AnimatePresence>
                     {tab.badge && tab.badge > 0 ? (
                       <motion.span
                         key="badge"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        transition={{ type: "spring", stiffness: 600, damping: 20 }}
-                        className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 22 }}
+                        className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center shadow-sm"
                       >
                         {tab.badge > 99 ? "99+" : tab.badge}
                       </motion.span>
@@ -93,12 +100,9 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange }: Glassmorphism
 
                 {/* Label */}
                 <motion.span
-                  animate={{
-                    opacity: isActive ? 1 : 0.6,
-                    fontWeight: isActive ? 600 : 400,
-                  }}
+                  animate={{ opacity: isActive ? 1 : 0.55 }}
                   transition={{ duration: 0.15 }}
-                  className={`text-[10px] relative ${
+                  className={`text-[10px] font-medium relative z-10 tracking-wide ${
                     isActive ? "text-primary" : "text-muted-foreground"
                   }`}
                 >

@@ -161,12 +161,14 @@ export function ShiftCard({
   const cardContent = (
     <div
       {...desktopLongPress}
-      className={`bg-card border rounded-xl overflow-hidden select-none transition-all duration-75 tap-press ${
-        station ? "border-blue-200 dark:station-border" : "border-border/60"
+      className={`bg-card border rounded-2xl overflow-hidden select-none transition-all duration-100 tap-press shadow-sm ${
+        station
+          ? "border-blue-100 dark:station-border shadow-blue-50 dark:shadow-none"
+          : "border-border/50"
       } ${pressing ? "scale-[0.97] brightness-90" : ""}`}
     >
       <div className="flex items-stretch">
-        <div className={`w-1 shrink-0 ${
+        <div className={`w-[3px] shrink-0 ${
           station ? "bg-blue-500" : isPaid ? "bg-emerald-500" : "bg-rose-400"
         }`} />
 
