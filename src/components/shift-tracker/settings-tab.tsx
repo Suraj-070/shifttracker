@@ -103,7 +103,7 @@ function SectionCard({ icon: Icon, title, children }: {
   );
 }
 
-export function SettingsTab() {
+export function SettingsTab({ savedStationNames = [] }: { savedStationNames?: string[] }) {
   const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
@@ -360,7 +360,7 @@ export function SettingsTab() {
 
       {/* ── Notifications ── */}
       <SectionCard icon={Bell} title="Reminders & Notifications">
-        <NotificationSettings />
+        <NotificationSettings savedStationNames={savedStationNames} />
       </SectionCard>
 
       {/* ── About ── */}

@@ -767,7 +767,9 @@ export default function ShiftTrackerPage() {
                 exit="exit"
                 transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
-                <SettingsTab />
+                <SettingsTab
+                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter(Boolean))]}
+                />
               </motion.div>
             )}
           </AnimatePresence>

@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, BellOff, Clock, Train, Calendar,
   CheckCircle2, AlertCircle, Loader2, Save,
+  Plus, Trash2, MapPin,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -24,47 +25,68 @@ const DAYS = [
   { label: "Sat", value: 6 },
 ];
 
-interface NotifSettings {
-  shift_reminder_enabled: boolean;
-  shift_reminder_days: number[];
-  shift_reminder_time: string;
-  station_clockin_enabled: boolean;
-  station_clockin_offset: number;
-  station_clockout_enabled: boolean;
-  station_clockout_offset: number;
+interface StationReminder {
+  id: string;
+  station: string;      // station name e.g. "Central"
+  clockin: string;      // HH:MM
+  clockout: string;     // HH:MM
+  offset: number;       // minutes before
+  enabled: boolean;
 }
 
-const DEFAULT_SETTINGS: NotifSettings = {
-  shift_reminder_enabled: false,
-  shift_reminder_days: [],
-  shift_reminder_time: "21:00",
-  station_clockin_enabled: false,
-  station_clockin_offset: 10,
-  station_clockout_enabled: false,
-  station_clockout_offset: 5,
+interface NotifSettings {
+  // Hall
+  hall_reminder_enabled: boolean;
+  hall_reminder_days: number[];
+  hall_reminder_time: string;
+  hall_reminder_venue: string;
+  // Station
+  station_reminders: StationReminder[];
+}
+
+const DEFAULT: NotifSettings = {
+  hall_reminder_enabled: false,
+  hall_reminder_days: [],
+  hall_reminder_time: "21:00",
+  hall_reminder_venue: "Eastgardens",
+  station_reminders: [],
 };
 
-export function NotificationSettings() {
+function newStationReminder(): StationReminder {
+  return {
+    id: Math.random().toString(36).slice(2),
+    station: "",
+    clockin: "16:00",
+    clockout: "21:15",
+    offset: 5,
+    enabled: true,
+  };
+}
+
+function subtractMins(hhmm: string, mins: number): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = Math.max(0, h * 60 + m - mins);
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
+export function NotificationSettings({ savedStationNames = [] }: { savedStationNames?: string[] }) {
   const { showToast } = useAppToast();
   const { permission, isSubscribed, isLoading: subLoading, subscribe, unsubscribe } = usePushNotifications();
-  const [settings, setSettings] = useState<NotifSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<NotifSettings>(DEFAULT);
   const [isSaving, setIsSaving] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
 
-  // Load saved settings
   useEffect(() => {
     fetch("/api/push/settings")
       .then(r => r.json())
       .then(data => {
         if (data && !data.error) {
           setSettings({
-            shift_reminder_enabled: data.shift_reminder_enabled ?? false,
-            shift_reminder_days: data.shift_reminder_days ?? [],
-            shift_reminder_time: data.shift_reminder_time ?? "21:00",
-            station_clockin_enabled: data.station_clockin_enabled ?? false,
-            station_clockin_offset: data.station_clockin_offset ?? 10,
-            station_clockout_enabled: data.station_clockout_enabled ?? false,
-            station_clockout_offset: data.station_clockout_offset ?? 5,
+            hall_reminder_enabled: data.hall_reminder_enabled ?? false,
+            hall_reminder_days: data.hall_reminder_days ?? [],
+            hall_reminder_time: data.hall_reminder_time ?? "21:00",
+            hall_reminder_venue: data.hall_reminder_venue ?? "Eastgardens",
+            station_reminders: data.station_reminders ?? [],
           });
         }
       })
@@ -72,14 +94,31 @@ export function NotificationSettings() {
       .finally(() => setIsFetching(false));
   }, []);
 
-  const toggleDay = (day: number) => {
+  const toggleDay = (day: number) =>
     setSettings(s => ({
       ...s,
-      shift_reminder_days: s.shift_reminder_days.includes(day)
-        ? s.shift_reminder_days.filter(d => d !== day)
-        : [...s.shift_reminder_days, day],
+      hall_reminder_days: s.hall_reminder_days.includes(day)
+        ? s.hall_reminder_days.filter(d => d !== day)
+        : [...s.hall_reminder_days, day],
     }));
-  };
+
+  const updateStation = (id: string, patch: Partial<StationReminder>) =>
+    setSettings(s => ({
+      ...s,
+      station_reminders: s.station_reminders.map(r => r.id === id ? { ...r, ...patch } : r),
+    }));
+
+  const removeStation = (id: string) =>
+    setSettings(s => ({
+      ...s,
+      station_reminders: s.station_reminders.filter(r => r.id !== id),
+    }));
+
+  const addStation = () =>
+    setSettings(s => ({
+      ...s,
+      station_reminders: [...s.station_reminders, newStationReminder()],
+    }));
 
   const handleSave = useCallback(async () => {
     if (!isSubscribed) {
@@ -93,43 +132,37 @@ export function NotificationSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
-      if (res.ok) {
-        showToast({ type: "success", title: "Notification settings saved" });
-      } else {
-        throw new Error("Failed");
-      }
+      if (res.ok) showToast({ type: "success", title: "Notification settings saved ✓" });
+      else throw new Error();
     } catch {
-      showToast({ type: "error", title: "Failed to save settings" });
+      showToast({ type: "error", title: "Failed to save" });
     } finally {
       setIsSaving(false);
     }
   }, [settings, isSubscribed, showToast]);
 
-  const handleSubscribeToggle = async () => {
+  const handleToggleSubscription = async () => {
     if (isSubscribed) {
       const ok = await unsubscribe();
       if (ok) showToast({ type: "info", title: "Notifications disabled" });
     } else {
       const ok = await subscribe();
       if (ok) showToast({ type: "success", title: "Notifications enabled! 🔔" });
-      else if (permission === "denied") {
-        showToast({ type: "error", title: "Notifications blocked", description: "Enable in your browser/phone settings" });
-      }
+      else if (permission === "denied")
+        showToast({ type: "error", title: "Blocked", description: "Allow in phone settings → ShiftTracker" });
     }
   };
 
-  if (isFetching) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (isFetching) return (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+    </div>
+  );
 
   return (
     <div className="space-y-4">
 
-      {/* Permission / subscribe toggle */}
+      {/* ── Enable/disable notifications ── */}
       <Card className={`border-2 ${isSubscribed ? "border-emerald-200 dark:border-emerald-800" : "border-dashed"}`}>
         <CardContent className="p-4">
           <div className="flex items-center justify-between gap-4">
@@ -147,19 +180,19 @@ export function NotificationSettings() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {isSubscribed
-                    ? "You'll receive reminders even when app is closed"
-                    : "Enable to get shift and clock-in reminders"}
+                    ? "Reminders work even when app is closed"
+                    : "Enable to get shift & clock-in reminders"}
                 </p>
               </div>
             </div>
             <Button
               size="sm"
               variant={isSubscribed ? "outline" : "default"}
-              onClick={handleSubscribeToggle}
+              onClick={handleToggleSubscription}
               disabled={subLoading || permission === "unsupported"}
               className="shrink-0"
             >
-              {subLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
+              {subLoading && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />}
               {isSubscribed ? "Turn off" : "Enable"}
             </Button>
           </div>
@@ -168,7 +201,7 @@ export function NotificationSettings() {
             <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30">
               <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <p className="text-xs text-rose-700 dark:text-rose-400">
-                Notifications are blocked. Go to your browser/phone settings → ShiftTracker → Allow notifications.
+                Blocked by your phone. Go to Settings → Apps → Chrome/ShiftTracker → Notifications → Allow.
               </p>
             </div>
           )}
@@ -176,199 +209,252 @@ export function NotificationSettings() {
             <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30">
               <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-400">
-                Push notifications aren't supported in this browser. Install the app and open it from your home screen.
+                Install the app from your home screen first, then enable notifications.
               </p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Feature 1: Shift day reminder */}
-      <Card className={!isSubscribed ? "opacity-50 pointer-events-none" : ""}>
+      {/* ── Feature 1: Hall shift logging reminder ── */}
+      <Card className={!isSubscribed ? "opacity-40 pointer-events-none" : ""}>
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Calendar className="w-4 h-4 text-emerald-500" />
-            Shift Day Reminder
+            Hall Shift Reminder
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Get reminded on specific days — e.g. every Wednesday at 9pm to check your shifts
+            Reminds you to log your shifts on specific days
           </p>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-sm">Enable shift reminders</Label>
+            <Label className="text-sm">Enable</Label>
             <Switch
-              checked={settings.shift_reminder_enabled}
-              onCheckedChange={v => setSettings(s => ({ ...s, shift_reminder_enabled: v }))}
+              checked={settings.hall_reminder_enabled}
+              onCheckedChange={v => setSettings(s => ({ ...s, hall_reminder_enabled: v }))}
             />
           </div>
 
-          {settings.shift_reminder_enabled && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              className="space-y-4 overflow-hidden"
-            >
-              {/* Day picker */}
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Which days?</Label>
-                <div className="flex gap-1.5 flex-wrap">
-                  {DAYS.map(day => (
-                    <button
-                      key={day.value}
-                      onClick={() => toggleDay(day.value)}
-                      className={`w-10 h-10 rounded-xl text-xs font-semibold transition-all ${
-                        settings.shift_reminder_days.includes(day.value)
-                          ? "bg-emerald-500 text-white"
-                          : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
-                      }`}
-                    >
-                      {day.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time picker */}
-              <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> What time?
-                </Label>
-                <Input
-                  type="time"
-                  value={settings.shift_reminder_time}
-                  onChange={e => setSettings(s => ({ ...s, shift_reminder_time: e.target.value }))}
-                  className="w-32"
-                />
-              </div>
-
-              {settings.shift_reminder_days.length > 0 && (
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                    You'll get a notification every{" "}
-                    {settings.shift_reminder_days
-                      .sort()
-                      .map(d => DAYS[d].label)
-                      .join(", ")}{" "}
-                    at {settings.shift_reminder_time} listing your shifts for that day.
+          <AnimatePresence>
+            {settings.hall_reminder_enabled && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                {/* Venue name */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" /> Venue name
+                  </Label>
+                  <Input
+                    value={settings.hall_reminder_venue}
+                    onChange={e => setSettings(s => ({ ...s, hall_reminder_venue: e.target.value }))}
+                    placeholder="e.g. Eastgardens"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Notification will say: "Did you add your {settings.hall_reminder_venue || "..."} shifts today? 🎬"
                   </p>
                 </div>
-              )}
-            </motion.div>
-          )}
+
+                {/* Days */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Which days?</Label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    {DAYS.map(day => (
+                      <button
+                        key={day.value}
+                        onClick={() => toggleDay(day.value)}
+                        className={`w-10 h-10 rounded-xl text-xs font-semibold transition-all ${
+                          settings.hall_reminder_days.includes(day.value)
+                            ? "bg-emerald-500 text-white shadow-sm"
+                            : "bg-muted text-muted-foreground hover:bg-muted-foreground/20"
+                        }`}
+                      >
+                        {day.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" /> What time?
+                  </Label>
+                  <Input
+                    type="time"
+                    value={settings.hall_reminder_time}
+                    onChange={e => setSettings(s => ({ ...s, hall_reminder_time: e.target.value }))}
+                    className="w-32"
+                  />
+                </div>
+
+                {/* Preview */}
+                {settings.hall_reminder_days.length > 0 && (
+                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 space-y-1">
+                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                      Preview notification:
+                    </p>
+                    <div className="flex items-start gap-2 mt-1">
+                      <span className="text-base">🔔</span>
+                      <div>
+                        <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">ShiftTracker</p>
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400">
+                          Did you add your {settings.hall_reminder_venue || "Eastgardens"} shifts today? 🎬
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-emerald-600/70 dark:text-emerald-500 mt-1">
+                      Fires every {settings.hall_reminder_days.sort().map(d => DAYS[d].label).join(", ")} at {settings.hall_reminder_time}
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </CardContent>
       </Card>
 
-      {/* Feature 2: Station clock-in/out reminders */}
-      <Card className={!isSubscribed ? "opacity-50 pointer-events-none" : ""}>
+      {/* ── Feature 2: Station clock-in/out reminders ── */}
+      <Card className={!isSubscribed ? "opacity-40 pointer-events-none" : ""}>
         <CardHeader className="pb-2 pt-4 px-4">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Train className="w-4 h-4 text-blue-500" />
             Station Clock-in / Clock-out
           </CardTitle>
           <p className="text-xs text-muted-foreground">
-            Get buzzed before your station shift starts and before it ends
+            Get buzzed before your shift starts and before it ends. Add one entry per station.
           </p>
         </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-4">
+        <CardContent className="px-4 pb-4 space-y-3">
 
-          {/* Clock-in */}
-          <div className="space-y-3 p-3 rounded-xl bg-muted/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Clock-in reminder</p>
-                <p className="text-xs text-muted-foreground">Buzz before shift starts</p>
-              </div>
-              <Switch
-                checked={settings.station_clockin_enabled}
-                onCheckedChange={v => setSettings(s => ({ ...s, station_clockin_enabled: v }))}
-              />
-            </div>
-            {settings.station_clockin_enabled && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
-                <Label className="text-xs text-muted-foreground shrink-0">Remind me</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={settings.station_clockin_offset}
-                  onChange={e => setSettings(s => ({ ...s, station_clockin_offset: Number(e.target.value) }))}
-                  className="w-16 text-center"
-                />
-                <Label className="text-xs text-muted-foreground shrink-0">minutes before</Label>
-              </motion.div>
-            )}
-            {settings.station_clockin_enabled && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                e.g. If shift starts at 4:00pm → reminder at {
-                  (() => {
-                    const [h, m] = "16:00".split(":").map(Number);
-                    const total = h * 60 + m - settings.station_clockin_offset;
-                    return `${String(Math.floor(total / 60)).padStart(2,"0")}:${String(total % 60).padStart(2,"0")}`;
-                  })()
-                }
-              </p>
-            )}
-          </div>
-
-          {/* Clock-out */}
-          <div className="space-y-3 p-3 rounded-xl bg-muted/50">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Clock-out reminder</p>
-                <p className="text-xs text-muted-foreground">Buzz before shift ends</p>
-              </div>
-              <Switch
-                checked={settings.station_clockout_enabled}
-                onCheckedChange={v => setSettings(s => ({ ...s, station_clockout_enabled: v }))}
-              />
-            </div>
-            {settings.station_clockout_enabled && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-3">
-                <Label className="text-xs text-muted-foreground shrink-0">Remind me</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={60}
-                  value={settings.station_clockout_offset}
-                  onChange={e => setSettings(s => ({ ...s, station_clockout_offset: Number(e.target.value) }))}
-                  className="w-16 text-center"
-                />
-                <Label className="text-xs text-muted-foreground shrink-0">minutes before</Label>
-              </motion.div>
-            )}
-            {settings.station_clockout_enabled && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
-                e.g. If shift ends at 9:15pm → reminder at {
-                  (() => {
-                    const [h, m] = "21:15".split(":").map(Number);
-                    const total = h * 60 + m - settings.station_clockout_offset;
-                    return `${String(Math.floor(total / 60)).padStart(2,"0")}:${String(total % 60).padStart(2,"0")}`;
-                  })()
-                }
-              </p>
-            )}
-          </div>
-
-          <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30">
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              💡 Set your clock-in and clock-out times when adding a station shift — we'll automatically schedule these reminders for that day.
+          {settings.station_reminders.length === 0 && (
+            <p className="text-xs text-muted-foreground text-center py-3">
+              No stations added yet. Tap + to add one.
             </p>
-          </div>
+          )}
+
+          {settings.station_reminders.map((reminder, idx) => (
+            <div key={reminder.id} className="border border-blue-100 dark:border-blue-900 rounded-2xl p-4 space-y-3">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                  Station {idx + 1}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={reminder.enabled}
+                    onCheckedChange={v => updateStation(reminder.id, { enabled: v })}
+                  />
+                  <button onClick={() => removeStation(reminder.id)}
+                    className="text-muted-foreground hover:text-rose-500 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Station name */}
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Station name</Label>
+                {savedStationNames.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {savedStationNames.map(name => (
+                      <button
+                        key={name}
+                        onClick={() => updateStation(reminder.id, { station: name })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                          reminder.station === name
+                            ? "bg-blue-500 text-white"
+                            : "bg-muted text-muted-foreground hover:bg-blue-100 dark:hover:bg-blue-950"
+                        }`}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                <Input
+                  value={reminder.station}
+                  onChange={e => updateStation(reminder.id, { station: e.target.value })}
+                  placeholder="e.g. Central, Redfern..."
+                  className="mt-1.5"
+                />
+              </div>
+
+              {/* Clock-in / Clock-out times */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Clock-in time</Label>
+                  <Input
+                    type="time"
+                    value={reminder.clockin}
+                    onChange={e => updateStation(reminder.id, { clockin: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Clock-out time</Label>
+                  <Input
+                    type="time"
+                    value={reminder.clockout}
+                    onChange={e => updateStation(reminder.id, { clockout: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Offset */}
+              <div className="flex items-center gap-3">
+                <Label className="text-xs text-muted-foreground shrink-0">Remind me</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={reminder.offset}
+                  onChange={e => updateStation(reminder.id, { offset: Number(e.target.value) })}
+                  className="w-16 text-center"
+                />
+                <Label className="text-xs text-muted-foreground shrink-0">min before</Label>
+              </div>
+
+              {/* Preview */}
+              {reminder.station && reminder.enabled && (
+                <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/30 space-y-1.5">
+                  <p className="text-[11px] font-semibold text-blue-700 dark:text-blue-400">Preview:</p>
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                      🚉 Clock in at {reminder.clockin} — reminder at{" "}
+                      <strong>{subtractMins(reminder.clockin, reminder.offset)}</strong>
+                    </p>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                      🚉 Clock out at {reminder.clockout} — reminder at{" "}
+                      <strong>{subtractMins(reminder.clockout, reminder.offset)}</strong>
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Add station button */}
+          <button
+            onClick={addStation}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
+          >
+            <Plus className="w-4 h-4" /> Add Station Reminder
+          </button>
         </CardContent>
       </Card>
 
-      {/* Save button */}
+      {/* Save */}
       <motion.button
         whileTap={{ scale: 0.97 }}
         onClick={handleSave}
         disabled={isSaving || !isSubscribed}
-        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 shadow-lg"
       >
-        {isSaving
-          ? <Loader2 className="w-4 h-4 animate-spin" />
-          : <Save className="w-4 h-4" />}
+        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         Save Notification Settings
       </motion.button>
     </div>
