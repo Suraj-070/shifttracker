@@ -8,7 +8,11 @@ export const maxDuration = 30;
 
 function isAuthorized(request: Request) {
   const auth = request.headers.get("authorization");
-  return auth === `Bearer ${process.env.CRON_SECRET}`;
+  if (auth === `Bearer ${process.env.CRON_SECRET}`) return true;
+  // Also allow query param for browser testing
+  const url = new URL(request.url);
+  const secret = url.searchParams.get("secret");
+  return secret === process.env.CRON_SECRET;
 }
 
 function nowSydney() {
