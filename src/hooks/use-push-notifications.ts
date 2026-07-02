@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type PermissionState = "default" | "granted" | "denied" | "unsupported";
 
@@ -9,18 +9,43 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setPermission("unsupported");
-      return;
-    }
-    setPermission(Notification.permission as PermissionState);
-    navigator.serviceWorker.ready.then(async (reg) => {
-      const sub = await reg.pushManager.getSubscription();
-      setSubscription(sub);
-      setIsSubscribed(!!sub);
-    }).catch(() => {});
+    mounted.current = true;
+
+    // Use a microtask to avoid synchronous setState in effect body
+    Promise.resolve().then(async () => {
+      if (!mounted.current) return;
+
+      if (
+        typeof window === "undefined" ||
+        !("Notification" in window) ||
+        !("serviceWorker" in navigator) ||
+        !("PushManager" in window)
+      ) {
+        setPermission("unsupported");
+        return;
+      }
+
+      // Now safely set state — we're in a microtask, not synchronous effect body
+      setPermission(Notification.permission as PermissionState);
+
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        if (!mounted.current) return;
+        const sub = await reg.pushManager.getSubscription();
+        if (!mounted.current) return;
+        setSubscription(sub);
+        setIsSubscribed(!!sub);
+      } catch {
+        // service worker not ready — ignore
+      }
+    });
+
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
   const subscribe = useCallback(async (): Promise<boolean> => {
