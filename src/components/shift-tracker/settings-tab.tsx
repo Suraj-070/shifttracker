@@ -6,7 +6,7 @@ import {
   Moon, Sun, ChevronDown, ChevronRight,
   RefreshCw, Download, FileText, Sparkles,
   Smartphone, Share, CheckCircle2, Vibrate,
-  Layout, Bell, Shield, LogOut, Palette,
+  Layout, Shield, LogOut, Palette,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import {
   type SwipeSensitivity,
 } from "@/stores/settings-store";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
-import { NotificationSettings } from "@/components/shift-tracker/notification-settings";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
@@ -136,7 +135,7 @@ function Section({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function SettingsTab({ savedStationNames = [] }: { savedStationNames?: string[] }) {
+export function SettingsTab() {
   const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
@@ -298,12 +297,7 @@ export function SettingsTab({ savedStationNames = [] }: { savedStationNames?: st
         </Row>
       </Section>
 
-      {/* ── Notifications ── */}
-      <Section icon={Bell} title="Reminders">
-        <NotificationSettings savedStationNames={savedStationNames} />
-      </Section>
-
-      {/* ── Install ── */}
+{/* ── Install ── */}
       {!installed && (
         <Section icon={Smartphone} title="Install App">
           {canInstall ? (

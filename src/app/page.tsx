@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Calendar,
+  Bell,
   BarChart3,
   User,
   Settings,
@@ -49,7 +50,7 @@ import type {
 // ============================================================
 // Tab Navigation
 // ============================================================
-type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "profile" | "settings";
+type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "reminders" | "profile" | "settings";
 
 interface TabConfig {
   key: TabKey;
@@ -62,6 +63,7 @@ const TABS: TabConfig[] = [
   { key: "shifts", label: "Shifts", icon: CalendarDays },
   { key: "calendar", label: "Calendar", icon: Calendar },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
+  { key: "reminders", label: "Reminders", icon: Bell },
   { key: "profile", label: "Profile", icon: User },
   { key: "settings", label: "Settings", icon: Settings },
 ];
@@ -89,7 +91,7 @@ export default function ShiftTrackerPage() {
   // Tab order — defined as const outside to avoid recreation
   // (defined here so TypeScript can see TabKey; values are stable)
   const MOBILE_TABS = useMemo<TabKey[]>(
-    () => ["dashboard", "shifts", "calendar", "profile", "settings"],
+    () => ["dashboard", "shifts", "calendar", "reminders", "profile"],
     []
   );
 
@@ -591,7 +593,7 @@ export default function ShiftTrackerPage() {
                     <button
                       key={tab.key}
                       onClick={() => {
-                        const allTabs: TabKey[] = ["dashboard", "shifts", "calendar", "analytics", "profile", "settings"];
+                        const allTabs: TabKey[] = ["dashboard", "shifts", "calendar", "analytics", "reminders", "profile", "settings"];
                         const dir = allTabs.indexOf(tab.key as TabKey) > allTabs.indexOf(activeTab) ? "left" : "right";
                         navigateTabWithDirection(tab.key as TabKey, dir);
                       }}
@@ -729,6 +731,26 @@ export default function ShiftTrackerPage() {
                 />
               </motion.div>
             )}
+            {activeTab === "reminders" && (
+              <motion.div
+                key="reminders"
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                className="tab-content"
+              >
+                <RemindersTab
+                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
+                />
+              </motion.div>
+            )}
             {activeTab === "profile" && (
               <motion.div
                 key="profile"
@@ -767,9 +789,7 @@ export default function ShiftTrackerPage() {
                 exit="exit"
                 transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
-                <SettingsTab
-                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
-                />
+                <SettingsTab />
               </motion.div>
             )}
           </AnimatePresence>
@@ -778,7 +798,7 @@ export default function ShiftTrackerPage() {
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
-            tabs={TABS.filter((t) => t.key !== "analytics").map((t) => ({
+            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings").map((t) => ({
               ...t,
               badge: t.key === "shifts"
                 ? shifts.filter((s) => s.status === "Unpaid").length
@@ -786,7 +806,7 @@ export default function ShiftTrackerPage() {
             }))}
             activeTab={activeTab}
             onTabChange={(key) => {
-              const tabs: TabKey[] = ["dashboard", "shifts", "profile", "settings"];
+              const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
               const dir = tabs.indexOf(key as TabKey) > tabs.indexOf(activeTab) ? "left" : "right";
               navigateTabWithDirection(key as TabKey, dir);
             }}
