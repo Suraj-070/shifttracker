@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail, Calendar, Hash, DollarSign, Download,
   LogOut, RefreshCw, Cloud, CloudOff, Pencil,
-  Save, X, TrendingUp, Award, Flame, Star,
+  Save, X, TrendingUp, Award, Flame, Star, Settings2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { formatCurrency } from "@/lib/utils";
 import { AnimatedCurrency } from "./animated-number";
 import { ProfileSkeleton } from "./loading-skeleton";
 import { signOut } from "next-auth/react";
+import { SettingsTab } from "./settings-tab";
 import { isStationShift } from "@/types/database.types";
 import type { Shift, UserProfile } from "@/types/database.types";
 
@@ -55,6 +56,7 @@ export function ProfileTab({
 }: ProfileTabProps) {
   const { showToast } = useAppToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -185,6 +187,54 @@ export function ProfileTab({
 
   return (
     <div className="max-w-lg mx-auto space-y-5 pb-8">
+
+      {/* Settings bottom sheet */}
+      <AnimatePresence>
+        {showSettings && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowSettings(false)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 400, damping: 36 }}
+              className="fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto"
+              style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              </div>
+              <div className="px-4 pb-2 pt-2 flex items-center justify-between">
+                <h2 className="text-lg font-bold">Settings</h2>
+                <button onClick={() => setShowSettings(false)}
+                  className="text-muted-foreground p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="px-4">
+                <SettingsTab />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Gear button ── */}
+      <div className="flex justify-end">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowSettings(true)}
+          className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center"
+        >
+          <Settings2 className="w-4 h-4 text-muted-foreground" />
+        </motion.button>
+      </div>
 
       {/* ── Hero ── */}
       <motion.div
