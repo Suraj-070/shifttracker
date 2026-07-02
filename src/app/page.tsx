@@ -39,6 +39,7 @@ import {
   isStationShift,
 } from "@/types/database.types";
 import type {
+import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
   Shift,
   ShiftStatus,
   AnalyticsSummary,
