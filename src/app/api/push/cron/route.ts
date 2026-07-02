@@ -6,15 +6,6 @@ import { sendPushNotification } from "@/lib/web-push";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-function isAuthorized(request: Request) {
-  const auth = request.headers.get("authorization");
-  if (auth === `Bearer ${process.env.CRON_SECRET}`) return true;
-  // Also allow query param for browser testing
-  const url = new URL(request.url);
-  const secret = url.searchParams.get("secret");
-  return secret === process.env.CRON_SECRET;
-}
-
 function nowSydney() {
   const now = new Date();
   const parts = new Intl.DateTimeFormat("en-AU", {
@@ -43,10 +34,6 @@ function subtractMins(hhmm: string, mins: number): string {
 }
 
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const { hhmm, dayOfWeek } = nowSydney();
   let fired = 0;
 
