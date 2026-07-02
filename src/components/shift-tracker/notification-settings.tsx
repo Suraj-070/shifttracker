@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, ReactNode } from "react";
+import React, { Component, ReactNode } from "react";
 
 class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
