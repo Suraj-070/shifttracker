@@ -110,12 +110,37 @@ export function parseStationTax(notes: string): number {
 }
 
 /** Build the notes string for a station shift. */
-export function buildStationNotes(taxWithheld: number, userNote: string): string {
-  const note = (userNote ?? '').trim()
-  return note
-    ? `tax:${taxWithheld.toFixed(2)}||${note}`
-    : `tax:${taxWithheld.toFixed(2)}`
+// export function buildStationNotes(taxWithheld: number, userNote: string): string {
+//   const note = (userNote ?? '').trim()
+//   return note
+//     ? `tax:${taxWithheld.toFixed(2)}||${note}`
+//     : `tax:${taxWithheld.toFixed(2)}`
+// }
+
+export function buildStationNotes(
+  tax: number,
+  userNote: string,
+  clockin?: string,   // HH:MM
+  clockout?: string,  // HH:MM
+): string {
+  let meta = `__station__|tax:${tax.toFixed(2)}`;
+  if (clockin) meta += `|clockin:${clockin}`;
+  if (clockout) meta += `|clockout:${clockout}`;
+  return `${meta}||${userNote ?? ""}`;
 }
+
+export function parseStationClockin(notes: string | null): string | null {
+  if (!notes) return null;
+  const m = notes.match(/clockin:(\d{2}:\d{2})/);
+  return m ? m[1] : null;
+}
+
+export function parseStationClockout(notes: string | null): string | null {
+  if (!notes) return null;
+  const m = notes.match(/clockout:(\d{2}:\d{2})/);
+  return m ? m[1] : null;
+}
+
 
 /** Extract user-visible note from station shift notes field. */
 export function parseStationUserNote(notes: string): string {

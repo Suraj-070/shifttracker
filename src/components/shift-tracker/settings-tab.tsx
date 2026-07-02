@@ -3,7 +3,7 @@
 import React from "react";
 import { useTheme } from "next-themes";
 import {
-  Moon, Sun, Monitor, RefreshCw, Download, Info, Shield,
+  Moon, Sun, Monitor, RefreshCw, Download, Info, Shield, Bell,
   FileText, Sparkles, Smartphone, Share, CheckCircle2,
   Vibrate, Gauge, Layout, Home, Clock, LayoutDashboard,
   CalendarDays, Calendar, ChevronRight,
@@ -24,6 +24,7 @@ import {
   type SwipeSensitivity,
 } from "@/stores/settings-store";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
+import { NotificationSettings } from "@/components/shift-tracker/notification-settings";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { motion } from "framer-motion";
 
@@ -332,16 +333,7 @@ export function SettingsTab() {
         </Card>
       )}
 
-      {/* ── Notifications ── */}
-      <SectionCard icon={Info} title="Notifications">
-        <SettingRow label="Weekly earnings reminder" description="Summary every Monday">
-          <Switch checked={store.weeklyReminder} onCheckedChange={store.setWeeklyReminder} />
-        </SettingRow>
-        <Separator />
-        <SettingRow label="Pay day reminder" description="Alert on payment Thursdays">
-          <Switch checked={store.paymentReminder} onCheckedChange={store.setPaymentReminder} />
-        </SettingRow>
-      </SectionCard>
+
 
       {/* ── Data ── */}
       <SectionCard icon={Shield} title="Data & Privacy">
@@ -364,6 +356,11 @@ export function SettingsTab() {
           </motion.button>
         </div>
         <p className="text-[11px] text-muted-foreground">Your data is private and stored only in your Supabase instance. We never share your information.</p>
+      </SectionCard>
+
+      {/* ── Notifications ── */}
+      <SectionCard icon={Bell} title="Reminders & Notifications">
+        <NotificationSettings />
       </SectionCard>
 
       {/* ── About ── */}
