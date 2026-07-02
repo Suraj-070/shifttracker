@@ -1,5 +1,20 @@
 "use client";
 
+import { Component, ReactNode } from "react";
+
+class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
+  state = { error: false };
+  static getDerivedStateFromError() { return { error: true }; }
+  render() {
+    if (this.state.error) return (
+      <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-xs text-rose-700 dark:text-rose-400">
+        Could not load notification settings. Check that NEXT_PUBLIC_VAPID_PUBLIC_KEY is set in Vercel.
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
 import React, { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -69,7 +84,7 @@ function subtractMins(hhmm: string, mins: number): string {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-export function NotificationSettings({ savedStationNames = [] }: { savedStationNames?: string[] }) {
+function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
   const { showToast } = useAppToast();
   const { permission, isSubscribed, isLoading: subLoading, subscribe, unsubscribe } = usePushNotifications();
   const [settings, setSettings] = useState<NotifSettings>(DEFAULT);
@@ -458,5 +473,13 @@ export function NotificationSettings({ savedStationNames = [] }: { savedStationN
         Save Notification Settings
       </motion.button>
     </div>
+  );
+}
+
+export function NotificationSettings(props: { savedStationNames?: string[] }) {
+  return (
+    <NotifErrorBoundary>
+      <NotificationSettingsInner {...props} />
+    </NotifErrorBoundary>
   );
 }
