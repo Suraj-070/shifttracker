@@ -615,18 +615,32 @@ export default function ShiftTrackerPage() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
-          {/* Pull to refresh indicator */}
-          {isMobile && (isPulling || isRefreshing) && (
-            <div className="flex items-center justify-center py-3 mb-2">
+        {/* Pull to refresh indicator — fixed overlay so it appears above content */}
+        {isMobile && (isPulling || isRefreshing) && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 left-0 right-0 flex justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-background border border-border/60 rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
               <div
-                className={`w-6 h-6 rounded-full border-2 border-primary border-t-transparent transition-all ${
+                className={`w-4 h-4 rounded-full border-2 border-primary border-t-transparent ${
                   isRefreshing ? "animate-spin" : ""
                 }`}
-                style={{ opacity: isRefreshing ? 1 : pullProgress, transform: `scale(${0.5 + pullProgress * 0.5})` }}
+                style={{
+                  opacity: isRefreshing ? 1 : pullProgress,
+                  transform: `rotate(${pullProgress * 180}deg)`
+                }}
               />
+              <span className="text-xs font-medium text-muted-foreground">
+                {isRefreshing ? "Refreshing..." : "Pull to refresh"}
+              </span>
             </div>
-          )}
+          </motion.div>
+        )}
+
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           <AnimatePresence mode="wait" initial={false} custom={swipeDirection}>
             {activeTab === "dashboard" && (
               <motion.div

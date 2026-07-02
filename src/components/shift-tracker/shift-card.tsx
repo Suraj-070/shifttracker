@@ -48,35 +48,34 @@ function SwipeWrapper({
   const deleteOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
   const deleteScale  = useTransform(x, [0, SWIPE_THRESHOLD], [0.6, 1]);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const pointerStartX = useRef(0);
-  const pointerStartY = useRef(0);
+  const panMoved = useRef(false);
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse") return;
-    pointerStartX.current = e.clientX;
-    pointerStartY.current = e.clientY;
+  const handleTapStart = () => {
+    // onTapStart fires on touch-down BEFORE framer captures the pointer
+    panMoved.current = false;
     onPressStart?.();
     if (onLongPress) {
       longPressTimer.current = setTimeout(() => {
-        haptics(20);
-        onPressEnd?.();
-        onLongPress();
+        if (!panMoved.current) {
+          haptics(20);
+          onPressEnd?.();
+          onLongPress();
+        }
       }, LONG_PRESS_MS);
     }
   };
 
-  const handlePointerMove = (e: React.PointerEvent) => {
-    const dx = Math.abs(e.clientX - pointerStartX.current);
-    const dy = Math.abs(e.clientY - pointerStartY.current);
-    if (dx > 10 || dy > 10) {
-      clearTimeout(longPressTimer.current);
-      onPressEnd?.();
-    }
-  };
-
-  const handlePointerUp = () => {
+  const handlePanStart = () => {
+    // Pan started = finger moved = cancel long press
+    panMoved.current = true;
     clearTimeout(longPressTimer.current);
     onPressEnd?.();
+  };
+
+  const handleTap = () => {
+    clearTimeout(longPressTimer.current);
+    onPressEnd?.();
+    if (swiped) resetSwipe();
   };
 
   const handleDragEnd = (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
@@ -104,13 +103,7 @@ function SwipeWrapper({
   };
 
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-    >
+    <div className="relative overflow-hidden rounded-2xl">
       <motion.div
         className="absolute inset-y-0 right-0 flex items-center justify-center bg-rose-500 rounded-2xl px-6"
         style={{ opacity: deleteOpacity }}
@@ -125,7 +118,9 @@ function SwipeWrapper({
         dragConstraints={{ left: SWIPE_THRESHOLD, right: 0 }}
         dragElastic={0.08}
         style={{ x }}
-        onTap={() => { if (swiped) resetSwipe(); }}
+        onTapStart={handleTapStart}
+        onTap={handleTap}
+        onPanStart={handlePanStart}
         onDragEnd={handleDragEnd}
         className="cursor-grab active:cursor-grabbing"
       >
