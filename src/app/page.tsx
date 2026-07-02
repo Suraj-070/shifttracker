@@ -38,8 +38,8 @@ import { useTabSwipe } from "@/hooks/use-tab-swipe";
 import {
   isStationShift,
 } from "@/types/database.types";
-import type {
 import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
+import type {
   Shift,
   ShiftStatus,
   AnalyticsSummary,
