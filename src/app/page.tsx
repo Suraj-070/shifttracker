@@ -768,7 +768,7 @@ export default function ShiftTrackerPage() {
                 transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
                 <SettingsTab
-                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter(Boolean))]}
+                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
                 />
               </motion.div>
             )}
