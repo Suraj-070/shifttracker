@@ -32,7 +32,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     const onTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0];
       if (!touch) return;
-      if (window.scrollY <= 0) {
+      if (window.scrollY < 2) {
         startY.current = touch.clientY;
         startX.current = touch.clientX;
         pulling.current = false;
@@ -49,7 +49,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
       const dy = touch.clientY - startY.current;
       const dx = Math.abs(touch.clientX - startX.current);
       if (dx > dy * 1.5 && dx > 20) { startY.current = -1; return; }
-      if (dy > DEAD_ZONE && window.scrollY <= 0) {
+      if (dy > DEAD_ZONE && window.scrollY < 2) {
         const threshold = SENSITIVITY_THRESHOLD[sensitivityRef.current];
         const p = Math.min((dy - DEAD_ZONE) / threshold, 1);
         progress.current = p;

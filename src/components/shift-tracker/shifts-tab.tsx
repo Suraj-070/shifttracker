@@ -147,7 +147,7 @@ function SelectableCard({
       {selecting && (
         <button
           onClick={onToggle}
-          className="absolute top-2 left-2 z-10 w-5 h-5 flex items-center justify-center"
+          className="absolute top-2 left-1 z-10 w-8 h-8 flex items-center justify-center rounded-xl active:bg-muted"
         >
           {selected
             ? <CheckSquare className="w-5 h-5 text-emerald-600" />
@@ -538,15 +538,17 @@ export function ShiftsTab({
       {shiftKind === "hall" ? (
           <div>
             {filteredHall.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">
-                    {selectedPerson !== "__all__"
-                      ? `No shifts found for ${shortName(selectedPerson, allNames)}.`
-                      : "No hall shifts found."}
-                  </p>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <span className="text-2xl">🎬</span>
+                </div>
+                <p className="text-sm font-semibold text-foreground">No shifts found</p>
+                <p className="text-xs text-muted-foreground text-center max-w-[200px]">
+                  {selectedPerson !== "__all__"
+                    ? `No shifts for ${shortName(selectedPerson, allNames)}`
+                    : "Try adjusting your filters"}
+                </p>
+              </div>
             ) : viewMode === "card" ? (
               <div className="space-y-8">
                 {hallMonthGroups.map((group) => (
@@ -599,11 +601,13 @@ export function ShiftsTab({
         ) : (
           <div>
             {filteredStation.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No station shifts found.</p>
-                </CardContent>
-              </Card>
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
+                  <span className="text-2xl">🚉</span>
+                </div>
+                <p className="text-sm font-semibold text-foreground">No station shifts found</p>
+                <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+              </div>
             ) : viewMode === "card" ? (
               <div className="space-y-8">
                 {stationMonthGroups.map((group) => (

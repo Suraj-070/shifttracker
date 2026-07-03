@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, ReactNode } from "react";
+import React, { Component, ReactNode, useCallback, useEffect, useState } from "react";
 
 class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -15,7 +15,6 @@ class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boo
   }
 }
 
-import React, { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, BellOff, Clock, Train, Calendar,

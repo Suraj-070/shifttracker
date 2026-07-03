@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail, Calendar, Hash, DollarSign, Download,
   LogOut, RefreshCw, Cloud, CloudOff, Pencil,
-  Save, X, TrendingUp, Award, Flame, Star,
+  Save, X, TrendingUp, Award, Flame, Star, Settings2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { formatCurrency } from "@/lib/utils";
 import { AnimatedCurrency } from "./animated-number";
 import { ProfileSkeleton } from "./loading-skeleton";
 import { signOut } from "next-auth/react";
+import { SettingsTab } from "./settings-tab";
 import { isStationShift } from "@/types/database.types";
 import type { Shift, UserProfile } from "@/types/database.types";
 
@@ -37,10 +38,10 @@ function StatBadge({ icon: Icon, label, value, color }: {
   color: string;
 }) {
   return (
-    <div className={`flex flex-col items-center gap-1 p-3 rounded-2xl ${color}`}>
-      <Icon className="w-4 h-4 opacity-70" />
-      <p className="text-lg font-bold tabular-nums leading-none">{value}</p>
-      <p className="text-[10px] opacity-70 font-medium text-center leading-tight">{label}</p>
+    <div className={`flex flex-col items-center gap-1.5 p-3.5 rounded-2xl ${color}`}>
+      <Icon className="w-4 h-4 opacity-80" />
+      <p className="text-base font-bold tabular-nums leading-none">{value}</p>
+      <p className="text-[10px] opacity-60 font-semibold text-center leading-tight uppercase tracking-wide">{label}</p>
     </div>
   );
 }
@@ -55,6 +56,7 @@ export function ProfileTab({
 }: ProfileTabProps) {
   const { showToast } = useAppToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -186,6 +188,54 @@ export function ProfileTab({
   return (
     <div className="max-w-lg mx-auto space-y-5 pb-8">
 
+      {/* Settings bottom sheet */}
+      <AnimatePresence>
+        {showSettings && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+              onClick={() => setShowSettings(false)}
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 400, damping: 36 }}
+              className="fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto"
+              style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+            >
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+              </div>
+              <div className="px-4 pb-2 pt-2 flex items-center justify-between">
+                <h2 className="text-lg font-bold">Settings</h2>
+                <button onClick={() => setShowSettings(false)}
+                  className="text-muted-foreground p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="px-4">
+                <SettingsTab />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── Gear button ── */}
+      <div className="flex justify-end">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowSettings(true)}
+          className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center"
+        >
+          <Settings2 className="w-4 h-4 text-muted-foreground" />
+        </motion.button>
+      </div>
+
       {/* ── Hero ── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -244,20 +294,20 @@ export function ProfileTab({
 
       {/* ── Main stats ── */}
       <div className="grid grid-cols-2 gap-3">
-        <Card className="py-0 gap-0">
-          <CardContent className="p-4 text-center">
-            <Hash className="w-5 h-5 mx-auto text-muted-foreground mb-1.5" />
-            <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Total Shifts</p>
-          </CardContent>
-        </Card>
-        <Card className="py-0 gap-0">
-          <CardContent className="p-4 text-center">
-            <DollarSign className="w-5 h-5 mx-auto text-emerald-600 dark:text-emerald-400 mb-1.5" />
-            <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums" duration={800} />
-            <p className="text-xs text-muted-foreground mt-0.5">Total Earned</p>
-          </CardContent>
-        </Card>
+        <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-muted mx-auto flex items-center justify-center mb-2">
+            <Hash className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
+          <p className="text-xs text-muted-foreground font-medium mt-0.5 uppercase tracking-wide">Total Shifts</p>
+        </div>
+        <div className="hero-gradient border border-primary/10 rounded-2xl p-4 text-center shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 mx-auto flex items-center justify-center mb-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+          </div>
+          <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums text-primary" duration={800} />
+          <p className="text-xs text-primary/60 font-medium mt-0.5 uppercase tracking-wide">Total Earned</p>
+        </div>
       </div>
 
       {/* ── Personal records ── */}
