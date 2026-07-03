@@ -224,114 +224,82 @@ export function DashboardTab({
 
         {/* ── HALL DASHBOARD ─────────────────────────────────── */}
         {dashKind === "hall" && (
-          <motion.div key="hall" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-4">
+          <motion.div key="hall" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
+
+            {/* ── Unpaid hero — only when unpaid shifts exist ── */}
+            {summary.totalUnpaid > 0 && (
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="hero-gradient rounded-2xl p-4 flex items-center justify-between border border-primary/10">
+                <div>
+                  <p className="text-xs font-semibold text-primary/60 uppercase tracking-widest mb-1">Unpaid</p>
+                  <AnimatedCurrency value={summary.totalUnpaid} className="text-3xl font-bold text-primary tabular-nums" duration={500} />
+                  <p className="text-[11px] text-primary/50 mt-1">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
+                </div>
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                  <DollarSign className="w-8 h-8 text-primary" />
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── 2 key stats only ── */}
             <div className="grid grid-cols-2 gap-3">
-              {[
-                { title: "Total Earned", value: summary.totalEarned, icon: DollarSign, color: "emerald" },
-                { title: "Paid", value: summary.totalPaid, icon: CheckCircle2, color: "emerald" },
-                { title: "Unpaid", value: summary.totalUnpaid, icon: XCircle, color: "rose" },
-                { title: "Avg / Shift", value: summary.averagePerShift, icon: TrendingUp, color: "amber" },
-              ].map((stat, i) => {
-                const Icon = stat.icon;
-                const colorMap: Record<string, string> = {
-                  emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
-                  rose: "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400",
-                  amber: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
-                };
-                return (
-                  <motion.div key={stat.title} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                    <Card className="py-0 gap-0">
-                      <CardContent className="p-3.5">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
-                          <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
-                        </div>
-                        <AnimatedCurrency value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" duration={600} />
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Total Earned</p>
+                <AnimatedCurrency value={summary.totalEarned} className="text-2xl font-bold tabular-nums" duration={600} />
+                <p className="text-[11px] text-muted-foreground mt-1">{summary.totalShifts} shifts</p>
+              </div>
+              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Avg / Shift</p>
+                <AnimatedCurrency value={summary.averagePerShift} className="text-2xl font-bold tabular-nums" duration={600} />
+                <p className="text-[11px] text-muted-foreground mt-1">{paidPercent}% collected</p>
+              </div>
             </div>
 
-            <Card className="py-0 gap-0">
-              <CardContent className="p-4">
+            {/* ── Recent shifts — clean 1-line rows ── */}
+            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                <p className="text-sm font-bold">Recent</p>
+                <button onClick={onViewAllShifts} className="text-xs text-primary font-semibold flex items-center gap-0.5">
+                  See all <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              {recentShifts.length === 0 ? (
+                <div className="py-10 flex flex-col items-center gap-2">
+                  <span className="text-3xl">🎬</span>
+                  <p className="text-sm text-muted-foreground">No shifts yet</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-border/30">
+                  {recentShifts.map((shift) => {
+                    const isPaid = shift.status === "Paid";
+                    return (
+                      <div key={shift.id} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/30 transition-colors">
+                        <div className={`w-2 h-8 rounded-full shrink-0 ${isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500"}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate">{shift.coveringFor}</p>
+                          <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
+                          <span className={`text-[10px] font-bold ${isPaid ? "text-emerald-600" : "text-rose-500"}`}>
+                            {isPaid ? "✓ Paid" : "Unpaid"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* ── Earnings chart — collapsible ── */}
+            {hallShifts.length > 1 && (
+              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium">Collection rate</p>
-                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{paidPercent}%</span>
+                  <p className="text-sm font-bold">6-Week Earnings</p>
+                  <span className="text-xs text-muted-foreground">Hall</span>
                 </div>
-                <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                  <motion.div className="h-full rounded-full bg-primary" initial={{ width: 0 }} animate={{ width: `${paidPercent}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
-                </div>
-                <div className="flex justify-between mt-2">
-                  <span className="text-xs text-muted-foreground">{summary.paidShifts} paid</span>
-                  <span className="text-xs text-muted-foreground">{summary.unpaidShifts} unpaid</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button className="h-12 gap-2 text-sm" onClick={onAddShift}><Plus className="w-4 h-4" /> Add Shift</Button>
-              <Button variant="outline" className="h-12 gap-2 text-sm" onClick={onViewAllShifts}><CalendarDays className="w-4 h-4" /> All Shifts</Button>
-            </div>
-
-            <Card className="py-0 gap-0">
-              <CardHeader className="flex flex-row items-center justify-between px-4 py-3 border-b">
-                <CardTitle className="text-sm font-semibold">Recent Shifts</CardTitle>
-                <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs text-muted-foreground -mr-2" onClick={onViewAllShifts}>
-                  View all <ChevronRight className="w-3 h-3" />
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                {recentShifts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No hall shifts recorded yet</p>
-                ) : (
-                  <div className="divide-y divide-border/50">
-                    {recentShifts.map((shift) => {
-                      const isPaid = shift.status === "Paid";
-                      return (
-                        <div key={shift.id} className="flex items-center gap-3 px-4 py-3 active:bg-muted/50 transition-colors">
-                          <div className={`w-1 h-10 rounded-full shrink-0 ${isPaid ? "bg-primary" : "bg-rose-400"}`} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-sm font-semibold">{formatShortDate(shift.shiftDate)}</span>
-                              <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <User className="w-3 h-3 shrink-0" />
-                              <span className="truncate">{shift.coveringFor}</span>
-                              {shift.notes && shift.notes.trim() && <StickyNote className="w-3 h-3 shrink-0 text-amber-500 ml-0.5" />}
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              <span className="truncate">{shift.locationName}</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-1.5 shrink-0">
-                            <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
-                            <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 cursor-pointer ${isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800" : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-400 dark:border-rose-800"}`} onClick={() => onToggleStatus(shift)}>
-                              {shift.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Earnings chart */}
-            {hallShifts.length > 0 && (
-              <Card className="py-0 gap-0">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-sm font-semibold">Weekly Earnings</p>
-                    <span className="text-xs text-muted-foreground">Hall shifts</span>
-                  </div>
-                  <EarningsChart shifts={hallShifts} weeks={6} />
-                </CardContent>
-              </Card>
+                <EarningsChart shifts={hallShifts} weeks={6} />
+              </div>
             )}
           </motion.div>
         )}
