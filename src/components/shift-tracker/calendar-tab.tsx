@@ -1,18 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Plus,
- motion, AnimatePresence } from "framer-motion";
-import { Plus,
- ChevronLeft, ChevronRight } from "lucide-react";
-import { Plus,
- Card, CardContent } from "@/components/ui/card";
-import { Plus,
- Badge } from "@/components/ui/badge";
-import { Plus,
- formatCurrency } from "@/lib/utils";
-import { Plus,
- isStationShift } from "@/types/database.types";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/utils";
+import { isStationShift } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 
 interface CalendarTabProps {

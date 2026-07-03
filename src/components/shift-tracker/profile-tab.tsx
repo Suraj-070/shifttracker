@@ -306,7 +306,7 @@ export function ProfileTab({
       </motion.div>
 
       {profileSection === "overview" && (
-      <>
+      <div className="space-y-4">
       {/* ── Main stats ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
