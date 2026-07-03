@@ -191,7 +191,10 @@ export async function GET() {
       enabled: boolean;
     }>;
 
-    for (const reminder of stationReminders) {
+    for (const reminder of stationReminders as Array<{
+      id: string; station: string; clockin: string; clockout: string;
+      offset: number; clockout_after_offset?: number; enabled: boolean;
+    }>) {
       if (!reminder.enabled || !reminder.station) continue;
 
       // ✅ KEY FIX: Only fire if there's actually a station shift TODAY
