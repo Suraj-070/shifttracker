@@ -522,74 +522,77 @@ export function AddShiftDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* key={String(open)} remounts content on open → resets jobKind to "Hall" */}
-      <DialogContent key={String(open)} className={
-        isMobile
-          ? "fixed bottom-0 left-0 right-0 top-auto max-w-full rounded-t-3xl rounded-b-none translate-x-0 translate-y-0 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom max-h-[92vh] overflow-y-auto p-0"
-          : "sm:max-w-md max-h-[90vh] overflow-y-auto"
-      }>
-      {isMobile && (
-        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background z-10">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-        </div>
-      )}
-        <div className="px-4 sm:px-0">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold">Add New Shift</DialogTitle>
-          <DialogDescription>
-            Choose a shift type and fill in the details.
-          </DialogDescription>
-        </DialogHeader>
-        </div>
-
-        <div className="px-4 sm:px-0 pb-4 space-y-4">
-        {/* Hall / Station toggle */}
-        <div className="flex gap-1 p-1 bg-muted rounded-xl">
-          {(["Hall", "Station"] as JobKind[]).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setJobKind(k)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm font-medium transition-all ${
-                jobKind === k
-                  ? k === "Hall"
-                    ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200"
-                    : "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {k === "Hall" ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  Hall
-                </>
-              ) : (
-                <>
-                  <Train className="w-3.5 h-3.5" />
-                  Station
-                </>
-              )}
-            </button>
-          ))}
-        </div>
-
-        {jobKind === "Hall" ? (
-          <HallForm
-            shifts={shifts}
-            defaultPerson={defaultPerson}
-            defaultLocation={defaultLocation}
-            isSubmitting={isSubmitting}
-            onSubmit={onSubmit}
-            onCancel={() => onOpenChange(false)}
-          />
-        ) : (
-          <StationForm
-            shifts={shifts}
-            isSubmitting={isSubmitting}
-            onSubmit={onSubmit}
-            onCancel={() => onOpenChange(false)}
-          />
+      <DialogContent
+        key={String(open)}
+        className={
+          isMobile
+            ? "fixed bottom-0 left-0 right-0 top-auto max-w-full rounded-t-3xl rounded-b-none translate-x-0 translate-y-0 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom max-h-[92vh] overflow-y-auto p-0"
+            : "sm:max-w-md max-h-[90vh] overflow-y-auto"
+        }
+      >
+        {/* Drag handle — mobile only */}
+        {isMobile && (
+          <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background z-10">
+            <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+          </div>
         )}
+
+        <div className={isMobile ? "px-4 pb-6 space-y-4" : "space-y-4"}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Add New Shift</DialogTitle>
+            <DialogDescription>
+              Choose a shift type and fill in the details.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Hall / Station toggle */}
+          <div className="flex gap-1 p-1 bg-muted rounded-xl">
+            {(["Hall", "Station"] as JobKind[]).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setJobKind(k)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  jobKind === k
+                    ? k === "Hall"
+                      ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200"
+                      : "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {k === "Hall" ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Hall
+                  </>
+                ) : (
+                  <>
+                    <Train className="w-3.5 h-3.5" />
+                    Station
+                  </>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {jobKind === "Hall" ? (
+            <HallForm
+              shifts={shifts}
+              defaultPerson={defaultPerson}
+              defaultLocation={defaultLocation}
+              isSubmitting={isSubmitting}
+              onSubmit={onSubmit}
+              onCancel={() => onOpenChange(false)}
+            />
+          ) : (
+            <StationForm
+              shifts={shifts}
+              isSubmitting={isSubmitting}
+              onSubmit={onSubmit}
+              onCancel={() => onOpenChange(false)}
+            />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
