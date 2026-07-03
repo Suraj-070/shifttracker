@@ -7,11 +7,8 @@ import Groq from "groq-sdk";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-<<<<<<< HEAD
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-=======
->>>>>>> c2b3e74b269945d0cee92cbae7a2e5fa0d20969a
 function nowSydney() {
   const now = new Date();
   const parts = new Intl.DateTimeFormat("en-AU", {
@@ -55,7 +52,6 @@ function subtractMins(hhmm: string, mins: number): string {
   return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
-<<<<<<< HEAD
 // ── AI notification generator ──────────────────────────────────────────────────
 async function generateNotification(context: {
   type: "hall_reminder" | "clockin" | "clockout";
@@ -124,10 +120,6 @@ Return JSON only: {"title": "...", "body": "..."}`,
 // ── Main cron handler ──────────────────────────────────────────────────────────
 export async function GET() {
   const { hhmm, dayOfWeek, weekdayName, dateStr, dateLabel } = nowSydney();
-=======
-export async function GET(request: Request) {
-  const { hhmm, dayOfWeek } = nowSydney();
->>>>>>> c2b3e74b269945d0cee92cbae7a2e5fa0d20969a
   let fired = 0;
 
   const { data: allSettings } = await supabase
@@ -247,10 +239,5 @@ export async function GET(request: Request) {
     }
   }
 
-<<<<<<< HEAD
   return NextResponse.json({ fired, time: hhmm, day: weekdayName, date: dateStr });
 }
-=======
-  return NextResponse.json({ fired, time: hhmm, day: dayOfWeek });
-}
->>>>>>> c2b3e74b269945d0cee92cbae7a2e5fa0d20969a
