@@ -1,17 +1,24 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
-import { isStationShift } from "@/types/database.types";
+import { Plus,
+ motion, AnimatePresence } from "framer-motion";
+import { Plus,
+ ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus,
+ Card, CardContent } from "@/components/ui/card";
+import { Plus,
+ Badge } from "@/components/ui/badge";
+import { Plus,
+ formatCurrency } from "@/lib/utils";
+import { Plus,
+ isStationShift } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 
 interface CalendarTabProps {
   shifts: Shift[];
   onShiftClick: (shift: Shift) => void;
+  onAddShift?: (date: string) => void;
 }
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -26,7 +33,7 @@ function isSameDay(a: Date, b: Date) {
     a.getDate() === b.getDate();
 }
 
-export function CalendarTab({ shifts, onShiftClick }: CalendarTabProps) {
+export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth()); // 0-indexed
@@ -243,7 +250,7 @@ export function CalendarTab({ shifts, onShiftClick }: CalendarTabProps) {
 
       {/* Selected day detail */}
       <AnimatePresence>
-        {selectedDay && selectedShifts.length > 0 && (
+        {selectedDay && (
           <motion.div
             initial={{ opacity: 0, y: 10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
@@ -255,6 +262,19 @@ export function CalendarTab({ shifts, onShiftClick }: CalendarTabProps) {
               <CardContent className="p-4 space-y-3">
                 <p className="text-sm font-semibold">
                   {selectedDay.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })}
+                </p>
+                {onAddShift && (
+                  <button
+                    onClick={() => {
+                      const key = `${selectedDay.getFullYear()}-${String(selectedDay.getMonth()+1).padStart(2,"0")}-${String(selectedDay.getDate()).padStart(2,"0")}`;
+                      onAddShift(key);
+                    }}
+                    className="w-7 h-7 rounded-xl bg-primary flex items-center justify-center shrink-0"
+                  >
+                    <span className="text-primary-foreground text-lg leading-none">+</span>
+                  </button>
+                )}
+                <p className="hidden">
                 </p>
                 {selectedShifts.map((shift) => {
                   const station = isStationShift(shift);

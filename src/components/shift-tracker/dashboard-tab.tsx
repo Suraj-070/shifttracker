@@ -318,56 +318,33 @@ export function DashboardTab({
               </Card>
             ) : (
               <>
-                {/* Overall station stats */}
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    { title: "Gross Earned", value: stationGross, icon: Wallet, color: "blue" },
-                    { title: "Tax Withheld", value: stationTax, icon: Receipt, color: "amber" },
-                    { title: "Net Take-home", value: stationNet, icon: DollarSign, color: "blue" },
-                    { title: "Avg / Shift", value: stationCount > 0 ? stationGross / stationCount : 0, icon: TrendingUp, color: "blue" },
-                  ].map((stat, i) => {
-                    const Icon = stat.icon;
-                    const colorMap: Record<string, string> = {
-                      blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300",
-                      amber: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
-                    };
-                    return (
-                      <motion.div key={stat.title} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Card className="py-0 gap-0 border-blue-100 dark:border-blue-900">
-                          <CardContent className="p-3.5">
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">{stat.title}</p>
-                              <div className={`p-1.5 rounded-lg ${colorMap[stat.color]}`}><Icon className="w-3.5 h-3.5" /></div>
-                            </div>
-                            <AnimatedCurrency value={stat.value} className="text-lg font-bold tabular-nums tracking-tight" duration={600} />
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                {/* ── Net take-home hero ── */}
+                {stationUnpaid > 0 && (
+                  <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                    className="rounded-2xl p-4 flex items-center justify-between border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/10">
+                    <div>
+                      <p className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1">Unpaid</p>
+                      <AnimatedCurrency value={stationUnpaid > 0 ? stationNet * (stationUnpaid / stationCount) : 0} className="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums" duration={500} />
+                      <p className="text-[11px] text-blue-400 mt-1">{stationUnpaid} shift{stationUnpaid !== 1 ? "s" : ""} outstanding</p>
+                    </div>
+                    <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <Train className="w-8 h-8 text-blue-500" />
+                    </div>
+                  </motion.div>
+                )}
 
-                {/* Collection progress */}
-                <Card className="py-0 gap-0 border-blue-100 dark:border-blue-900">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm font-medium">Collection rate</p>
-                      <span className="text-sm font-bold text-blue-600 dark:text-blue-300">{stationPaidPct}%</span>
-                    </div>
-                    <div className="h-2.5 rounded-full bg-muted overflow-hidden">
-                      <motion.div className="h-full rounded-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${stationPaidPct}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
-                    </div>
-                    <div className="flex justify-between mt-2">
-                      <span className="text-xs text-muted-foreground">{stationPaid} paid</span>
-                      <span className="text-xs text-muted-foreground">{stationUnpaid} unpaid</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quick actions */}
+                {/* ── 2 key stats ── */}
                 <div className="grid grid-cols-2 gap-3">
-                  <Button className="h-12 gap-2 text-sm bg-blue-600 hover:bg-blue-700 text-white" onClick={onAddShift}><Plus className="w-4 h-4" /> Add Shift</Button>
-                  <Button variant="outline" className="h-12 gap-2 text-sm border-blue-200 text-blue-700 hover:bg-blue-50" onClick={onViewAllShifts}><CalendarDays className="w-4 h-4" /> All Shifts</Button>
+                  <div className="bg-card border border-blue-100 dark:border-blue-900 rounded-2xl p-4 shadow-sm">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Net Take-home</p>
+                    <AnimatedCurrency value={stationNet} className="text-2xl font-bold tabular-nums" duration={600} />
+                    <p className="text-[11px] text-muted-foreground mt-1">{stationCount} shifts</p>
+                  </div>
+                  <div className="bg-card border border-blue-100 dark:border-blue-900 rounded-2xl p-4 shadow-sm">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tax Withheld</p>
+                    <AnimatedCurrency value={stationTax} className="text-2xl font-bold tabular-nums text-amber-600" duration={600} />
+                    <p className="text-[11px] text-muted-foreground mt-1">{stationPaidPct}% collected</p>
+                  </div>
                 </div>
 
                 {/* ── Current Fortnight card ────────────────────── */}

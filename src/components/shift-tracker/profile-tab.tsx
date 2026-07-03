@@ -57,6 +57,7 @@ export function ProfileTab({
   const { showToast } = useAppToast();
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [profileSection, setProfileSection] = useState<"overview" | "records">("overview");
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -225,6 +226,18 @@ export function ProfileTab({
         )}
       </AnimatePresence>
 
+      {/* ── Section switcher ── */}
+      <div className="flex gap-1 p-1 bg-muted rounded-xl">
+        {(["overview", "records"] as const).map(s => (
+          <button key={s} onClick={() => setProfileSection(s)}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all capitalize ${
+              profileSection === s ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"
+            }`}>
+            {s === "overview" ? "Overview" : "Records"}
+          </button>
+        ))}
+      </div>
+
       {/* ── Gear button ── */}
       <div className="flex justify-end">
         <motion.button
@@ -292,6 +305,8 @@ export function ProfileTab({
         </Badge>
       </motion.div>
 
+      {profileSection === "overview" && (
+      <>
       {/* ── Main stats ── */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
