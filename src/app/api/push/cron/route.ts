@@ -46,6 +46,12 @@ function nowSydney() {
   };
 }
 
+function addMins(hhmm: string, mins: number): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = h * 60 + m + mins;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+}
+
 function subtractMins(hhmm: string, mins: number): string {
   const [h, m] = hhmm.split(":").map(Number);
   const total = Math.max(0, h * 60 + m - mins);
@@ -54,7 +60,7 @@ function subtractMins(hhmm: string, mins: number): string {
 
 // ── AI notification generator ──────────────────────────────────────────────────
 async function generateNotification(context: {
-  type: "hall_reminder" | "clockin" | "clockout";
+  type: "hall_reminder" | "clockin" | "clockout" | "clockout_after";
   venue?: string;
   station?: string;
   time?: string;
@@ -76,6 +82,11 @@ Return JSON only: {"title": "...", "body": "..."}`,
 
       clockout: `Generate a short push notification reminding Suraj his shift at ${context.station} ends in ${context.minsUntil} minutes (at ${context.time}).
 Make it casual and friendly. Use 🚉 emoji.
+Keep title under 40 chars, body under 80 chars.
+Return JSON only: {"title": "...", "body": "..."}`,
+
+      clockout_after: `Generate a short push notification checking if Suraj remembered to clock out at ${context.station} (shift ended at ${context.time}, ${context.minsUntil} minutes ago).
+Make it casual, friendly, slightly humorous. Use 🚉 emoji.
 Keep title under 40 chars, body under 80 chars.
 Return JSON only: {"title": "...", "body": "..."}`,
     };
@@ -111,6 +122,10 @@ Return JSON only: {"title": "...", "body": "..."}`,
       clockout: {
         title: `🚉 Clock out at ${context.time}`,
         body: `${context.station} — ${context.minsUntil} min until your shift ends`,
+      },
+      clockout_after: {
+        title: `🚉 Did you clock out?`,
+        body: `${context.station} shift ended ${context.minsUntil} min ago — all good?`,
       },
     };
     return fallbacks[context.type];
@@ -214,7 +229,7 @@ export async function GET() {
         }
       }
 
-      // Clock-out reminder
+      // Clock-out reminder (before shift ends)
       const clockoutAlert = subtractMins(reminder.clockout, reminder.offset);
       if (hhmm === clockoutAlert) {
         const { title, body } = await generateNotification({
@@ -229,6 +244,30 @@ export async function GET() {
           const result = await sendPushNotification(
             { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
             { title, body, tag: `clockout-${reminder.id}`, url: "/", requireInteraction: true }
+          );
+          if (result.success) fired++;
+          if (result.expired) {
+            await supabase.from("push_subscriptions").delete().eq("endpoint", sub.endpoint);
+          }
+        }
+      }
+
+      // Clock-out AFTER reminder — fires after shift ends (safety net)
+      const afterOffset = reminder.clockout_after_offset ?? 10; // default 10 min after
+      const clockoutAfterAlert = addMins(reminder.clockout, afterOffset);
+      if (hhmm === clockoutAfterAlert) {
+        const { title, body } = await generateNotification({
+          type: "clockout_after",
+          station: reminder.station,
+          time: reminder.clockout,
+          minsUntil: afterOffset,
+          weekday: weekdayName,
+        });
+
+        for (const sub of subs) {
+          const result = await sendPushNotification(
+            { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+            { title, body, tag: `clockout-after-${reminder.id}`, url: "/", requireInteraction: true }
           );
           if (result.success) fired++;
           if (result.expired) {

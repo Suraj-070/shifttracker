@@ -41,10 +41,11 @@ const DAYS = [
 
 interface StationReminder {
   id: string;
-  station: string;      // station name e.g. "Central"
+  station: string;
   clockin: string;      // HH:MM
   clockout: string;     // HH:MM
-  offset: number;       // minutes before
+  offset: number;       // minutes before (for both clockin and clockout)
+  clockout_after_offset: number; // minutes AFTER clockout (safety net)
   enabled: boolean;
 }
 
@@ -73,8 +74,15 @@ function newStationReminder(): StationReminder {
     clockin: "16:00",
     clockout: "21:15",
     offset: 5,
+    clockout_after_offset: 10,
     enabled: true,
   };
+}
+
+function addMins(hhmm: string, mins: number): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const total = h * 60 + m + mins;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 function subtractMins(hhmm: string, mins: number): string {
@@ -100,7 +108,10 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
             hall_reminder_days: data.hall_reminder_days ?? [],
             hall_reminder_time: data.hall_reminder_time ?? "21:00",
             hall_reminder_venue: data.hall_reminder_venue ?? "Eastgardens",
-            station_reminders: data.station_reminders ?? [],
+            station_reminders: (data.station_reminders ?? []).map((r: StationReminder) => ({
+              ...r,
+              clockout_after_offset: r.clockout_after_offset ?? 10,
+            })),
           });
         }
       })
@@ -418,7 +429,7 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
                 </div>
               </div>
 
-              {/* Offset */}
+              {/* Before offset */}
               <div className="flex items-center gap-3">
                 <Label className="text-xs text-muted-foreground shrink-0">Remind me</Label>
                 <Input
@@ -429,7 +440,21 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
                   onChange={e => updateStation(reminder.id, { offset: Number(e.target.value) })}
                   className="w-16 text-center"
                 />
-                <Label className="text-xs text-muted-foreground shrink-0">min before</Label>
+                <Label className="text-xs text-muted-foreground shrink-0">min before shift</Label>
+              </div>
+
+              {/* After offset — clockout safety net */}
+              <div className="flex items-center gap-3">
+                <Label className="text-xs text-muted-foreground shrink-0">Check after</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={reminder.clockout_after_offset ?? 10}
+                  onChange={e => updateStation(reminder.id, { clockout_after_offset: Number(e.target.value) })}
+                  className="w-16 text-center"
+                />
+                <Label className="text-xs text-muted-foreground shrink-0">min after shift ends</Label>
               </div>
 
               {/* Preview */}
@@ -444,6 +469,10 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
                     <p className="text-[11px] text-blue-700 dark:text-blue-300">
                       🚉 Clock out at {reminder.clockout} — reminder at{" "}
                       <strong>{subtractMins(reminder.clockout, reminder.offset)}</strong>
+                    </p>
+                    <p className="text-[11px] text-blue-700 dark:text-blue-300">
+                      ✅ "Did you clock out?" check at{" "}
+                      <strong>{addMins(reminder.clockout, reminder.clockout_after_offset ?? 10)}</strong>
                     </p>
                   </div>
                 </div>
