@@ -305,94 +305,99 @@ export function ProfileTab({
         </Badge>
       </motion.div>
 
+      {/* ── Overview section ── */}
       {profileSection === "overview" && (
-      <div className="space-y-4">
-      {/* ── Main stats ── */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-muted mx-auto flex items-center justify-center mb-2">
-            <Hash className="w-5 h-5 text-muted-foreground" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-card border border-border/50 rounded-2xl p-4 text-center shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-muted mx-auto flex items-center justify-center mb-2">
+                <Hash className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
+              <p className="text-xs text-muted-foreground font-medium mt-0.5 uppercase tracking-wide">Total Shifts</p>
+            </div>
+            <div className="hero-gradient border border-primary/10 rounded-2xl p-4 text-center shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 mx-auto flex items-center justify-center mb-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+              </div>
+              <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums text-primary" duration={800} />
+              <p className="text-xs text-primary/60 font-medium mt-0.5 uppercase tracking-wide">Total Earned</p>
+            </div>
           </div>
-          <p className="text-3xl font-bold tabular-nums">{totalShifts}</p>
-          <p className="text-xs text-muted-foreground font-medium mt-0.5 uppercase tracking-wide">Total Shifts</p>
+          <Card>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-center gap-3 text-sm">
+                <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="truncate">{profile.email || "No email"}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center gap-3 text-sm">
+                <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span>Joined {joinDate}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 space-y-2">
+              <Button variant="outline" className="w-full justify-start gap-3 h-11" onClick={handleForceSync}>
+                <RefreshCw className="w-4 h-4" /> Force Sync
+              </Button>
+              <Button variant="outline" className="w-full justify-start gap-3 h-11" onClick={handleExport} disabled={isExporting}>
+                {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                Export CSV
+              </Button>
+              <Separator className="my-1" />
+              <Button variant="outline"
+                className="w-full justify-start gap-3 h-11 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 border-rose-200 dark:border-rose-800"
+                onClick={() => signOut({ callbackUrl: "/login" })}>
+                <LogOut className="w-4 h-4" /> Sign Out
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-        <div className="hero-gradient border border-primary/10 rounded-2xl p-4 text-center shadow-sm">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 mx-auto flex items-center justify-center mb-2">
-            <DollarSign className="w-5 h-5 text-primary" />
-          </div>
-          <AnimatedCurrency value={totalEarnings} className="text-3xl font-bold tabular-nums text-primary" duration={800} />
-          <p className="text-xs text-primary/60 font-medium mt-0.5 uppercase tracking-wide">Total Earned</p>
-        </div>
-      </div>
-
-      {/* ── Personal records ── */}
-      {records && totalShifts > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Award className="w-4 h-4 text-amber-500" />
-              <p className="text-sm font-semibold">Personal Records</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <StatBadge icon={Star} label="Best shift" value={formatCurrency(records.bestShift)}
-                color="bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400" />
-              <StatBadge icon={TrendingUp} label="Best week" value={formatCurrency(records.bestWeek)}
-                color="bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400" />
-              <StatBadge icon={Flame} label={`${records.streak}wk streak`} value={records.busiestDay.slice(0,3)}
-                color="bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400" />
-            </div>
-            <Separator className="my-3" />
-            <div className="grid grid-cols-3 gap-3 text-center">
-              <div>
-                <p className="text-sm font-bold">{formatCurrency(records.avgPerShift)}</p>
-                <p className="text-[10px] text-muted-foreground">Avg / shift</p>
-              </div>
-              <div>
-                <p className="text-sm font-bold">{records.hallCount} 🎬</p>
-                <p className="text-[10px] text-muted-foreground">Hall shifts</p>
-              </div>
-              <div>
-                <p className="text-sm font-bold">{records.stationCount} 🚉</p>
-                <p className="text-[10px] text-muted-foreground">Station shifts</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       )}
 
-      {/* ── Contact info ── */}
-      <Card>
-        <CardContent className="p-4 space-y-3">
-          <div className="flex items-center gap-3 text-sm">
-            <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="truncate">{profile.email || "No email"}</span>
-          </div>
-          <Separator />
-          <div className="flex items-center gap-3 text-sm">
-            <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span>Joined {joinDate}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ── Actions ── */}
-      <Card>
-        <CardContent className="p-4 space-y-2">
-          <Button variant="outline" className="w-full justify-start gap-3 h-11" onClick={handleForceSync}>
-            <RefreshCw className="w-4 h-4" /> Force Sync
-          </Button>
-          <Button variant="outline" className="w-full justify-start gap-3 h-11" onClick={handleExport} disabled={isExporting}>
-            {isExporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            Export CSV
-          </Button>
-          <Separator className="my-1" />
-          <Button variant="outline"
-            className="w-full justify-start gap-3 h-11 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950 border-rose-200 dark:border-rose-800"
-            onClick={() => signOut({ callbackUrl: "/login" })}>
-            <LogOut className="w-4 h-4" /> Sign Out
-          </Button>
-        </CardContent>
-      </Card>
+      {/* ── Records section ── */}
+      {profileSection === "records" && records && (
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Award className="w-4 h-4 text-amber-500" />
+                <p className="text-sm font-semibold">Personal Records</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <StatBadge icon={Star} label="Best shift" value={formatCurrency(records.bestShift)}
+                  color="bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400" />
+                <StatBadge icon={TrendingUp} label="Best week" value={formatCurrency(records.bestWeek)}
+                  color="bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400" />
+                <StatBadge icon={Flame} label={`${records.streak}wk streak`} value={records.busiestDay.slice(0,3)}
+                  color="bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-400" />
+              </div>
+              <Separator className="my-3" />
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-sm font-bold">{formatCurrency(records.avgPerShift)}</p>
+                  <p className="text-[10px] text-muted-foreground">Avg / shift</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{records.hallCount} 🎬</p>
+                  <p className="text-[10px] text-muted-foreground">Hall shifts</p>
+                </div>
+                <div>
+                  <p className="text-sm font-bold">{records.stationCount} 🚉</p>
+                  <p className="text-[10px] text-muted-foreground">Station shifts</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          {totalShifts === 0 && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              Add some shifts to see your records!
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
