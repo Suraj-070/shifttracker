@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Pencil, Trash2, Train, ChevronDown, StickyNote } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -27,7 +26,65 @@ interface ShiftCardProps {
 }
 
 const SWIPE_THRESHOLD = -80;
-const LONG_PRESS_MS = 450;
+const LONG_PRESS_MS = 500;
+const MOVE_CANCEL = 10; // px movement cancels long press
+
+// ── Long press hook using raw touch events ────────────────────────────────────
+// Attaches directly to the DOM element via ref — bypasses Framer entirely
+function useLongPressRef(onLongPress: () => void, onPressStart?: () => void, onPressEnd?: () => void) {
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const startX = useRef(0);
+  const startY = useRef(0);
+  const fired = useRef(false);
+
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      startX.current = t.clientX;
+      startY.current = t.clientY;
+      fired.current = false;
+      onPressStart?.();
+      timerRef.current = setTimeout(() => {
+        fired.current = true;
+        onPressEnd?.();
+        onLongPress();
+      }, LONG_PRESS_MS);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      const dx = Math.abs(t.clientX - startX.current);
+      const dy = Math.abs(t.clientY - startY.current);
+      if (dx > MOVE_CANCEL || dy > MOVE_CANCEL) {
+        clearTimeout(timerRef.current);
+        if (!fired.current) onPressEnd?.();
+      }
+    };
+
+    const onTouchEnd = () => {
+      clearTimeout(timerRef.current);
+      if (!fired.current) onPressEnd?.();
+    };
+
+    const onTouchCancel = () => {
+      clearTimeout(timerRef.current);
+      if (!fired.current) onPressEnd?.();
+    };
+
+    node.addEventListener("touchstart", onTouchStart, { passive: true });
+    node.addEventListener("touchmove", onTouchMove, { passive: true });
+    node.addEventListener("touchend", onTouchEnd, { passive: true });
+    node.addEventListener("touchcancel", onTouchCancel, { passive: true });
+  }, [onLongPress, onPressStart, onPressEnd]);
+
+  return ref;
+}
+
+// ── Swipe wrapper ─────────────────────────────────────────────────────────────
 
 function SwipeWrapper({
   children,
@@ -46,41 +103,16 @@ function SwipeWrapper({
   const [swiped, setSwiped] = useState(false);
   const x = useMotionValue(0);
   const deleteOpacity = useTransform(x, [0, SWIPE_THRESHOLD], [0, 1]);
-  const deleteScale  = useTransform(x, [0, SWIPE_THRESHOLD], [0.6, 1]);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const panMoved = useRef(false);
+  const deleteScale = useTransform(x, [0, SWIPE_THRESHOLD], [0.6, 1]);
 
-  const handleTapStart = () => {
-    // onTapStart fires on touch-down BEFORE framer captures the pointer
-    panMoved.current = false;
-    onPressStart?.();
-    if (onLongPress) {
-      longPressTimer.current = setTimeout(() => {
-        if (!panMoved.current) {
-          haptics(20);
-          onPressEnd?.();
-          onLongPress();
-        }
-      }, LONG_PRESS_MS);
-    }
-  };
-
-  const handlePanStart = () => {
-    // Pan started = finger moved = cancel long press
-    panMoved.current = true;
-    clearTimeout(longPressTimer.current);
-    onPressEnd?.();
-  };
-
-  const handleTap = () => {
-    clearTimeout(longPressTimer.current);
-    onPressEnd?.();
-    if (swiped) resetSwipe();
-  };
+  // Attach long press via raw touch events — not affected by Framer drag
+  const longPressRef = useLongPressRef(
+    onLongPress ?? (() => {}),
+    onPressStart,
+    onPressEnd,
+  );
 
   const handleDragEnd = (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
-    clearTimeout(longPressTimer.current);
-    onPressEnd?.();
     const shouldDelete = info.offset.x < SWIPE_THRESHOLD || info.velocity.x < -500;
     if (shouldDelete) {
       haptics(12);
@@ -103,7 +135,8 @@ function SwipeWrapper({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl">
+    <div ref={longPressRef} className="relative overflow-hidden rounded-2xl touch-pan-y">
+      {/* Delete reveal */}
       <motion.div
         className="absolute inset-y-0 right-0 flex items-center justify-center bg-rose-500 rounded-2xl px-6"
         style={{ opacity: deleteOpacity }}
@@ -113,16 +146,14 @@ function SwipeWrapper({
         </motion.div>
       </motion.div>
 
+      {/* Draggable card */}
       <motion.div
         drag="x"
         dragConstraints={{ left: SWIPE_THRESHOLD, right: 0 }}
         dragElastic={0.08}
         style={{ x }}
-        onTapStart={handleTapStart}
-        onTap={handleTap}
-        onPanStart={handlePanStart}
+        onTap={() => { if (swiped) resetSwipe(); }}
         onDragEnd={handleDragEnd}
-        className="cursor-grab active:cursor-grabbing"
       >
         {children}
       </motion.div>
@@ -130,7 +161,7 @@ function SwipeWrapper({
       {swiped && (
         <div className="flex overflow-hidden rounded-b-2xl">
           <button onClick={confirmDelete}
-            className="flex-1 py-2.5 text-xs font-bold text-white bg-rose-500 tracking-wide">
+            className="flex-1 py-2.5 text-xs font-bold text-white bg-rose-500 tracking-widest">
             DELETE
           </button>
           <button onClick={resetSwipe}
@@ -142,6 +173,8 @@ function SwipeWrapper({
     </div>
   );
 }
+
+// ── Main card ─────────────────────────────────────────────────────────────────
 
 export function ShiftCard({
   shift,
@@ -164,11 +197,15 @@ export function ShiftCard({
   const [notesOpen, setNotesOpen] = useState(false);
   const [pressing, setPressing] = useState(false);
 
+  // Desktop long press via mouse
   const desktopTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const desktopLongPress = isMobile ? {} : {
     onMouseDown: () => {
       if (!onLongPress) return;
-      desktopTimer.current = setTimeout(() => { haptics(20); onLongPress(shift); }, 500);
+      desktopTimer.current = setTimeout(() => {
+        haptics(20);
+        onLongPress(shift);
+      }, 500);
     },
     onMouseUp: () => clearTimeout(desktopTimer.current),
     onMouseLeave: () => clearTimeout(desktopTimer.current),
@@ -177,21 +214,21 @@ export function ShiftCard({
   const card = (
     <div
       {...desktopLongPress}
-      className={`select-none overflow-hidden rounded-2xl border transition-all duration-100 ${
+      className={`select-none overflow-hidden rounded-2xl border transition-transform duration-75 ${
         pressing ? "scale-[0.97] brightness-90" : ""
       } ${
         station
-          ? "bg-card border-blue-100/80 dark:border-blue-900/60 shadow-sm shadow-blue-50 dark:shadow-none"
-          : isPaid
-          ? "bg-card border-border/50 shadow-sm"
+          ? "bg-card border-blue-100/80 dark:border-blue-900/60 shadow-sm"
           : "bg-card border-border/50 shadow-sm"
       }`}
     >
-      {/* Top accent bar */}
+      {/* Gradient top bar */}
       <div className={`h-[3px] w-full ${
-        station ? "bg-gradient-to-r from-blue-400 to-blue-600"
-        : isPaid ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
-        : "bg-gradient-to-r from-rose-400 to-rose-500"
+        station
+          ? "bg-gradient-to-r from-blue-400 to-blue-600"
+          : isPaid
+          ? "bg-gradient-to-r from-emerald-400 to-emerald-600"
+          : "bg-gradient-to-r from-rose-400 to-rose-500"
       }`} />
 
       <div className="p-4">
@@ -214,7 +251,7 @@ export function ShiftCard({
             <p className={`text-sm font-semibold mt-0.5 truncate ${
               station ? "text-blue-600 dark:text-blue-400" : "text-foreground"
             }`}>
-              {station ? shift.coveringFor : shift.coveringFor}
+              {shift.coveringFor}
             </p>
             {!station && (
               <p className="text-xs text-muted-foreground truncate">{shift.locationName}</p>
@@ -234,7 +271,6 @@ export function ShiftCard({
                 net {formatCurrency(afterTax)}
               </span>
             )}
-            {/* Status pill */}
             <button
               onClick={() => { haptics(8); onToggleStatus(shift); }}
               className={`px-3 py-1 rounded-full text-[11px] font-bold tracking-wide transition-all active:scale-95 ${
@@ -265,11 +301,11 @@ export function ShiftCard({
           </p>
         )}
 
-        {/* Action row */}
+        {/* Actions */}
         <div className="flex gap-2 pt-2 border-t border-border/30">
           <button
             onClick={(e) => { e.stopPropagation(); haptics(6); onEdit(shift); }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-muted/60 text-xs font-semibold text-foreground active:scale-95 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-muted/60 text-xs font-semibold active:scale-95 transition-all"
           >
             <Pencil className="w-3.5 h-3.5" /> Edit
           </button>
