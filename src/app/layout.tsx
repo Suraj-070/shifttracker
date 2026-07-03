@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "next-themes";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import { SessionProvider } from "@/components/session-provider";
 import { SettingsApplier } from "@/components/settings-applier";
@@ -57,12 +58,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
-        <SessionProvider>
-          <AppToastProvider>
-            <SettingsApplier />
-            {children}
-          </AppToastProvider>
-        </SessionProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SessionProvider>
+            <AppToastProvider>
+              <SettingsApplier />
+              {children}
+            </AppToastProvider>
+          </SessionProvider>
+        </ThemeProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

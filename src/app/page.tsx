@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   Calendar,
+  Bell,
   BarChart3,
   User,
   Settings,
@@ -37,6 +38,7 @@ import { useTabSwipe } from "@/hooks/use-tab-swipe";
 import {
   isStationShift,
 } from "@/types/database.types";
+import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
 import type {
   Shift,
   ShiftStatus,
@@ -49,7 +51,7 @@ import type {
 // ============================================================
 // Tab Navigation
 // ============================================================
-type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "profile" | "settings";
+type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "reminders" | "profile" | "settings";
 
 interface TabConfig {
   key: TabKey;
@@ -62,6 +64,7 @@ const TABS: TabConfig[] = [
   { key: "shifts", label: "Shifts", icon: CalendarDays },
   { key: "calendar", label: "Calendar", icon: Calendar },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
+  { key: "reminders", label: "Reminders", icon: Bell },
   { key: "profile", label: "Profile", icon: User },
   { key: "settings", label: "Settings", icon: Settings },
 ];
@@ -89,7 +92,7 @@ export default function ShiftTrackerPage() {
   // Tab order — defined as const outside to avoid recreation
   // (defined here so TypeScript can see TabKey; values are stable)
   const MOBILE_TABS = useMemo<TabKey[]>(
-    () => ["dashboard", "shifts", "calendar", "profile", "settings"],
+    () => ["dashboard", "shifts", "calendar", "reminders", "profile"],
     []
   );
 
@@ -159,7 +162,8 @@ export default function ShiftTrackerPage() {
   // Redirect away from analytics on mobile
   useEffect(() => {
     if (isMobile && activeTab === "analytics") {
-      navigateTab("dashboard");
+      const t = setTimeout(() => navigateTab("dashboard"), 0);
+      return () => clearTimeout(t);
     }
   }, [isMobile, activeTab, navigateTab]);
 
@@ -210,8 +214,12 @@ export default function ShiftTrackerPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchShifts();
-      fetchProfile();
+      // Defer to avoid synchronous setState in effect body
+      const t = setTimeout(() => {
+        fetchShifts();
+        fetchProfile();
+      }, 0);
+      return () => clearTimeout(t);
     }
   }, [status, fetchShifts, fetchProfile]);
 
@@ -591,7 +599,7 @@ export default function ShiftTrackerPage() {
                     <button
                       key={tab.key}
                       onClick={() => {
-                        const allTabs: TabKey[] = ["dashboard", "shifts", "calendar", "analytics", "profile", "settings"];
+                        const allTabs: TabKey[] = ["dashboard", "shifts", "calendar", "analytics", "reminders", "profile", "settings"];
                         const dir = allTabs.indexOf(tab.key as TabKey) > allTabs.indexOf(activeTab) ? "left" : "right";
                         navigateTabWithDirection(tab.key as TabKey, dir);
                       }}
@@ -612,18 +620,32 @@ export default function ShiftTrackerPage() {
         )}
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
-          {/* Pull to refresh indicator */}
-          {isMobile && (isPulling || isRefreshing) && (
-            <div className="flex items-center justify-center py-3 mb-2">
+        {/* Pull to refresh indicator — fixed overlay so it appears above content */}
+        {isMobile && (isPulling || isRefreshing) && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 left-0 right-0 flex justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-background border border-border/60 rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
               <div
-                className={`w-6 h-6 rounded-full border-2 border-primary border-t-transparent transition-all ${
+                className={`w-4 h-4 rounded-full border-2 border-primary border-t-transparent ${
                   isRefreshing ? "animate-spin" : ""
                 }`}
-                style={{ opacity: isRefreshing ? 1 : pullProgress, transform: `scale(${0.5 + pullProgress * 0.5})` }}
+                style={{
+                  opacity: isRefreshing ? 1 : pullProgress,
+                  transform: `rotate(${pullProgress * 180}deg)`
+                }}
               />
+              <span className="text-xs font-medium text-muted-foreground">
+                {isRefreshing ? "Refreshing..." : "Pull to refresh"}
+              </span>
             </div>
-          )}
+          </motion.div>
+        )}
+
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           <AnimatePresence mode="wait" initial={false} custom={swipeDirection}>
             {activeTab === "dashboard" && (
               <motion.div
@@ -729,6 +751,26 @@ export default function ShiftTrackerPage() {
                 />
               </motion.div>
             )}
+            {activeTab === "reminders" && (
+              <motion.div
+                key="reminders"
+                custom={swipeDirection}
+                variants={{
+                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
+                  center: { x: 0, opacity: 1 },
+                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                className="tab-content"
+              >
+                <RemindersTab
+                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
+                />
+              </motion.div>
+            )}
             {activeTab === "profile" && (
               <motion.div
                 key="profile"
@@ -767,18 +809,28 @@ export default function ShiftTrackerPage() {
                 exit="exit"
                 transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
               >
-                <SettingsTab
-                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter(Boolean))]}
-                />
+                <SettingsTab />
               </motion.div>
             )}
           </AnimatePresence>
         </main>
 
+        {/* Floating Add Button — mobile only */}
+        {isMobile && (
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={() => setAddDialogOpen(true)}
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center btn-primary-glow"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            <Plus className="w-7 h-7 stroke-[2.5]" />
+          </motion.button>
+        )}
+
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
-            tabs={TABS.filter((t) => t.key !== "analytics").map((t) => ({
+            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings").map((t) => ({
               ...t,
               badge: t.key === "shifts"
                 ? shifts.filter((s) => s.status === "Unpaid").length
@@ -786,7 +838,7 @@ export default function ShiftTrackerPage() {
             }))}
             activeTab={activeTab}
             onTabChange={(key) => {
-              const tabs: TabKey[] = ["dashboard", "shifts", "profile", "settings"];
+              const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
               const dir = tabs.indexOf(key as TabKey) > tabs.indexOf(activeTab) ? "left" : "right";
               navigateTabWithDirection(key as TabKey, dir);
             }}
