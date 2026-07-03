@@ -11,6 +11,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -517,20 +518,33 @@ export function AddShiftDialog({
   defaultLocation,
 }: AddShiftDialogProps) {
   const [jobKind, setJobKind] = useState<JobKind>("Hall");
+  const isMobile = useIsMobile();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* key={String(open)} remounts content on open → resets jobKind to "Hall" */}
-      <DialogContent key={String(open)} className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent key={String(open)} className={
+        isMobile
+          ? "fixed bottom-0 left-0 right-0 top-auto max-w-full rounded-t-3xl rounded-b-none translate-x-0 translate-y-0 data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom max-h-[92vh] overflow-y-auto p-0"
+          : "sm:max-w-md max-h-[90vh] overflow-y-auto"
+      }>
+      {isMobile && (
+        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background z-10">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        </div>
+      )}
+        <div className="px-4 sm:px-0">
         <DialogHeader>
-          <DialogTitle>Add New Shift</DialogTitle>
+          <DialogTitle className="text-lg font-bold">Add New Shift</DialogTitle>
           <DialogDescription>
             Choose a shift type and fill in the details.
           </DialogDescription>
         </DialogHeader>
+        </div>
 
+        <div className="px-4 sm:px-0 pb-4 space-y-4">
         {/* Hall / Station toggle */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
+        <div className="flex gap-1 p-1 bg-muted rounded-xl">
           {(["Hall", "Station"] as JobKind[]).map((k) => (
             <button
               key={k}

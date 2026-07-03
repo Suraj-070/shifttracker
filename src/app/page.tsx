@@ -810,6 +810,18 @@ export default function ShiftTrackerPage() {
           </AnimatePresence>
         </main>
 
+        {/* Floating Add Button — mobile only */}
+        {isMobile && (
+          <motion.button
+            whileTap={{ scale: 0.88 }}
+            onClick={() => setAddDialogOpen(true)}
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center btn-primary-glow"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            <Plus className="w-7 h-7 stroke-[2.5]" />
+          </motion.button>
+        )}
+
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
