@@ -228,7 +228,7 @@ export function DashboardTab({
 
             {/* ── Unpaid hero — only when unpaid shifts exist ── */}
             {summary.totalUnpaid > 0 && (
-              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="hero-gradient rounded-2xl p-4 flex items-center justify-between border border-primary/10">
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="glass-emerald rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-primary/60 uppercase tracking-widest mb-1">Unpaid</p>
                   <AnimatedCurrency value={summary.totalUnpaid} className="text-3xl font-bold text-primary tabular-nums" duration={500} />
@@ -242,12 +242,12 @@ export function DashboardTab({
 
             {/* ── 2 key stats only ── */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+              <div className="glass-card rounded-2xl p-4 android-enter stagger-1">
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Total Earned</p>
                 <AnimatedCurrency value={summary.totalEarned} className="text-2xl font-bold tabular-nums" duration={600} />
                 <p className="text-[11px] text-muted-foreground mt-1">{summary.totalShifts} shifts</p>
               </div>
-              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
+              <div className="glass-card rounded-2xl p-4 android-enter stagger-2">
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Avg / Shift</p>
                 <AnimatedCurrency value={summary.averagePerShift} className="text-2xl font-bold tabular-nums" duration={600} />
                 <p className="text-[11px] text-muted-foreground mt-1">{paidPercent}% collected</p>
@@ -255,7 +255,7 @@ export function DashboardTab({
             </div>
 
             {/* ── Recent shifts — clean 1-line rows ── */}
-            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
+            <div className="glass-card rounded-2xl overflow-hidden android-enter stagger-3">
               <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
                 <p className="text-sm font-bold">Recent</p>
                 <button onClick={onViewAllShifts} className="text-xs text-primary font-semibold flex items-center gap-0.5">
@@ -321,7 +321,7 @@ export function DashboardTab({
                 {/* ── Net take-home hero ── */}
                 {stationUnpaid > 0 && (
                   <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-2xl p-4 flex items-center justify-between border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/10">
+                    className="glass-blue rounded-2xl p-4 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1">Unpaid</p>
                       <AnimatedCurrency value={stationUnpaid > 0 ? stationNet * (stationUnpaid / stationCount) : 0} className="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums" duration={500} />
@@ -335,12 +335,12 @@ export function DashboardTab({
 
                 {/* ── 2 key stats ── */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-card border border-blue-100 dark:border-blue-900 rounded-2xl p-4 shadow-sm">
+                  <div className="glass-card rounded-2xl p-4 android-enter stagger-1">
                     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Net Take-home</p>
                     <AnimatedCurrency value={stationNet} className="text-2xl font-bold tabular-nums" duration={600} />
                     <p className="text-[11px] text-muted-foreground mt-1">{stationCount} shifts</p>
                   </div>
-                  <div className="bg-card border border-blue-100 dark:border-blue-900 rounded-2xl p-4 shadow-sm">
+                  <div className="glass-card rounded-2xl p-4 android-enter stagger-2">
                     <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tax Withheld</p>
                     <AnimatedCurrency value={stationTax} className="text-2xl font-bold tabular-nums text-amber-600" duration={600} />
                     <p className="text-[11px] text-muted-foreground mt-1">{stationPaidPct}% collected</p>

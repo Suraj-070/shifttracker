@@ -335,6 +335,18 @@ export function SettingsTab() {
 
       {/* ── Data ── */}
       <Section icon={Shield} title="Data & Privacy">
+        <div className="space-y-2 mb-3">
+          <button
+            onClick={async () => {
+              const res = await fetch("/api/shifts/migrate-tax", { method: "POST" });
+              const data = await res.json();
+              showToast({ type: "success", title: `Updated ${data.updated} station shifts to 5.16% tax` });
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 text-sm font-semibold"
+          >
+            🔄 Fix Station Tax Rates (5.16%)
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={handleExport}

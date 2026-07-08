@@ -151,9 +151,15 @@ export default function ShiftTrackerPage() {
   });
 
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      // Back was pressed — always go to dashboard
-      setActiveTab("dashboard");
+    const handlePopState = () => {
+      const state = window.history.state;
+      // If we have a tab in history state, navigate to it
+      if (state?.shiftTrackerTab) {
+        setActiveTab(state.shiftTrackerTab as TabKey);
+      } else {
+        // No tab state = back to dashboard
+        setActiveTab("dashboard");
+      }
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -659,9 +665,8 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
-                className="tab-content"
-              >
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                className="tab-content">
                 <DashboardTab
                   summary={summary}
                   recentShifts={recentShifts}
@@ -687,7 +692,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
               >
                 <ShiftsTab
                   shifts={shifts}
@@ -719,7 +724,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
               >
                 <AnalyticsTab
                   summary={summary}
@@ -740,7 +745,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
               >
                 <CalendarTab
                   shifts={shifts}
@@ -763,9 +768,8 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
-                className="tab-content"
-              >
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                className="tab-content">
                 <RemindersTab
                   savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
                 />
@@ -783,7 +787,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
               >
                 <ProfileTab
                   profile={profile}
@@ -807,7 +811,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 380, damping: 34, mass: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
               >
                 <SettingsTab />
               </motion.div>
@@ -820,7 +824,7 @@ export default function ShiftTrackerPage() {
           <motion.button
             whileTap={{ scale: 0.88 }}
             onClick={() => setAddDialogOpen(true)}
-            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center btn-primary-glow"
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center btn-primary-glow fab-enter"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
             <Plus className="w-7 h-7 stroke-[2.5]" />
