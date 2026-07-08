@@ -114,14 +114,14 @@ function SwipeWrapper({
     const dx  = t.clientX - startX.current;
     const dy  = Math.abs(t.clientY - startY.current);
 
-    // If moving vertically — cancel everything
-    if (dy > 10 && !isSwiping.current) {
+    // If moving vertically — cancel everything (20px threshold to handle finger drift)
+    if (dy > 20 && !isSwiping.current) {
       clearTimeout(timerRef.current);
       onPressEnd?.();
       return;
     }
 
-    if (Math.abs(dx) > 8) {
+    if (Math.abs(dx) > 12) {
       clearTimeout(timerRef.current);
       if (!longFired.current) onPressEnd?.();
       isSwiping.current = true;
@@ -166,7 +166,9 @@ function SwipeWrapper({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onTouchCancel={onTouchEnd}
-        className="touch-pan-y"
+        onContextMenu={e => e.preventDefault()}
+        className="touch-pan-y select-none"
+        style={{ WebkitUserSelect: "none", userSelect: "none" }}
       >
         {children}
       </div>

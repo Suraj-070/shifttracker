@@ -359,6 +359,29 @@ export default function ShiftTrackerPage() {
     }
   }, [haptics, fetchProfile, showToast]);
 
+  const handleBulkMarkPaid = useCallback(async (shiftsToMark: Shift[]) => {
+    if (!shiftsToMark.length) return;
+    haptics(12);
+    // Optimistic update
+    setShifts(prev => prev.map(s =>
+      shiftsToMark.find(m => m.id === s.id) ? { ...s, status: "Paid" as ShiftStatus } : s
+    ));
+    // Save to DB
+    try {
+      await Promise.all(shiftsToMark.map(s =>
+        fetch(`/api/shifts/${s.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "Paid" }),
+        })
+      ));
+      showToast({ type: "success", title: `${shiftsToMark.length} shifts marked paid ✓` });
+      await fetchProfile();
+    } catch {
+      showToast({ type: "error", title: "Failed to update some shifts" });
+    }
+  }, [haptics, fetchProfile, showToast]);
+
   const handleDeleteUndo = useCallback(() => {
     const shift = pendingDeleteRef.current;
     if (!shift) return;
@@ -637,6 +660,7 @@ export default function ShiftTrackerPage() {
                   hallShifts={hallShifts}
                   isLoading={isLoading}
                   onToggleStatus={toggleStatus}
+                  onBulkMarkPaid={handleBulkMarkPaid}
                   onAddShift={() => setAddDialogOpen(true)}
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
                   compact={compactDashboard}

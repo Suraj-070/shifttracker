@@ -134,6 +134,7 @@ interface DashboardTabProps {
   hallShifts: Shift[];
   isLoading: boolean;
   onToggleStatus: (shift: Shift) => void;
+  onBulkMarkPaid: (shifts: Shift[]) => void;
   onAddShift: () => void;
   onViewAllShifts: () => void;
   compact?: boolean;
@@ -148,6 +149,7 @@ export function DashboardTab({
   hallShifts,
   isLoading,
   onToggleStatus,
+  onBulkMarkPaid,
   onAddShift,
   onViewAllShifts,
   compact = false,
