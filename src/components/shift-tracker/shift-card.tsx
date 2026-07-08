@@ -322,11 +322,7 @@ export function ShiftCard({
 
   if (isMobile && !disableSwipe) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.18, delay: Math.min(index * 0.03, 0.12) }}
-      >
+      <div>
         <SwipeWrapper
           onDelete={() => onDelete(shift)}
           onLongPress={onLongPress ? () => onLongPress(shift) : undefined}
@@ -335,17 +331,9 @@ export function ShiftCard({
         >
           {card}
         </SwipeWrapper>
-      </motion.div>
+      </div>
     );
   }
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, delay: Math.min(index * 0.03, 0.12) }}
-    >
-      {card}
-    </motion.div>
-  );
+  return <div>{card}</div>;
 }
