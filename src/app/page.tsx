@@ -480,45 +480,8 @@ export default function ShiftTrackerPage() {
   // Only redirect once we KNOW user is unauthenticated
   if (status === "unauthenticated") return null;
 
-  // Premium loading screen while session resolves
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-6">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"
-        >
-          <Clock className="w-8 h-8 text-white" />
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.3 }}
-          className="flex flex-col items-center gap-1"
-        >
-          <p className="text-lg font-bold tracking-tight">ShiftTracker</p>
-          <p className="text-xs text-muted-foreground">Loading your shifts…</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="flex gap-1.5"
-        >
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="w-1.5 h-1.5 rounded-full bg-emerald-500"
-              animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY, delay: i * 0.15 }}
-            />
-          ))}
-        </motion.div>
-      </div>
-    );
-  }
+  // While session is loading just show nothing — instant feel
+  if (status === "loading") return null;
 
   if (!isLoading && shifts.length === 0) {
     return (
