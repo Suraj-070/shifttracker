@@ -26,5 +26,5 @@ export const STATION_RATES = {
 
 export type StationRateKey = keyof typeof STATION_RATES
 
-/** Estimated tax rate (~18.6% from payslip) */
-export const STATION_TAX_RATE = 0.186
+/** Actual PAYG withholding rate from Cleantech1 payslip ($56 tax on $1085.70 gross = 5.16%) */
+export const STATION_TAX_RATE = 0.0516
