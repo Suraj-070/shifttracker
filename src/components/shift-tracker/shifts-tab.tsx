@@ -155,10 +155,9 @@ function SelectableCard({
         </button>
       )}
       <div
-        style={{ contentVisibility: "auto", containIntrinsicSize: "0 120px" }}
+        style={{ contentVisibility: "auto", containIntrinsicSize: "0 120px", cursor: selecting ? "pointer" : undefined }}
         className={`transition-all ${selecting ? "pl-6" : ""} ${selected ? "ring-2 ring-emerald-400 rounded-xl" : ""}`}
         onClick={selecting ? onToggle : undefined}
-        style={selecting ? { cursor: "pointer" } : undefined}
       >
         <ShiftCard
           shift={shift}
