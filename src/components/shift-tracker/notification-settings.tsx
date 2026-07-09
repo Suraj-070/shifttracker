@@ -1,22 +1,22 @@
 "use client";
 
-import React, { Component, ReactNode, useCallback, useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { Component, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bell, BellOff, Clock, Train, Calendar,
-  AlertCircle, Loader2, Save, Plus, Trash2,
-  MapPin, ChevronDown, ChevronUp, Check,
+  Bell, BellOff, Calendar, Check, ChevronDown, ChevronUp,
+  Clock, AlertCircle, Loader2, MapPin, Plus, Save, Train, Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 
-class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
-  state = { error: false };
-  static getDerivedStateFromError() { return { error: true }; }
+// ── Error boundary ────────────────────────────────────────────────────────────
+class Boundary extends Component<{ children: ReactNode }, { err: boolean }> {
+  state = { err: false };
+  static getDerivedStateFromError() { return { err: true }; }
   render() {
-    if (this.state.error) return (
+    if (this.state.err) return (
       <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-xs text-rose-600">
         Could not load. Check NEXT_PUBLIC_VAPID_PUBLIC_KEY in Vercel.
       </div>
@@ -25,176 +25,155 @@ class NotifErrorBoundary extends Component<{ children: ReactNode }, { error: boo
   }
 }
 
-const DAYS = [
-  { label: "S", value: 0 }, { label: "M", value: 1 }, { label: "T", value: 2 },
-  { label: "W", value: 3 }, { label: "T", value: 4 }, { label: "F", value: 5 },
-  { label: "S", value: 6 },
-];
+// ── Types ─────────────────────────────────────────────────────────────────────
+const DAYS = ["S","M","T","W","T","F","S"];
 
 interface StationReminder {
   id: string; station: string; clockin: string; clockout: string;
   offset: number; clockout_after_offset: number; enabled: boolean;
 }
-
-interface NotifSettings {
+interface Settings {
   hall_reminder_enabled: boolean; hall_reminder_days: number[];
   hall_reminder_time: string; hall_reminder_venue: string;
   station_reminders: StationReminder[];
 }
-
-const DEFAULT: NotifSettings = {
+const DEFAULT: Settings = {
   hall_reminder_enabled: false, hall_reminder_days: [],
   hall_reminder_time: "21:00", hall_reminder_venue: "Eastgardens",
   station_reminders: [],
 };
-
 function newStation(): StationReminder {
   return { id: Math.random().toString(36).slice(2), station: "", clockin: "16:00", clockout: "21:15", offset: 5, clockout_after_offset: 10, enabled: true };
 }
-
-function addMins(hhmm: string, mins: number): string {
+function addM(hhmm: string, m: number) {
+  const [h, mm] = hhmm.split(":").map(Number);
+  const t = h * 60 + mm + m;
+  return `${String(Math.floor(t/60)%24).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`;
+}
+function subM(hhmm: string, m: number) {
+  const [h, mm] = hhmm.split(":").map(Number);
+  const t = Math.max(0, h * 60 + mm - m);
+  return `${String(Math.floor(t/60)).padStart(2,"0")}:${String(t%60).padStart(2,"0")}`;
+}
+function to12(hhmm: string) {
   const [h, m] = hhmm.split(":").map(Number);
-  const total = h * 60 + m + mins;
-  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  return `${h%12||12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`;
 }
 
-function subMins(hhmm: string, mins: number): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  const total = Math.max(0, h * 60 + m - mins);
-  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-}
-
-function to12h(hhmm: string): string {
-  const [h, m] = hhmm.split(":").map(Number);
-  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
-}
-
-function NotifPreview({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+// ── Tiny timing badge ─────────────────────────────────────────────────────────
+function TimeBadge({ label, time }: { label: string; time: string }) {
   return (
-    <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-zinc-900 dark:bg-zinc-800">
-      <span className="text-base shrink-0 mt-0.5">{emoji}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-zinc-100">{title}</p>
-        <p className="text-[11px] text-zinc-400 mt-0.5">{body}</p>
-      </div>
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
+      <span className="text-[11px] font-bold bg-muted px-2 py-0.5 rounded-lg">{to12(time)}</span>
     </div>
   );
 }
 
-function StationCard({ reminder, idx, savedNames, onChange, onDelete }: {
-  reminder: StationReminder; idx: number; savedNames: string[];
-  onChange: (patch: Partial<StationReminder>) => void;
-  onDelete: () => void;
+// ── Station card ──────────────────────────────────────────────────────────────
+function StationCard({ r, idx, savedNames, onChange, onDelete }: {
+  r: StationReminder; idx: number; savedNames: string[];
+  onChange: (p: Partial<StationReminder>) => void; onDelete: () => void;
 }) {
-  const [expanded, setExpanded] = useState(!reminder.station);
+  const [open, setOpen] = useState(!r.station);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.18 }}
-    >
-      <div className={`rounded-2xl border-2 transition-colors ${
-        reminder.enabled ? "border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/10" : "border-border/40 bg-muted/20"
+    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0 }} transition={{ duration: 0.15 }}>
+      <div className={`rounded-2xl border-2 overflow-hidden transition-colors ${
+        r.enabled ? "border-blue-200 dark:border-blue-800" : "border-border/40"
       }`}>
-        {/* Header row */}
-        <div className="flex items-center gap-3 p-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${reminder.enabled ? "bg-blue-500" : "bg-muted"}`}>
-            <Train className={`w-5 h-5 ${reminder.enabled ? "text-white" : "text-muted-foreground"}`} />
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${r.enabled ? "bg-blue-500" : "bg-muted"}`}>
+            <Train className={`w-4 h-4 ${r.enabled ? "text-white" : "text-muted-foreground"}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate">{reminder.station || `Station ${idx + 1}`}</p>
-            {reminder.station && (
-              <p className="text-[11px] text-muted-foreground">{to12h(reminder.clockin)} → {to12h(reminder.clockout)}</p>
+            <p className="text-sm font-bold truncate">{r.station || `Station ${idx+1}`}</p>
+            {r.station && (
+              <p className="text-[11px] text-muted-foreground">{to12(r.clockin)} → {to12(r.clockout)}</p>
             )}
           </div>
-          <Switch checked={reminder.enabled} onCheckedChange={v => onChange({ enabled: v })} />
-          <button onClick={() => setExpanded(v => !v)}
-            className="w-8 h-8 rounded-xl bg-background/60 flex items-center justify-center text-muted-foreground">
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <Switch checked={r.enabled} onCheckedChange={v => onChange({ enabled: v })} />
+          <button onClick={() => setOpen(v => !v)}
+            className="w-8 h-8 flex items-center justify-center text-muted-foreground">
+            {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Expanded body */}
+        {/* Body */}
         <AnimatePresence>
-          {expanded && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
-              <div className="px-4 pb-4 pt-3 space-y-4 border-t border-blue-100 dark:border-blue-900">
+          {open && (
+            <motion.div initial={{ height: 0 }} animate={{ height: "auto" }}
+              exit={{ height: 0 }} className="overflow-hidden">
+              <div className="px-4 pb-4 pt-2 space-y-3 border-t border-border/30">
 
-                {/* Station name pills */}
+                {/* Station pills */}
                 {savedNames.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {savedNames.map(name => (
-                      <button key={name} onClick={() => onChange({ station: name })}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                          reminder.station === name ? "bg-blue-500 text-white" : "bg-background border border-border text-muted-foreground"
+                  <div className="flex flex-wrap gap-1.5">
+                    {savedNames.map(n => (
+                      <button key={n} onClick={() => onChange({ station: n })}
+                        className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                          r.station === n ? "bg-blue-500 text-white border-blue-500" : "border-border text-muted-foreground"
                         }`}>
-                        {reminder.station === name && <Check className="w-3 h-3" />}
-                        {name}
+                        {r.station === n && <Check className="w-3 h-3" />}{n}
                       </button>
                     ))}
                   </div>
                 )}
 
-                <Input value={reminder.station} onChange={e => onChange({ station: e.target.value })}
-                  placeholder="Station name e.g. Central" className="rounded-xl" />
+                <Input value={r.station} onChange={e => onChange({ station: e.target.value })}
+                  placeholder="e.g. Central, Redfern..." className="rounded-xl h-9 text-sm" />
 
-                {/* Times */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Clock in</p>
-                    <Input type="time" value={reminder.clockin} onChange={e => onChange({ clockin: e.target.value })}
-                      className="rounded-xl text-center font-semibold" />
+                {/* Times grid */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock in</p>
+                    <Input type="time" value={r.clockin} onChange={e => onChange({ clockin: e.target.value })}
+                      className="rounded-xl h-9 text-sm text-center" />
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Clock out</p>
-                    <Input type="time" value={reminder.clockout} onChange={e => onChange({ clockout: e.target.value })}
-                      className="rounded-xl text-center font-semibold" />
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock out</p>
+                    <Input type="time" value={r.clockout} onChange={e => onChange({ clockout: e.target.value })}
+                      className="rounded-xl h-9 text-sm text-center" />
                   </div>
                 </div>
 
                 {/* Offsets */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Remind before</p>
-                    <div className="flex items-center gap-2">
-                      <Input type="number" min={1} max={60} value={reminder.offset}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Remind before</p>
+                    <div className="flex items-center gap-1.5">
+                      <Input type="number" min={1} max={60} value={r.offset}
                         onChange={e => onChange({ offset: Number(e.target.value) })}
-                        className="rounded-xl text-center w-16 font-semibold" />
+                        className="rounded-xl h-9 text-center w-16 text-sm" />
                       <span className="text-xs text-muted-foreground">min</span>
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Check after</p>
-                    <div className="flex items-center gap-2">
-                      <Input type="number" min={1} max={60} value={reminder.clockout_after_offset}
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Check after</p>
+                    <div className="flex items-center gap-1.5">
+                      <Input type="number" min={1} max={60} value={r.clockout_after_offset}
                         onChange={e => onChange({ clockout_after_offset: Number(e.target.value) })}
-                        className="rounded-xl text-center w-16 font-semibold" />
+                        className="rounded-xl h-9 text-center w-16 text-sm" />
                       <span className="text-xs text-muted-foreground">min</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Preview */}
-                {reminder.station && (
-                  <div className="space-y-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Notification preview</p>
-                    <NotifPreview emoji="🚉" title={`Clock in at ${to12h(reminder.clockin)}`}
-                      body={`${reminder.station} — ${reminder.offset} min until your shift starts`} />
-                    <NotifPreview emoji="🚉" title={`Clock out at ${to12h(reminder.clockout)}`}
-                      body={`${reminder.station} — ${reminder.offset} min until your shift ends`} />
-                    <NotifPreview emoji="✅" title="Did you clock out?"
-                      body={`${reminder.station} shift ended ${reminder.clockout_after_offset} min ago`} />
-                    <p className="text-[10px] text-muted-foreground">
-                      Fires at {subMins(reminder.clockin, reminder.offset)} · {subMins(reminder.clockout, reminder.offset)} · {addMins(reminder.clockout, reminder.clockout_after_offset)}
-                    </p>
+                {/* Compact timing summary — replaces the 3 dark preview cards */}
+                {r.station && (
+                  <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Notification times</p>
+                    <TimeBadge label="🚉 Clock in" time={subM(r.clockin, r.offset)} />
+                    <TimeBadge label="🚉 Clock out" time={subM(r.clockout, r.offset)} />
+                    <TimeBadge label="✅ Did u?" time={addM(r.clockout, r.clockout_after_offset)} />
                   </div>
                 )}
 
-                {/* Delete */}
                 <button onClick={onDelete}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-xs font-semibold active:scale-95 transition-all">
-                  <Trash2 className="w-3.5 h-3.5" /> Remove this reminder
+                  className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-xs font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                  <Trash2 className="w-3.5 h-3.5" /> Remove
                 </button>
               </div>
             </motion.div>
@@ -205,30 +184,39 @@ function StationCard({ reminder, idx, savedNames, onChange, onDelete }: {
   );
 }
 
-function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
+// ── Main ──────────────────────────────────────────────────────────────────────
+function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
   const { showToast } = useAppToast();
   const { permission, isSubscribed, isLoading: subLoading, subscribe, unsubscribe } = usePushNotifications();
-  const [settings, setSettings] = useState<NotifSettings>(DEFAULT);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isFetching, setIsFetching] = useState(true);
 
+  // Start with defaults immediately — no loading spinner
+  const [settings, setSettings] = useState<Settings>(DEFAULT);
+  const [isSaving, setIsSaving] = useState(false);
+  const loadedRef = useRef(false);
+
+  // Load in background — UI is already interactive with defaults
   useEffect(() => {
-    fetch("/api/push/settings").then(r => r.json()).then(data => {
-      if (data && !data.error) {
-        setSettings({
-          hall_reminder_enabled: data.hall_reminder_enabled ?? false,
-          hall_reminder_days: data.hall_reminder_days ?? [],
-          hall_reminder_time: data.hall_reminder_time ?? "21:00",
-          hall_reminder_venue: data.hall_reminder_venue ?? "Eastgardens",
-          station_reminders: (data.station_reminders ?? []).map((r: StationReminder) => ({
-            ...r, clockout_after_offset: r.clockout_after_offset ?? 10,
-          })),
-        });
-      }
-    }).catch(() => {}).finally(() => setIsFetching(false));
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+    fetch("/api/push/settings")
+      .then(r => r.json())
+      .then(data => {
+        if (data && !data.error) {
+          setSettings({
+            hall_reminder_enabled: data.hall_reminder_enabled ?? false,
+            hall_reminder_days: data.hall_reminder_days ?? [],
+            hall_reminder_time: data.hall_reminder_time ?? "21:00",
+            hall_reminder_venue: data.hall_reminder_venue ?? "Eastgardens",
+            station_reminders: (data.station_reminders ?? []).map((r: StationReminder) => ({
+              ...r, clockout_after_offset: r.clockout_after_offset ?? 10,
+            })),
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const saveSettings = useCallback(async (s: NotifSettings) => {
+  const save = useCallback(async (s: Settings) => {
     setIsSaving(true);
     try {
       const res = await fetch("/api/push/settings", {
@@ -240,28 +228,25 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
     finally { setIsSaving(false); }
   }, [showToast]);
 
-  const toggleDay = (day: number) =>
+  const toggleDay = (d: number) =>
     setSettings(s => ({
-      ...s, hall_reminder_days: s.hall_reminder_days.includes(day)
-        ? s.hall_reminder_days.filter(d => d !== day)
-        : [...s.hall_reminder_days, day],
+      ...s, hall_reminder_days: s.hall_reminder_days.includes(d)
+        ? s.hall_reminder_days.filter(x => x !== d)
+        : [...s.hall_reminder_days, d],
     }));
 
   const updateStation = (id: string, patch: Partial<StationReminder>) =>
     setSettings(s => ({ ...s, station_reminders: s.station_reminders.map(r => r.id === id ? { ...r, ...patch } : r) }));
 
-  // Auto-save on delete by computing new state and saving immediately
   const removeStation = (id: string) => {
     setSettings(prev => {
       const updated = { ...prev, station_reminders: prev.station_reminders.filter(r => r.id !== id) };
       fetch("/api/push/settings", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updated),
-      }).then(() => showToast({ type: "success", title: "Reminder removed" })).catch(() => {});
+      }).then(() => showToast({ type: "success", title: "Removed" })).catch(() => {});
       return updated;
     });
   };
-
-  const addStation = () => setSettings(s => ({ ...s, station_reminders: [...s.station_reminders, newStation()] }));
 
   const handleToggle = async () => {
     if (isSubscribed) {
@@ -270,144 +255,158 @@ function NotificationSettingsInner({ savedStationNames = [] }: { savedStationNam
     } else {
       const ok = await subscribe();
       if (ok) showToast({ type: "success", title: "Notifications enabled! 🔔" });
-      else if (permission === "denied") showToast({ type: "error", title: "Blocked", description: "Allow in phone Settings" });
+      else if (permission === "denied") showToast({ type: "error", title: "Blocked — allow in phone settings" });
     }
   };
 
-  if (isFetching) return <div className="flex items-center justify-center py-12"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>;
-
   return (
-    <div className="space-y-5 pb-4">
+    <div className="space-y-4 pb-4">
 
-      {/* Enable toggle */}
+      {/* ── Enable card ── */}
       <div className={`rounded-2xl p-4 border-2 transition-all ${
-        isSubscribed ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/10" : "border-dashed border-border"
+        isSubscribed ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-950/10" : "border-dashed border-border"
       }`}>
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isSubscribed ? "bg-emerald-500" : "bg-muted"}`}>
-            {isSubscribed ? <Bell className="w-6 h-6 text-white" /> : <BellOff className="w-6 h-6 text-muted-foreground" />}
+          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${isSubscribed ? "bg-emerald-500" : "bg-muted"}`}>
+            {isSubscribed ? <Bell className="w-5 h-5 text-white" /> : <BellOff className="w-5 h-5 text-muted-foreground" />}
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold">{isSubscribed ? "Notifications on" : "Notifications off"}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {isSubscribed ? "Reminders fire even when app is closed" : "Tap to enable push notifications"}
+            <p className="text-xs text-muted-foreground">
+              {isSubscribed ? "Fires even when app is closed" : "Enable to receive reminders"}
             </p>
           </div>
-          <motion.button whileTap={{ scale: 0.95 }} onClick={handleToggle}
-            disabled={subLoading || permission === "unsupported"}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              isSubscribed ? "bg-background border border-border" : "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30"
+          <button onClick={handleToggle} disabled={subLoading || permission === "unsupported"}
+            className={`px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all ${
+              isSubscribed ? "bg-muted border border-border" : "bg-emerald-500 text-white"
             }`}>
-            {subLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isSubscribed ? "Disable" : "Enable"}
-          </motion.button>
+            {subLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isSubscribed ? "Turn off" : "Enable"}
+          </button>
         </div>
         {permission === "denied" && (
-          <div className="mt-3 flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30">
-            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-rose-600 dark:text-rose-400">Blocked. Go to Settings → Apps → Chrome → Notifications → Allow.</p>
+          <div className="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30">
+            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <p className="text-xs text-rose-600 dark:text-rose-400">Blocked — Settings → Apps → Chrome → Notifications → Allow</p>
           </div>
         )}
       </div>
 
-      {/* Hall reminder */}
-      <div className={!isSubscribed ? "opacity-40 pointer-events-none" : ""}>
-        <div className="flex items-center gap-2 px-1 mb-3">
-          <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center">
-            <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-          </div>
-          <p className="text-sm font-bold">Hall Shift Reminder</p>
-          <Switch checked={settings.hall_reminder_enabled}
-            onCheckedChange={v => setSettings(s => ({ ...s, hall_reminder_enabled: v }))} className="ml-auto" />
-        </div>
+      <div className={!isSubscribed ? "opacity-40 pointer-events-none space-y-4" : "space-y-4"}>
 
-        <AnimatePresence>
-          {settings.hall_reminder_enabled && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.18 }} className="overflow-hidden space-y-3">
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input value={settings.hall_reminder_venue}
-                  onChange={e => setSettings(s => ({ ...s, hall_reminder_venue: e.target.value }))}
-                  placeholder="Venue e.g. Eastgardens" className="pl-9 rounded-xl" />
-              </div>
-              <div className="flex gap-1.5">
-                {DAYS.map(day => (
-                  <button key={day.value} onClick={() => toggleDay(day.value)}
-                    className={`flex-1 h-10 rounded-xl text-xs font-bold transition-all ${
-                      settings.hall_reminder_days.includes(day.value) ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                    }`}>
-                    {day.label}
-                  </button>
-                ))}
-              </div>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="time" value={settings.hall_reminder_time}
-                  onChange={e => setSettings(s => ({ ...s, hall_reminder_time: e.target.value }))}
-                  className="pl-9 rounded-xl" />
-              </div>
-              {settings.hall_reminder_days.length > 0 && (
-                <NotifPreview emoji="🎬" title="ShiftTracker"
-                  body={`Did you add your ${settings.hall_reminder_venue || "Eastgardens"} shifts today?`} />
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Station reminders */}
-      <div className={!isSubscribed ? "opacity-40 pointer-events-none" : ""}>
-        <div className="flex items-center gap-2 px-1 mb-3">
-          <div className="w-6 h-6 rounded-lg bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
-            <Train className="w-3.5 h-3.5 text-blue-600" />
-          </div>
-          <p className="text-sm font-bold">Station Reminders</p>
-          <span className="ml-auto text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {settings.station_reminders.length}
-          </span>
-        </div>
-
-        <div className="space-y-3">
-          <AnimatePresence>
-            {settings.station_reminders.map((r, idx) => (
-              <StationCard key={r.id} reminder={r} idx={idx} savedNames={savedStationNames}
-                onChange={patch => updateStation(r.id, patch)}
-                onDelete={() => removeStation(r.id)} />
-            ))}
-          </AnimatePresence>
-
-          {settings.station_reminders.length === 0 && (
-            <div className="flex flex-col items-center gap-2 py-8 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                <Train className="w-7 h-7 text-muted-foreground" />
-              </div>
-              <p className="text-sm font-semibold">No station reminders yet</p>
-              <p className="text-xs text-muted-foreground max-w-[200px]">Add one below to get clock-in, clock-out and safety reminders</p>
+        {/* ── Hall reminder ── */}
+        <div className="rounded-2xl border border-border/60 overflow-hidden">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center">
+              <Calendar className="w-4 h-4 text-emerald-600" />
             </div>
-          )}
+            <div className="flex-1">
+              <p className="text-sm font-bold">Hall Shift Reminder</p>
+              {settings.hall_reminder_enabled && settings.hall_reminder_days.length > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  {settings.hall_reminder_days.map(d => DAYS[d]).join(" · ")} at {to12(settings.hall_reminder_time)}
+                </p>
+              )}
+            </div>
+            <Switch checked={settings.hall_reminder_enabled}
+              onCheckedChange={v => setSettings(s => ({ ...s, hall_reminder_enabled: v }))} />
+          </div>
 
-          <motion.button whileTap={{ scale: 0.97 }} onClick={addStation}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 text-blue-500 text-sm font-semibold active:bg-blue-50 dark:active:bg-blue-950/20 transition-colors">
-            <Plus className="w-4 h-4" /> Add Station Reminder
-          </motion.button>
+          <AnimatePresence>
+            {settings.hall_reminder_enabled && (
+              <motion.div initial={{ height: 0 }} animate={{ height: "auto" }}
+                exit={{ height: 0 }} className="overflow-hidden">
+                <div className="px-4 pb-4 space-y-3 border-t border-border/30">
+                  {/* Venue */}
+                  <div className="pt-3 relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input value={settings.hall_reminder_venue}
+                      onChange={e => setSettings(s => ({ ...s, hall_reminder_venue: e.target.value }))}
+                      placeholder="Venue e.g. Eastgardens" className="pl-9 rounded-xl h-9 text-sm" />
+                  </div>
+                  {/* Day pills */}
+                  <div className="flex gap-1.5">
+                    {DAYS.map((d, i) => (
+                      <button key={i} onClick={() => toggleDay(i)}
+                        className={`flex-1 h-9 rounded-xl text-xs font-bold transition-all ${
+                          settings.hall_reminder_days.includes(i) ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                        }`}>{d}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Time */}
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input type="time" value={settings.hall_reminder_time}
+                      onChange={e => setSettings(s => ({ ...s, hall_reminder_time: e.target.value }))}
+                      className="pl-9 rounded-xl h-9 text-sm" />
+                  </div>
+                  {/* Compact preview */}
+                  {settings.hall_reminder_days.length > 0 && (
+                    <div className="bg-muted/50 rounded-xl p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1">Preview</p>
+                      <p className="text-xs text-foreground">
+                        🎬 "Did you add your <strong>{settings.hall_reminder_venue || "Eastgardens"}</strong> shifts today?"
+                      </p>
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Fires {settings.hall_reminder_days.map(d => DAYS[d]).join(", ")} at {to12(settings.hall_reminder_time)}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
 
-      {/* Save */}
-      <motion.button whileTap={{ scale: 0.97 }} onClick={() => saveSettings(settings)}
-        disabled={isSaving || !isSubscribed}
-        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-40 shadow-lg shadow-primary/20">
-        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-        Save Settings
-      </motion.button>
+        {/* ── Station reminders ── */}
+        <div>
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
+              <Train className="w-4 h-4 text-blue-600" />
+            </div>
+            <p className="text-sm font-bold">Station Reminders</p>
+            <span className="ml-auto text-[11px] font-semibold bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+              {settings.station_reminders.length}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            <AnimatePresence>
+              {settings.station_reminders.map((r, idx) => (
+                <StationCard key={r.id} r={r} idx={idx} savedNames={savedStationNames}
+                  onChange={p => updateStation(r.id, p)}
+                  onDelete={() => removeStation(r.id)} />
+              ))}
+            </AnimatePresence>
+
+            {settings.station_reminders.length === 0 && (
+              <div className="py-8 flex flex-col items-center gap-2 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
+                  <Train className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm font-semibold">No station reminders</p>
+                <p className="text-xs text-muted-foreground">Tap below to add clock-in/out alerts</p>
+              </div>
+            )}
+
+            <button onClick={() => setSettings(s => ({ ...s, station_reminders: [...s.station_reminders, newStation()] }))}
+              className="w-full py-3 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 text-blue-500 text-sm font-semibold active:bg-blue-50/50 transition-colors flex items-center justify-center gap-2">
+              <Plus className="w-4 h-4" /> Add Station Reminder
+            </button>
+          </div>
+        </div>
+
+        {/* ── Save ── */}
+        <button onClick={() => save(settings)} disabled={isSaving}
+          className="w-full py-4 rounded-2xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Save Settings
+        </button>
+      </div>
     </div>
   );
 }
 
 export function NotificationSettings(props: { savedStationNames?: string[] }) {
-  return (
-    <NotifErrorBoundary>
-      <NotificationSettingsInner {...props} />
-    </NotifErrorBoundary>
-  );
+  return <Boundary><Inner {...props} /></Boundary>;
 }
