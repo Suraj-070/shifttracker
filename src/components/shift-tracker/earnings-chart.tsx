@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
 
 interface WeekData {
@@ -79,13 +78,11 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
                     {/* Unpaid portion */}
                     <div className="absolute inset-0 bg-muted-foreground/20 dark:bg-muted-foreground/30 rounded-t-lg" />
                     {/* Paid portion */}
-                    <motion.div
+                    <div
                       className={`absolute bottom-0 left-0 right-0 rounded-t-lg ${
                         isCurrentWeek ? "bg-primary" : "bg-primary/60"
                       }`}
-                      initial={{ height: 0 }}
-                      animate={{ height: `${paidPct}%` }}
-                      transition={{ duration: 0.6, delay: i * 0.06, ease: "easeOut" }}
+                      style={{ height: `${paidPct}%` }}
                     />
                   </div>
                 ) : (

@@ -21,16 +21,18 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettingsStore } from "@/stores/settings-store";
 
 import { DashboardTab } from "@/components/shift-tracker/dashboard-tab";
-import { ShiftsTab } from "@/components/shift-tracker/shifts-tab";
-import { AnalyticsTab } from "@/components/shift-tracker/analytics-tab";
-import { CalendarTab } from "@/components/shift-tracker/calendar-tab";
-import { ShiftActionsSheet } from "@/components/shift-tracker/shift-actions-sheet";
-import { ProfileTab } from "@/components/shift-tracker/profile-tab";
-import { SettingsTab } from "@/components/shift-tracker/settings-tab";
-import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
-import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
-import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
 import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
+import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
+import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
+// Lazy load non-critical tabs — loaded only when first visited
+const ShiftsTab       = React.lazy(() => import("@/components/shift-tracker/shifts-tab").then(m => ({ default: m.ShiftsTab })));
+const CalendarTab     = React.lazy(() => import("@/components/shift-tracker/calendar-tab").then(m => ({ default: m.CalendarTab })));
+const ProfileTab      = React.lazy(() => import("@/components/shift-tracker/profile-tab").then(m => ({ default: m.ProfileTab })));
+const RemindersTabLazy = React.lazy(() => import("@/components/shift-tracker/reminders-tab").then(m => ({ default: m.RemindersTab })));
+const SettingsTab     = React.lazy(() => import("@/components/shift-tracker/settings-tab").then(m => ({ default: m.SettingsTab })));
+const AnalyticsTab    = React.lazy(() => import("@/components/shift-tracker/analytics-tab").then(m => ({ default: m.AnalyticsTab })));
+const ShiftActionsSheet = React.lazy(() => import("@/components/shift-tracker/shift-actions-sheet").then(m => ({ default: m.ShiftActionsSheet })));
+const EditShiftDialog = React.lazy(() => import("@/components/shift-tracker/edit-shift-dialog").then(m => ({ default: m.EditShiftDialog })));
 
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
@@ -38,7 +40,6 @@ import { useTabSwipe } from "@/hooks/use-tab-swipe";
 import {
   isStationShift,
 } from "@/types/database.types";
-import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
 import type {
   Shift,
   ShiftStatus,
@@ -491,6 +492,11 @@ export default function ShiftTrackerPage() {
       });
   }, [hallShifts]);
 
+  const savedStationNames = useMemo(
+    () => [...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))],
+    [stationShifts]
+  );
+
   const recentShifts = useMemo(
     () =>
       [...hallShifts]
@@ -668,6 +674,7 @@ export default function ShiftTrackerPage() {
               </motion.div>
             )}
             {activeTab === "shifts" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="shifts"
                 custom={swipeDirection}
@@ -720,7 +727,10 @@ export default function ShiftTrackerPage() {
                 />
               </motion.div>
             )}
+              </React.Suspense>
+            )}
             {activeTab === "calendar" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="calendar"
                 custom={swipeDirection}
@@ -743,7 +753,10 @@ export default function ShiftTrackerPage() {
                 />
               </motion.div>
             )}
+              </React.Suspense>
+            )}
             {activeTab === "reminders" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="reminders"
                 custom={swipeDirection}
@@ -757,12 +770,15 @@ export default function ShiftTrackerPage() {
                 exit="exit"
                 transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                 className="tab-content">
-                <RemindersTab
-                  savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
+                <RemindersTabLazy
+                  savedStationNames={savedStationNames}
                 />
               </motion.div>
             )}
+              </React.Suspense>
+            )}
             {activeTab === "profile" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="profile"
                 custom={swipeDirection}
@@ -786,7 +802,10 @@ export default function ShiftTrackerPage() {
                 />
               </motion.div>
             )}
+              </React.Suspense>
+            )}
             {activeTab === "settings" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="settings"
                 custom={swipeDirection}
@@ -802,6 +821,8 @@ export default function ShiftTrackerPage() {
               >
                 <SettingsTab />
               </motion.div>
+            )}
+              </React.Suspense>
             )}
           </AnimatePresence>
         </main>
