@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -221,8 +221,7 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
               );
             })}
           </div>
-        </motion.div>
-      </AnimatePresence>
+      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-muted-foreground px-1">

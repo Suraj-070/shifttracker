@@ -638,7 +638,7 @@ export default function ShiftTrackerPage() {
         )}
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
-          <AnimatePresence mode="wait" initial={false} custom={swipeDirection}>
+          <AnimatePresence mode="popLayout" initial={false} custom={swipeDirection}>
             {activeTab === "dashboard" && (
               <motion.div
                 key="dashboard"
@@ -651,7 +651,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                 className="tab-content">
                 <DashboardTab
                   summary={summary}
@@ -679,7 +679,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <ShiftsTab
                   shifts={shifts}
@@ -711,7 +711,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <AnalyticsTab
                   summary={summary}
@@ -732,7 +732,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <CalendarTab
                   shifts={shifts}
@@ -755,7 +755,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                 className="tab-content">
                 <RemindersTab
                   savedStationNames={[...new Set(stationShifts.map(s => s.coveringFor).filter((n): n is string => Boolean(n)))]}
@@ -774,7 +774,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <ProfileTab
                   profile={profile}
@@ -798,7 +798,7 @@ export default function ShiftTrackerPage() {
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{ type: "spring", stiffness: 500, damping: 38, mass: 0.6 }}
+                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <SettingsTab />
               </motion.div>

@@ -192,7 +192,7 @@ function SwipeWrapper({
 
 // ── Main card ─────────────────────────────────────────────────────────────────
 
-export function ShiftCard({
+function ShiftCardInner({
   shift,
   onToggleStatus,
   onEdit,
@@ -331,3 +331,5 @@ export function ShiftCard({
 
   return card;
 }
+
+export const ShiftCard = React.memo(ShiftCardInner);
