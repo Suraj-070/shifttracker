@@ -60,16 +60,6 @@ function to12(hhmm: string) {
   return `${h%12||12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`;
 }
 
-// ── Tiny timing badge ─────────────────────────────────────────────────────────
-function TimeBadge({ label, time }: { label: string; time: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] text-muted-foreground w-14 shrink-0">{label}</span>
-      <span className="text-[11px] font-bold bg-muted px-2 py-0.5 rounded-lg">{to12(time)}</span>
-    </div>
-  );
-}
-
 // ── Station card ──────────────────────────────────────────────────────────────
 function StationCard({ r, idx, savedNames, onChange, onDelete }: {
   r: StationReminder; idx: number; savedNames: string[];
@@ -161,15 +151,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
                   </div>
                 </div>
 
-                {/* Compact timing summary — replaces the 3 dark preview cards */}
-                {r.station && (
-                  <div className="bg-muted/50 rounded-xl p-3 space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-2">Notification times</p>
-                    <TimeBadge label="🚉 Clock in" time={subM(r.clockin, r.offset)} />
-                    <TimeBadge label="🚉 Clock out" time={subM(r.clockout, r.offset)} />
-                    <TimeBadge label="✅ Did u?" time={addM(r.clockout, r.clockout_after_offset)} />
-                  </div>
-                )}
+
 
                 <button onClick={onDelete}
                   className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-xs font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5">
@@ -340,18 +322,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
                       onChange={e => setSettings(s => ({ ...s, hall_reminder_time: e.target.value }))}
                       className="pl-9 rounded-xl h-9 text-sm" />
                   </div>
-                  {/* Compact preview */}
-                  {settings.hall_reminder_days.length > 0 && (
-                    <div className="bg-muted/50 rounded-xl p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground mb-1">Preview</p>
-                      <p className="text-xs text-foreground">
-                        🎬 "Did you add your <strong>{settings.hall_reminder_venue || "Eastgardens"}</strong> shifts today?"
-                      </p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        Fires {settings.hall_reminder_days.map(d => DAYS[d]).join(", ")} at {to12(settings.hall_reminder_time)}
-                      </p>
-                    </div>
-                  )}
+
                 </div>
               </motion.div>
             )}
