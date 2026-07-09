@@ -408,6 +408,16 @@ export function DashboardTab({
                       {currentFortnight.shifts.length === 0 && (
                         <p className="text-xs text-muted-foreground text-center py-2">No station shifts recorded this fortnight yet.</p>
                       )}
+
+                      {/* ── Bulk mark paid ── */}
+                      {currentFortnight.shifts.some(s => s.status === "Unpaid") && (
+                        <button
+                          onClick={() => onBulkMarkPaid(currentFortnight.shifts.filter(s => s.status === "Unpaid"))}
+                          className="w-full py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold active:scale-95 transition-all shadow-sm shadow-emerald-500/20 flex items-center justify-center gap-2"
+                        >
+                          ✓ Mark all {currentFortnight.shifts.filter(s => s.status === "Unpaid").length} shifts as paid
+                        </button>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -430,7 +440,17 @@ export function DashboardTab({
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium">{formatDateShort(fn.start)} – {formatDateShort(fn.end)}</span>
-                                  {allPaid && <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-50 text-emerald-700 border-emerald-200">Paid ✓</Badge>}
+                                  {allPaid
+                                    ? <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-50 text-emerald-700 border-emerald-200">Paid ✓</Badge>
+                                    : fn.shifts.some(s => s.status === "Unpaid") && (
+                                      <button
+                                        onClick={e => { e.stopPropagation(); onBulkMarkPaid(fn.shifts.filter(s => s.status === "Unpaid")); }}
+                                        className="px-2.5 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold active:scale-95 transition-all"
+                                      >
+                                        ✓ Mark paid
+                                      </button>
+                                    )
+                                  }
                                 </div>
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                   {hasShifts
