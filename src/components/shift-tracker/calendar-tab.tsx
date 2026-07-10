@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-
-import { Plus, ChevronLeft, ChevronRight, Briefcase } from "lucide-react";
+import { ChevronLeft, ChevronRight, Briefcase, MapPin, Plus } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -30,11 +29,9 @@ function isSameDay(a: Date, b: Date) {
 export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth()); // 0-indexed
+  const [month, setMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [direction, setDirection] = useState<"left" | "right">("left");
 
-  // Build shift map: "YYYY-MM-DD" → Shift[]
   const shiftMap = useMemo(() => {
     const map = new Map<string, Shift[]>();
     for (const shift of shifts) {
@@ -46,31 +43,26 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
     return map;
   }, [shifts]);
 
-  // Days in this month
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
 
-  // Prev/next month
   const prevMonth = () => {
-    setDirection("right");
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
     else setMonth(m => m - 1);
     setSelectedDay(null);
   };
+
   const nextMonth = () => {
-    setDirection("left");
     if (month === 11) { setMonth(0); setYear(y => y + 1); }
     else setMonth(m => m + 1);
     setSelectedDay(null);
   };
 
-  // Shifts for selected day
   const selectedKey = selectedDay
     ? `${selectedDay.getFullYear()}-${String(selectedDay.getMonth()+1).padStart(2,"0")}-${String(selectedDay.getDate()).padStart(2,"0")}`
     : null;
   const selectedShifts = selectedKey ? (shiftMap.get(selectedKey) ?? []) : [];
 
-  // Stats for this month
   const monthStats = useMemo(() => {
     const prefix = `${year}-${String(month+1).padStart(2,"0")}`;
     let hall = 0, station = 0, total = 0;
@@ -78,8 +70,7 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
       if (!key.startsWith(prefix)) continue;
       for (const s of dayShifts) {
         total += parseFloat(s.amountEarned);
-        if (isStationShift(s)) station++;
-        else hall++;
+        if (isStationShift(s)) station++; else hall++;
       }
     }
     return { hall, station, total, days: hall + station };
@@ -89,25 +80,13 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={prevMonth}
-          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-        >
+        <button onClick={prevMonth}
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <motion.h2
-          key={`${year}-${month}`}
-          initial={{ opacity: 0, y: direction === "left" ? -8 : 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18 }}
-          className="text-lg font-semibold tracking-tight"
-        >
-          {MONTHS[month]} {year}
-        </motion.h2>
-        <button
-          onClick={nextMonth}
-          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
-        >
+        <h2 className="text-lg font-semibold tracking-tight">{MONTHS[month]} {year}</h2>
+        <button onClick={nextMonth}
+          className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -131,109 +110,73 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
               <span className="text-muted-foreground/40 mx-1">·</span>
               <span className="text-blue-500">{monthStats.station}</span>
             </p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide"> · </p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Hall · Stn</p>
           </div>
         </div>
       )}
 
       {/* Calendar grid */}
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={`${year}-${month}`}
-          initial={{ opacity: 0, x: direction === "left" ? 30 : -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: direction === "left" ? -30 : 30 }}
-          transition={{ type: "spring", stiffness: 380, damping: 34 }}
-        >
-          {/* Day headers */}
-          <div className="grid grid-cols-7 mb-1">
-            {DAYS.map((d) => (
-              <div key={d} className="text-center text-[11px] font-medium text-muted-foreground py-1">
-                {d}
-              </div>
-            ))}
-          </div>
+      <div>
+        {/* Day headers */}
+        <div className="grid grid-cols-7 mb-1">
+          {DAYS.map(d => (
+            <div key={d} className="text-center text-[11px] font-medium text-muted-foreground py-1">{d}</div>
+          ))}
+        </div>
 
-          {/* Day cells */}
-          <div className="grid grid-cols-7 gap-y-1">
-            {/* Empty cells for first day offset */}
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
+        {/* Day cells */}
+        <div className="grid grid-cols-7 gap-y-1">
+          {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e-${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day = i + 1;
+            const date = new Date(year, month, day);
+            const key = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+            const dayShifts = shiftMap.get(key) ?? [];
+            const hasHall = dayShifts.some(s => !isStationShift(s));
+            const hasStation = dayShifts.some(s => isStationShift(s));
+            const hasAny = dayShifts.length > 0;
+            const isToday = isSameDay(date, today);
+            const isSelected = selectedDay ? isSameDay(date, selectedDay) : false;
 
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1;
-              const date = new Date(year, month, day);
-              const key = `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
-              const dayShifts = shiftMap.get(key) ?? [];
-              const hasHall = dayShifts.some(s => !isStationShift(s));
-              const hasStation = dayShifts.some(s => isStationShift(s));
-              const hasAny = dayShifts.length > 0;
-              const isToday = isSameDay(date, today);
-              const isSelected = selectedDay ? isSameDay(date, selectedDay) : false;
-
-              return (
-                <button
-                  key={day}
-                  onClick={() => setSelectedDay(isSelected ? null : date)}
-                  className={`relative flex flex-col items-center justify-start py-2 rounded-xl transition-colors min-h-[60px] ${
-                    isSelected
-                      ? "bg-primary text-primary-foreground"
-                      : isToday
-                      ? "bg-primary/10 text-primary"
-                      : hasAny
-                      ? "bg-muted/60 hover:bg-muted"
-                      : "hover:bg-muted/40"
-                  }`}
-                >
-                  {/* Date number */}
-                  <span className={`text-sm font-semibold leading-none ${
-                    hasAny && !isSelected && !isToday
-                      ? "text-foreground"
-                      : ""
-                  }`}>
-                    {day}
-                  </span>
-
-                  {/* Shift icons */}
-                  {hasAny && (
-                    <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
-                      {hasHall && (
-                        <span className="text-[10px] leading-none"></span>
-                      )}
-                      {hasStation && (
-                        <span className="text-[10px] leading-none"></span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Dot indicator for paid/unpaid */}
-                  {hasAny && (
-                    <div className="absolute bottom-1 flex gap-0.5">
-                      {dayShifts.map((s, idx) => (
-                        <span
-                          key={idx}
-                          className={`w-1 h-1 rounded-full ${
-                            s.status === "Paid"
-                              ? "bg-emerald-500"
-                              : "bg-rose-400"
-                          } ${isSelected ? "opacity-70" : ""}`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+            return (
+              <button key={day}
+                onClick={() => setSelectedDay(isSelected ? null : date)}
+                className={`relative flex flex-col items-center justify-start py-2 rounded-xl transition-colors min-h-[60px] ${
+                  isSelected ? "bg-primary text-primary-foreground"
+                  : isToday ? "bg-primary/10 text-primary"
+                  : hasAny ? "bg-muted/60 hover:bg-muted"
+                  : "hover:bg-muted/40"
+                }`}
+              >
+                <span className="text-sm font-semibold leading-none">{day}</span>
+                {hasAny && (
+                  <div className="flex gap-0.5 mt-1 justify-center">
+                    {hasHall && <Briefcase className="w-2.5 h-2.5 text-emerald-500" />}
+                    {hasStation && <MapPin className="w-2.5 h-2.5 text-blue-500" />}
+                  </div>
+                )}
+                {hasAny && (
+                  <div className="absolute bottom-1 flex gap-0.5">
+                    {dayShifts.slice(0,3).map((s, idx) => (
+                      <span key={idx} className={`w-1.5 h-1.5 rounded-full ${
+                        s.status === "Paid" ? "bg-emerald-500" : "bg-rose-400"
+                      } ${isSelected ? "opacity-70" : ""}`} />
+                    ))}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-muted-foreground px-1">
         <div className="flex items-center gap-1.5">
-          <span></span> Hall shift
+          <Briefcase className="w-3 h-3 text-emerald-500" /> Hall
         </div>
         <div className="flex items-center gap-1.5">
-          <span></span> Station shift
+          <MapPin className="w-3 h-3 text-blue-500" /> Station
         </div>
         <div className="flex items-center gap-3 ml-auto">
           <div className="flex items-center gap-1">
@@ -246,71 +189,59 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
       </div>
 
       {/* Selected day detail */}
-      <AnimatePresence>
-        {selectedDay && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: 10, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <p className="text-sm font-semibold">
-                  {selectedDay.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })}
-                </p>
-                {onAddShift && (
-                  <button
-                    onClick={() => {
-                      const key = `${selectedDay.getFullYear()}-${String(selectedDay.getMonth()+1).padStart(2,"0")}-${String(selectedDay.getDate()).padStart(2,"0")}`;
-                      onAddShift(key);
-                    }}
-                    className="w-7 h-7 rounded-xl bg-primary flex items-center justify-center shrink-0"
-                  >
-                    <span className="text-primary-foreground text-lg leading-none">+</span>
-                  </button>
-                )}
-                <p className="hidden">
-                </p>
-                {selectedShifts.map((shift) => {
-                  const station = isStationShift(shift);
-                  const isPaid = shift.status === "Paid";
-                  return (
-                    <div
-                      key={shift.id}
-                      onClick={() => onShiftClick(shift)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 cursor-pointer active:bg-muted transition-colors"
-                    >
-                      <span className="text-lg">{station ? "" : ""}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {station ? shift.coveringFor : `${shift.coveringFor} · ${shift.locationName}`}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {station
-                            ? `${shift.hoursWorked}h · ${formatCurrency(parseFloat(shift.amountEarned))} gross`
-                            : formatCurrency(parseFloat(shift.amountEarned))}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] shrink-0 ${
-                          isPaid
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                            : "bg-rose-50 text-rose-700 border-rose-200"
-                        }`}
-                      >
-                        {shift.status}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {selectedDay && (
+        <Card>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">
+                {selectedDay.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long" })}
+              </p>
+              {onAddShift && (
+                <button
+                  onClick={() => {
+                    const k = `${selectedDay.getFullYear()}-${String(selectedDay.getMonth()+1).padStart(2,"0")}-${String(selectedDay.getDate()).padStart(2,"0")}`;
+                    onAddShift(k);
+                  }}
+                  className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center"
+                >
+                  <Plus className="w-4 h-4 text-primary-foreground" />
+                </button>
+              )}
+            </div>
+            {selectedShifts.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">No shifts this day</p>
+            )}
+            {selectedShifts.map(shift => {
+              const station = isStationShift(shift);
+              const isPaid = shift.status === "Paid";
+              return (
+                <div key={shift.id} onClick={() => onShiftClick(shift)}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 cursor-pointer active:bg-muted transition-colors">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${station ? "bg-blue-100 dark:bg-blue-950/40" : "bg-emerald-100 dark:bg-emerald-950/40"}`}>
+                    {station
+                      ? <MapPin className="w-4 h-4 text-blue-600" />
+                      : <Briefcase className="w-4 h-4 text-emerald-600" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {station ? shift.coveringFor : `${shift.coveringFor} · ${shift.locationName}`}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatCurrency(parseFloat(shift.amountEarned))}
+                      {station ? ` · ${shift.hoursWorked}h` : ""}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={`text-[10px] shrink-0 ${
+                    isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"
+                  }`}>
+                    {shift.status}
+                  </Badge>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
