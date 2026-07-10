@@ -114,18 +114,24 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
 
       {/* Month stats strip */}
       {monthStats.days > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-muted/50 px-3 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Shifts</p>
-            <p className="text-base font-bold">{monthStats.days}</p>
+        <div className="flex items-center justify-between bg-muted/40 rounded-2xl px-4 py-3">
+          <div className="text-center">
+            <p className="text-lg font-bold tabular-nums">{monthStats.days}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">shifts</p>
           </div>
-          <div className="rounded-xl bg-muted/50 px-3 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Earned</p>
-            <p className="text-base font-bold">{formatCurrency(monthStats.total)}</p>
+          <div className="w-px h-8 bg-border/60" />
+          <div className="text-center">
+            <p className="text-lg font-bold tabular-nums text-primary">{formatCurrency(monthStats.total)}</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">earned</p>
           </div>
-          <div className="rounded-xl bg-muted/50 px-3 py-2 text-center">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">🎬/🚉</p>
-            <p className="text-base font-bold">{monthStats.hall}/{monthStats.station}</p>
+          <div className="w-px h-8 bg-border/60" />
+          <div className="text-center">
+            <p className="text-lg font-bold tabular-nums">
+              <span className="text-emerald-500">{monthStats.hall}</span>
+              <span className="text-muted-foreground/40 mx-1">·</span>
+              <span className="text-blue-500">{monthStats.station}</span>
+            </p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">🎬 · 🚉</p>
           </div>
         </div>
       )}
@@ -171,7 +177,7 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
                   key={day}
                   whileTap={{ scale: 0.88 }}
                   onClick={() => setSelectedDay(isSelected ? null : date)}
-                  className={`relative flex flex-col items-center justify-start py-1.5 rounded-xl transition-colors min-h-[52px] ${
+                  className={`relative flex flex-col items-center justify-start py-2 rounded-xl transition-colors min-h-[60px] ${
                     isSelected
                       ? "bg-primary text-primary-foreground"
                       : isToday

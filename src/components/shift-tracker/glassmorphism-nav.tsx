@@ -50,17 +50,12 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange }: Glassmorphism
                 className="flex flex-col items-center justify-center flex-1 relative touch-manipulation py-1 gap-0.5"
                 style={{ minWidth: 44, minHeight: 44 }}
               >
-                {/* Active pill background */}
+                {/* Active indicator dot */}
                 {isActive && (
                   <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-x-1 inset-y-1 rounded-2xl bg-primary/[0.08]"
-                    transition={{
-                      type: "spring",
-                      stiffness: 480,
-                      damping: 38,
-                      mass: 0.5,
-                    }}
+                    layoutId="nav-dot"
+                    className="absolute -bottom-0.5 w-4 h-0.5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
 
@@ -74,10 +69,10 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange }: Glassmorphism
                   className="relative z-10"
                 >
                   <Icon
-                    className={`w-[22px] h-[22px] transition-all duration-150 ${
+                    className={`transition-all duration-150 ${
                       isActive
-                        ? "text-primary stroke-[2.2px]"
-                        : "text-muted-foreground stroke-[1.8px]"
+                        ? "w-[24px] h-[24px] text-primary stroke-[2.2px]"
+                        : "w-[22px] h-[22px] text-muted-foreground stroke-[1.8px]"
                     }`}
                   />
 
