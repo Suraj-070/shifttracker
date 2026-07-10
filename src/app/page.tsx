@@ -102,31 +102,21 @@ export default function ShiftTrackerPage() {
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
   const navigateTab = useCallback((key: TabKey) => {
-    if (key === "dashboard") {
-      setSwipeDirection("right");
-      setActiveTab("dashboard");
-      if (window.history.state?.shiftTrackerTab) {
-        window.history.back();
-      }
-    } else {
-      setSwipeDirection("left");
-      window.history.pushState({ shiftTrackerTab: key }, "");
-      setActiveTab(key);
-    }
+    const dir = MOBILE_TABS.indexOf(key) > MOBILE_TABS.indexOf(activeTabRef.current) ? "left" : "right";
+    setSwipeDirection(dir);
+    setActiveTab(key);
+    // Use replaceState — only ONE history entry for the whole app
+    // This means back button always exits the app, not goes between tabs
+    window.history.replaceState({ shiftTrackerTab: key }, "");
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
   }, []);
 
   const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
-    // Lock scroll position so tab switch doesn't jump to top
-    const scrollY = window.scrollY;
     setSwipeDirection(direction);
-    if (key === "dashboard") {
-      setActiveTab("dashboard");
-      if (window.history.state?.shiftTrackerTab) window.history.back();
-    } else {
-      window.history.pushState({ shiftTrackerTab: key }, "");
-      setActiveTab(key);
-    }
-    // Restore scroll after React re-renders
+    setActiveTab(key);
+    window.history.replaceState({ shiftTrackerTab: key }, "");
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "instant" });
     });
@@ -152,18 +142,8 @@ export default function ShiftTrackerPage() {
   });
 
   useEffect(() => {
-    const handlePopState = () => {
-      const state = window.history.state;
-      // If we have a tab in history state, navigate to it
-      if (state?.shiftTrackerTab) {
-        setActiveTab(state.shiftTrackerTab as TabKey);
-      } else {
-        // No tab state = back to dashboard
-        setActiveTab("dashboard");
-      }
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    // Set initial history state so we can detect app state
+    window.history.replaceState({ shiftTrackerTab: "dashboard" }, "");
   }, []);
 
   // Redirect away from analytics on mobile
