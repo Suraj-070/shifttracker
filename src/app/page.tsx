@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -501,11 +500,7 @@ export default function ShiftTrackerPage() {
       <>
         <div className="min-h-screen flex flex-col bg-background">
           <main className="flex-1 flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center max-w-md"
-            >
+            <div className="text-center max-w-md">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
                 <CalendarDays className="w-8 h-8 text-emerald-600" />
               </div>
@@ -524,7 +519,7 @@ export default function ShiftTrackerPage() {
                   <Plus className="w-4 h-4" /> Add Your First Shift
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </main>
           <AddShiftDialog
             open={addDialogOpen}
@@ -604,12 +599,7 @@ export default function ShiftTrackerPage() {
         {/* Main Content */}
         {/* Pull to refresh indicator — fixed overlay so it appears above content */}
         {isMobile && (isPulling || isRefreshing) && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-16 left-0 right-0 flex justify-center z-50 pointer-events-none"
-          >
+          <div className="fixed top-16 left-0 right-0 flex justify-center z-50 pointer-events-none">
             <div className="bg-background border border-border/60 rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
               <div
                 className={`w-4 h-4 rounded-full border-2 border-primary border-t-transparent ${
@@ -624,25 +614,12 @@ export default function ShiftTrackerPage() {
                 {isRefreshing ? "Refreshing..." : "Pull to refresh"}
               </span>
             </div>
-          </motion.div>
+          </div>
         )}
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
-          <AnimatePresence mode="popLayout" initial={false} custom={swipeDirection}>
+          <div className="relative">
             {activeTab === "dashboard" && (
-              <motion.div
-                key="dashboard"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                className="tab-content">
                 <DashboardTab
                   summary={summary}
                   recentShifts={recentShifts}
@@ -655,23 +632,10 @@ export default function ShiftTrackerPage() {
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
                   compact={compactDashboard}
                 />
-              </motion.div>
             )}
             {activeTab === "shifts" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="shifts"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
@@ -688,47 +652,21 @@ export default function ShiftTrackerPage() {
                     setAddDialogOpen(true);
                   }}
                 />
-              </motion.div>
               </React.Suspense>
             )}
             {activeTab === "analytics" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="analytics"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <AnalyticsTab
                   summary={summary}
                   monthlyEarnings={monthlyEarnings}
                   isLoading={isLoading}
                 />
-              </motion.div>
               </React.Suspense>
             )}
             {activeTab === "calendar" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="calendar"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <CalendarTab
                   shifts={shifts}
                   onShiftClick={(shift) => {
@@ -739,45 +677,19 @@ export default function ShiftTrackerPage() {
                     setAddDialogOpen(true);
                   }}
                 />
-              </motion.div>
               </React.Suspense>
             )}
             {activeTab === "reminders" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="reminders"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <RemindersTabLazy
                   savedStationNames={savedStationNames}
                 />
-              </motion.div>
               </React.Suspense>
             )}
             {activeTab === "profile" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="profile"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <ProfileTab
                   profile={profile}
                   isLoading={isLoading}
@@ -786,41 +698,26 @@ export default function ShiftTrackerPage() {
                   totalEarnings={summary.totalEarned}
                   shifts={hallShifts}
                 />
-              </motion.div>
               </React.Suspense>
             )}
             {activeTab === "settings" && (
               <React.Suspense fallback={null}>
-              <motion.div
-                key="settings"
-                custom={swipeDirection}
-                variants={{
-                  enter: (dir: string) => ({ x: dir === "left" ? "100%" : "-100%", opacity: 0 }),
-                  center: { x: 0, opacity: 1 },
-                  exit: (dir: string) => ({ x: dir === "left" ? "-100%" : "100%", opacity: 0 }),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              >
+
                 <SettingsTab />
-              </motion.div>
               </React.Suspense>
             )}
-          </AnimatePresence>
+          </div>
         </main>
 
         {/* Floating Add Button — mobile only */}
         {isMobile && (
-          <motion.button
-            whileTap={{ scale: 0.88 }}
+          <button
             onClick={() => setAddDialogOpen(true)}
-            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center btn-primary-glow fab-enter"
+            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
             style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
           >
             <Plus className="w-7 h-7 stroke-[2.5]" />
-          </motion.button>
+          </button>
         )}
 
         {/* Mobile Bottom Nav */}
@@ -839,24 +736,7 @@ export default function ShiftTrackerPage() {
           />
         )}
 
-        {/* Success burst overlay */}
-        {showSuccessBurst && (
-          <motion.div
-            initial={{ scale: 0, opacity: 1 }}
-            animate={{ scale: 3, opacity: 0 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-            className="fixed top-16 right-4 z-50 pointer-events-none w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center"
-          >
-            <motion.span
-              initial={{ opacity: 1, scale: 1 }}
-              animate={{ opacity: 0, scale: 0.5 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-white text-lg font-bold"
-            >
-              ✓
-            </motion.span>
-          </motion.div>
-        )}
+
 
         {/* Dialogs */}
         <AddShiftDialog
