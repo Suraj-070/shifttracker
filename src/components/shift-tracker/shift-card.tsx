@@ -265,6 +265,21 @@ function ShiftCardInner({
           </div>
 
           <div className="flex flex-col items-end gap-2 shrink-0">
+            {/* Icon actions top right */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={e => { e.stopPropagation(); haptics(6); onEdit(shift); }}
+                className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); haptics(12); onDelete(shift); }}
+                className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center active:scale-90 transition-transform"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+              </button>
+            </div>
             <span className="text-xl font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
             {station && <span className="text-[11px] text-muted-foreground">net {formatCurrency(afterTax)}</span>}
             <button
@@ -297,21 +312,7 @@ function ShiftCardInner({
           </p>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-2 pt-2 border-t border-border/30">
-          <button
-            onClick={e => { e.stopPropagation(); haptics(6); onEdit(shift); }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-muted/60 text-xs font-semibold active:brightness-95 transition-all"
-          >
-            <Pencil className="w-3.5 h-3.5" /> Edit
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); haptics(12); onDelete(shift); }}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-xs font-semibold text-rose-500 active:brightness-95 transition-all"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Delete
-          </button>
-        </div>
+
       </div>
     </div>
   );
