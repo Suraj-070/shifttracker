@@ -35,7 +35,7 @@ const ICONS: Record<ToastType, React.ElementType> = {
   info: Info,
   delete: Trash2,
   edit: Pencil,
-  station: Train,
+  station: MapPin,
 };
 
 const COLORS: Record<ToastType, { bg: string; icon: string; bar: string }> = {
