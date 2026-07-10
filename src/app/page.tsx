@@ -705,8 +705,10 @@ export default function ShiftTrackerPage() {
                   }}
                 />
               </motion.div>
+              </React.Suspense>
             )}
             {activeTab === "analytics" && (
+              <React.Suspense fallback={null}>
               <motion.div
                 key="analytics"
                 custom={swipeDirection}
@@ -726,7 +728,6 @@ export default function ShiftTrackerPage() {
                   isLoading={isLoading}
                 />
               </motion.div>
-            )}
               </React.Suspense>
             )}
             {activeTab === "calendar" && (
@@ -750,9 +751,11 @@ export default function ShiftTrackerPage() {
                     setShiftToEdit(shift);
                     setEditDialogOpen(true);
                   }}
+                  onAddShift={(date) => {
+                    setAddDialogOpen(true);
+                  }}
                 />
               </motion.div>
-            )}
               </React.Suspense>
             )}
             {activeTab === "reminders" && (
@@ -769,12 +772,11 @@ export default function ShiftTrackerPage() {
                 animate="center"
                 exit="exit"
                 transition={{ type: "tween", duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-                className="tab-content">
+              >
                 <RemindersTabLazy
                   savedStationNames={savedStationNames}
                 />
               </motion.div>
-            )}
               </React.Suspense>
             )}
             {activeTab === "profile" && (
@@ -801,7 +803,6 @@ export default function ShiftTrackerPage() {
                   shifts={hallShifts}
                 />
               </motion.div>
-            )}
               </React.Suspense>
             )}
             {activeTab === "settings" && (
@@ -821,7 +822,6 @@ export default function ShiftTrackerPage() {
               >
                 <SettingsTab />
               </motion.div>
-            )}
               </React.Suspense>
             )}
           </AnimatePresence>
