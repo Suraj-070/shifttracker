@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Briefcase,
+  motion, AnimatePresence } from "framer-motion";
 import {
   DollarSign, CheckCircle2, XCircle, TrendingUp,
   Plus, CalendarDays, ChevronRight, User, MapPin,
-  StickyNote, Train, Wallet, Receipt, Clock, ChevronDown,
+  StickyNote, MapPin, Wallet, Receipt, Clock, ChevronDown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -214,7 +215,7 @@ export function DashboardTab({
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Train className="w-3.5 h-3.5" />
+          <MapPin className="w-3.5 h-3.5" />
           Station
           <span className={`text-xs px-1.5 py-0.5 rounded-full ${dashKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
             {stationCount}
@@ -266,7 +267,7 @@ export function DashboardTab({
               </div>
               {recentShifts.length === 0 ? (
                 <div className="py-10 flex flex-col items-center gap-2">
-                  <span className="text-3xl">🎬</span>
+                  <span className="text-3xl"></span>
                   <p className="text-sm text-muted-foreground">No shifts yet</p>
                 </div>
               ) : (
@@ -313,7 +314,7 @@ export function DashboardTab({
             {stationCount === 0 ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Train className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
+                  <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground text-sm">No station shifts yet.</p>
                   <Button className="mt-4 gap-2" onClick={onAddShift}><Plus className="w-4 h-4" /> Add Station Shift</Button>
                 </CardContent>
@@ -330,7 +331,7 @@ export function DashboardTab({
                       <p className="text-[11px] text-blue-400 mt-1">{stationUnpaid} shift{stationUnpaid !== 1 ? "s" : ""} outstanding</p>
                     </div>
                     <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <Train className="w-8 h-8 text-blue-500" />
+                      <MapPin className="w-8 h-8 text-blue-500" />
                     </div>
                   </motion.div>
                 )}
@@ -521,7 +522,7 @@ export function DashboardTab({
                 <Card className="py-0 gap-0 border-blue-100 dark:border-blue-900">
                   <CardHeader className="flex flex-row items-center justify-between px-4 py-3 border-b">
                     <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                      <Train className="w-3.5 h-3.5 text-blue-500" /> Recent Station Shifts
+                      <MapPin className="w-3.5 h-3.5 text-blue-500" /> Recent Station Shifts
                     </CardTitle>
                     <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs text-muted-foreground -mr-2" onClick={onViewAllShifts}>
                       View all <ChevronRight className="w-3 h-3" />
@@ -543,7 +544,7 @@ export function DashboardTab({
                                 <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
                               </div>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <Train className="w-3 h-3 shrink-0 text-blue-400" />
+                                <MapPin className="w-3 h-3 shrink-0 text-blue-400" />
                                 <span className="truncate font-medium text-blue-600 dark:text-blue-300">{shift.coveringFor}</span>
                                 {userNote && <StickyNote className="w-3 h-3 shrink-0 text-amber-500 ml-0.5" />}
                               </div>

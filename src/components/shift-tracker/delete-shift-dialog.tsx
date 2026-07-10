@@ -85,7 +85,7 @@ export function DeleteShiftDialog({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-zinc-100">
-                {station ? "🚉" : "🎬"} Shift deleted
+                {station ? "" : ""} Shift deleted
               </p>
               <p className="text-[11px] text-zinc-400 truncate">{label}</p>
             </div>

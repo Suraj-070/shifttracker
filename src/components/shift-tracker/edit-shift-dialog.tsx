@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { Loader2, Save, User, MapPin, StickyNote, Check, Train } from "lucide-react";
+import { Loader2, Save, User, MapPin, StickyNote, Check, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -255,7 +255,7 @@ function StationEditForm({
     <div className="space-y-5 py-2">
       {/* Station name — pills + input */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><Train className="w-3.5 h-3.5" /> Station Name</Label>
+        <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Station Name</Label>
         {pastStationNames.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2">
             {pastStationNames.map((name) => (
@@ -382,7 +382,7 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {station && <Train className="w-4 h-4 text-blue-500" />}
+            {station && <MapPin className="w-4 h-4 text-blue-500" />}
             Edit {station ? "Station" : "Hall"} Shift
           </DialogTitle>
           <DialogDescription>Update shift details.</DialogDescription>

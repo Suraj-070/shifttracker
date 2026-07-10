@@ -90,7 +90,7 @@ export function ShiftActionsSheet({
             {/* Shift info header */}
             <div className="px-5 pb-3 pt-1 border-b border-border/50">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{station ? "🚉" : "🎬"}</span>
+                <span className="text-2xl">{station ? "" : ""}</span>
                 <div>
                   <p className="text-sm font-semibold">
                     {station ? shift.coveringFor : shift.coveringFor}

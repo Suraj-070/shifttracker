@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Briefcase } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -131,7 +131,7 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
               <span className="text-muted-foreground/40 mx-1">·</span>
               <span className="text-blue-500">{monthStats.station}</span>
             </p>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">🎬 · 🚉</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide"> · </p>
           </div>
         </div>
       )}
@@ -200,10 +200,10 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
                   {hasAny && (
                     <div className="flex gap-0.5 mt-1 flex-wrap justify-center">
                       {hasHall && (
-                        <span className="text-[10px] leading-none">🎬</span>
+                        <span className="text-[10px] leading-none"></span>
                       )}
                       {hasStation && (
-                        <span className="text-[10px] leading-none">🚉</span>
+                        <span className="text-[10px] leading-none"></span>
                       )}
                     </div>
                   )}
@@ -232,10 +232,10 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-muted-foreground px-1">
         <div className="flex items-center gap-1.5">
-          <span>🎬</span> Hall shift
+          <span></span> Hall shift
         </div>
         <div className="flex items-center gap-1.5">
-          <span>🚉</span> Station shift
+          <span></span> Station shift
         </div>
         <div className="flex items-center gap-3 ml-auto">
           <div className="flex items-center gap-1">
@@ -284,7 +284,7 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
                       onClick={() => onShiftClick(shift)}
                       className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 cursor-pointer active:bg-muted transition-colors"
                     >
-                      <span className="text-lg">{station ? "🚉" : "🎬"}</span>
+                      <span className="text-lg">{station ? "" : ""}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {station ? shift.coveringFor : `${shift.coveringFor} · ${shift.locationName}`}

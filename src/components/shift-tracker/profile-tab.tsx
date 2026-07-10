@@ -381,11 +381,11 @@ export function ProfileTab({
                   <p className="text-[10px] text-muted-foreground">Avg / shift</p>
                 </div>
                 <div>
-                  <p className="text-sm font-bold">{records.hallCount} 🎬</p>
+                  <p className="text-sm font-bold">{records.hallCount} </p>
                   <p className="text-[10px] text-muted-foreground">Hall shifts</p>
                 </div>
                 <div>
-                  <p className="text-sm font-bold">{records.stationCount} 🚉</p>
+                  <p className="text-sm font-bold">{records.stationCount} </p>
                   <p className="text-[10px] text-muted-foreground">Station shifts</p>
                 </div>
               </div>

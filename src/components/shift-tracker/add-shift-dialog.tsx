@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Plus, Loader2, User, MapPin, StickyNote, Check, Train } from "lucide-react";
+import { Briefcase,
+  Plus, Loader2, User, MapPin, StickyNote, Check, MapPin } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -335,7 +336,7 @@ function StationForm({
       {/* Station name */}
       <div className="space-y-2">
         <Label className="flex items-center gap-1.5">
-          <Train className="w-3.5 h-3.5" /> Station Name
+          <MapPin className="w-3.5 h-3.5" /> Station Name
         </Label>
         {pastStationNames.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -488,7 +489,7 @@ function StationForm({
         <Button onClick={handleSubmit} disabled={isSubmitting || !canSubmit}>
           {isSubmitting
             ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-            : <Train className="w-4 h-4 mr-1.5" />}
+            : <MapPin className="w-4 h-4 mr-1.5" />}
           Add Station Shift
         </Button>
       </DialogFooter>
@@ -567,7 +568,7 @@ export function AddShiftDialog({
                   </>
                 ) : (
                   <>
-                    <Train className="w-3.5 h-3.5" />
+                    <MapPin className="w-3.5 h-3.5" />
                     Station
                   </>
                 )}

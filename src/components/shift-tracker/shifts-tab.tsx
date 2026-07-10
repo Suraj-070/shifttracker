@@ -4,7 +4,7 @@ import React, { useState, useMemo, useCallback } from "react";
 
 import {
   LayoutGrid, List, Table2, Users, DollarSign,
-  CheckCircle2, Clock, Train, CheckSquare, Square, X,
+  CheckCircle2, Clock, MapPin, CheckSquare, Square, X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -383,7 +383,7 @@ export function ShiftsTab({
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Train className="w-3.5 h-3.5" />
+            <MapPin className="w-3.5 h-3.5" />
             Station
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
               {stationShifts.length}
@@ -412,7 +412,7 @@ export function ShiftsTab({
       {/* Station net strip */}
       {shiftKind === "station" && stationShifts.length > 0 && (
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 text-sm">
-          <Train className="w-4 h-4 text-blue-500 shrink-0" />
+          <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
           <span className="text-blue-700 dark:text-blue-400 font-medium">Net take-home: {formatCurrency(stationNet)}</span>
           <span className="text-muted-foreground text-xs">({stationShifts.length} shift{stationShifts.length !== 1 ? "s" : ""})</span>
         </div>
@@ -540,7 +540,7 @@ export function ShiftsTab({
             {filteredHall.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                  <span className="text-2xl">🎬</span>
+                  <span className="text-2xl"></span>
                 </div>
                 <p className="text-sm font-semibold text-foreground">No shifts found</p>
                 <p className="text-xs text-muted-foreground text-center max-w-[200px]">
@@ -603,7 +603,7 @@ export function ShiftsTab({
             {filteredStation.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                  <span className="text-2xl">🚉</span>
+                  <span className="text-2xl"></span>
                 </div>
                 <p className="text-sm font-semibold text-foreground">No station shifts found</p>
                 <p className="text-xs text-muted-foreground">Try adjusting your filters</p>

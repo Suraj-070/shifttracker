@@ -4,7 +4,7 @@ import React, { Component, ReactNode, useCallback, useEffect, useRef, useState }
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, BellOff, Calendar, Check, ChevronDown, ChevronUp,
-  Clock, AlertCircle, Loader2, MapPin, Plus, Save, Train, Trash2,
+  Clock, AlertCircle, Loader2, MapPin, Plus, Save, MapPin, Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -76,7 +76,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3">
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${r.enabled ? "bg-blue-500" : "bg-muted"}`}>
-            <Train className={`w-4 h-4 ${r.enabled ? "text-white" : "text-muted-foreground"}`} />
+            <MapPin className={`w-4 h-4 ${r.enabled ? "text-white" : "text-muted-foreground"}`} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold truncate">{r.station || `Station ${idx+1}`}</p>
@@ -333,7 +333,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
         <div>
           <div className="flex items-center gap-2 mb-3 px-1">
             <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center">
-              <Train className="w-4 h-4 text-blue-600" />
+              <MapPin className="w-4 h-4 text-blue-600" />
             </div>
             <p className="text-sm font-bold">Station Reminders</p>
             <span className="ml-auto text-[11px] font-semibold bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
@@ -353,7 +353,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
             {settings.station_reminders.length === 0 && (
               <div className="py-8 flex flex-col items-center gap-2 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center">
-                  <Train className="w-6 h-6 text-muted-foreground" />
+                  <MapPin className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-semibold">No station reminders</p>
                 <p className="text-xs text-muted-foreground">Tap below to add clock-in/out alerts</p>

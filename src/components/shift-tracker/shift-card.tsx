@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useState, useCallback } from "react";
-import { Pencil, Trash2, Train, ChevronDown, StickyNote } from "lucide-react";
+import { Briefcase,
+  Pencil, Trash2, MapPin, ChevronDown, StickyNote } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -253,7 +254,7 @@ function ShiftCardInner({
               <span className="text-xs text-muted-foreground font-medium">{shift.shiftDay}</span>
               {station && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-semibold">
-                  <Train className="w-2.5 h-2.5" /> Station
+                  <MapPin className="w-2.5 h-2.5" /> Station
                 </span>
               )}
             </div>
