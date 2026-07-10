@@ -102,11 +102,14 @@ export default function ShiftTrackerPage() {
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
   const navigateTab = useCallback((key: TabKey) => {
-    const dir = MOBILE_TABS.indexOf(key) > MOBILE_TABS.indexOf(activeTabRef.current) ? "left" : "right";
+    // Bail if already on this tab — prevents refresh feel
+    if (activeTabRef.current === key) return;
+    const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    const currentIdx = tabs.indexOf(activeTabRef.current);
+    const nextIdx = tabs.indexOf(key);
+    const dir = nextIdx > currentIdx ? "left" : "right";
     setSwipeDirection(dir);
     setActiveTab(key);
-    // Use replaceState — only ONE history entry for the whole app
-    // This means back button always exits the app, not goes between tabs
     window.history.replaceState({ shiftTrackerTab: key }, "");
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -114,6 +117,7 @@ export default function ShiftTrackerPage() {
   }, []);
 
   const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
+    if (activeTabRef.current === key) return;
     setSwipeDirection(direction);
     setActiveTab(key);
     window.history.replaceState({ shiftTrackerTab: key }, "");
@@ -830,9 +834,7 @@ export default function ShiftTrackerPage() {
             }))}
             activeTab={activeTab}
             onTabChange={(key) => {
-              const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-              const dir = tabs.indexOf(key as TabKey) > tabs.indexOf(activeTab) ? "left" : "right";
-              navigateTabWithDirection(key as TabKey, dir);
+              navigateTab(key as TabKey);
             }}
           />
         )}
