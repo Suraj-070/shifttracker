@@ -173,9 +173,8 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
               const isSelected = selectedDay ? isSameDay(date, selectedDay) : false;
 
               return (
-                <motion.button
+                <button
                   key={day}
-                  whileTap={{ scale: 0.88 }}
                   onClick={() => setSelectedDay(isSelected ? null : date)}
                   className={`relative flex flex-col items-center justify-start py-2 rounded-xl transition-colors min-h-[60px] ${
                     isSelected
@@ -223,11 +222,10 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
                       ))}
                     </div>
                   )}
-                </motion.button>
+                </button>
               );
             })}
           </div>
-      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-4 text-xs text-muted-foreground px-1">

@@ -6,7 +6,7 @@ import { Briefcase,
 import {
   DollarSign, CheckCircle2, XCircle, TrendingUp,
   Plus, CalendarDays, ChevronRight, User, MapPin,
-  StickyNote, MapPin, Wallet, Receipt, Clock, ChevronDown,
+  StickyNote, Wallet, Receipt, Clock, ChevronDown,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

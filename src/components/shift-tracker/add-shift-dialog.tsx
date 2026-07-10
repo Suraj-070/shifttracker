@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { Briefcase,
-  Plus, Loader2, User, MapPin, StickyNote, Check, MapPin } from "lucide-react";
+  Plus, Loader2, User, MapPin, StickyNote, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,

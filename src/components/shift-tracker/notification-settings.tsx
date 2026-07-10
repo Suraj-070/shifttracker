@@ -4,7 +4,7 @@ import React, { Component, ReactNode, useCallback, useEffect, useRef, useState }
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, BellOff, Calendar, Check, ChevronDown, ChevronUp,
-  Clock, AlertCircle, Loader2, MapPin, Plus, Save, MapPin, Trash2,
+  Clock, AlertCircle, Loader2, MapPin, Plus, Save, Trash2,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";

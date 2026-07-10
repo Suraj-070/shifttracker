@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { Loader2, Save, User, MapPin, StickyNote, Check, MapPin } from "lucide-react";
+import { Loader2, Save, User, MapPin, StickyNote, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
