@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DollarSign, CheckCircle2, XCircle, TrendingUp,
   Plus, CalendarDays, ChevronRight, User, MapPin,
@@ -221,15 +222,15 @@ export function DashboardTab({
         </button>
       </div>
 
-      <>
+      <AnimatePresence mode="wait">
 
         {/* ── HALL DASHBOARD ─────────────────────────────────── */}
         {dashKind === "hall" && (
-          <div>
+          <motion.div key="hall" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
 
             {/* ── Unpaid hero — only when unpaid shifts exist ── */}
             {summary.totalUnpaid > 0 && (
-              <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 flex items-center justify-between">
+              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-primary/60 uppercase tracking-widest mb-1">Unpaid</p>
                   <AnimatedCurrency value={summary.totalUnpaid} className="text-3xl font-bold text-primary tabular-nums" duration={500} />
@@ -238,7 +239,7 @@ export function DashboardTab({
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <DollarSign className="w-8 h-8 text-primary" />
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* ── 2 key stats only ── */}
@@ -302,12 +303,12 @@ export function DashboardTab({
                 <EarningsChart shifts={hallShifts} weeks={6} />
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* ── STATION DASHBOARD ──────────────────────────────── */}
         {dashKind === "station" && (
-          <div>
+          <motion.div key="station" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-4">
 
             {stationCount === 0 ? (
               <Card>
@@ -321,7 +322,8 @@ export function DashboardTab({
               <>
                 {/* ── Net take-home hero ── */}
                 {stationUnpaid > 0 && (
-                  <div>
+                  <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
+                    className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-2xl p-4 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1">Unpaid</p>
                       <AnimatedCurrency value={stationUnpaid > 0 ? stationNet * (stationUnpaid / stationCount) : 0} className="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums" duration={500} />
@@ -330,7 +332,7 @@ export function DashboardTab({
                     <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <MapPin className="w-8 h-8 text-blue-500" />
                     </div>
-                  </div>
+                  </motion.div>
                 )}
 
                 {/* ── 2 key stats ── */}
@@ -385,7 +387,7 @@ export function DashboardTab({
                           <span>{formatDateShort(currentFortnight.end)}</span>
                         </div>
                         <div className="h-2 rounded-full bg-muted overflow-hidden">
-                          <div className="h-full rounded-full bg-blue-500" style={{ width: `${cfProgress}%` }} />
+                          <motion.div className="h-full rounded-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${cfProgress}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
                         </div>
                       </div>
 
@@ -471,7 +473,13 @@ export function DashboardTab({
                           {/* Expanded shifts */}
                           <AnimatePresence>
                             {isExpanded && (
-                              <div>
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
                                 <div className="border-t border-blue-100 dark:border-blue-900 divide-y divide-border/50">
                                   {fn.shifts.map((shift) => {
                                     const isPaid = shift.status === "Paid";
@@ -500,9 +508,9 @@ export function DashboardTab({
                                     );
                                   })}
                                 </div>
-                              </div>
+                              </motion.div>
                             )}
-                          </>
+                          </AnimatePresence>
                         </Card>
                       );
                     })}
@@ -558,9 +566,9 @@ export function DashboardTab({
                 </Card>
               </>
             )}
-          </div>
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

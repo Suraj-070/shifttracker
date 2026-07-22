@@ -215,7 +215,7 @@ function HallForm({
             type="number"
             step="0.01"
             min="0"
-            placeholder={DEFAULT_SHIFT_AMOUNT}
+            placeholder="115"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
