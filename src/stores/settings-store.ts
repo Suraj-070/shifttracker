@@ -9,6 +9,15 @@ type DefaultTab = 'dashboard' | 'shifts' | 'calendar'
 type HapticsStrength = 'light' | 'medium' | 'strong'
 type SwipeSensitivity = 'low' | 'medium' | 'high'
 
+// ── Pay rate settings ────────────────────────────────────────────────────────
+export interface PayRateSettings {
+  afternoonRate: number;
+  saturdayRate: number;
+  sundayRate: number;
+  taxRate: number;        // decimal e.g. 0.0598
+  defaultHallAmount: number;
+}
+
 interface SettingsState {
   // View preferences
   viewMode: ViewMode
@@ -33,6 +42,8 @@ interface SettingsState {
   setHapticsStrength: (strength: HapticsStrength) => void
 
   // Mobile specific
+  payRates: PayRateSettings
+  setPayRates: (rates: PayRateSettings) => void
   defaultTab: DefaultTab
   setDefaultTab: (tab: DefaultTab) => void
   swipeSensitivity: SwipeSensitivity
@@ -79,6 +90,14 @@ export const useSettingsStore = create<SettingsState>()(
       hapticsStrength: 'medium',
       setHapticsStrength: (strength) => set({ hapticsStrength: strength }),
 
+      payRates: {
+        afternoonRate: 37.91,
+        saturdayRate: 47.38,
+        sundayRate: 60.94,
+        taxRate: 0.0598,
+        defaultHallAmount: 115,
+      },
+      setPayRates: (rates) => set({ payRates: rates }),
       defaultTab: 'dashboard',
       setDefaultTab: (tab) => set({ defaultTab: tab }),
       swipeSensitivity: 'medium',

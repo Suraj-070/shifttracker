@@ -21,11 +21,11 @@ import { ComboInput } from "./combo-input";
 import {
   DEFAULT_LOCATIONS,
   DEFAULT_COVER_NAMES,
-  DEFAULT_SHIFT_AMOUNT,
   STATION_RATES,
   STATION_TAX_RATE,
   type StationRateKey,
 } from "@/lib/constants";
+import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions } from "@/lib/utils";
 import {
   STATION_LOCATION,
@@ -88,7 +88,8 @@ function HallForm({
   const [coveringFor, setCoveringFor] = useState(defaultPerson ?? "");
   const [formDate, setFormDate] = useState(today);
   const [location, setLocation] = useState(defaultLocation ?? "");
-  const [amount, setAmount] = useState(DEFAULT_SHIFT_AMOUNT);
+  const { payRates } = useSettingsStore();
+  const [amount, setAmount] = useState(String(payRates.defaultHallAmount || 115));
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
 
@@ -269,6 +270,12 @@ function StationForm({
   onSubmit: (data: ShiftCreateInput) => void;
   onCancel: () => void;
 }) {
+  const { payRates } = useSettingsStore();
+  const dynamicRates = {
+    Afternoon: payRates.afternoonRate,
+    Saturday: payRates.saturdayRate,
+    Sunday: payRates.sundayRate,
+  };
   const today = new Date().toISOString().split("T")[0];
   const [stationName, setStationName] = useState("");
   const [rateKey, setRateKey] = useState<StationRateKey>("Afternoon");
@@ -282,9 +289,9 @@ function StationForm({
   const [taxOverride, setTaxOverride] = useState<string | null>(null);
 
   // Derived values — computed during render, no effects needed
-  const autoGross = (Number(hours) || 0) * STATION_RATES[rateKey];
+  const autoGross = (Number(hours) || 0) * dynamicRates[rateKey];
   const displayGross = grossOverride ?? autoGross.toFixed(2);
-  const autoTax = (Number(displayGross) || 0) * STATION_TAX_RATE;
+  const autoTax = (Number(displayGross) || 0) * (payRates.taxRate || STATION_TAX_RATE);
   const displayTax = taxOverride ?? autoTax.toFixed(2);
 
   const grossNum = Number(displayGross) || 0;
@@ -391,7 +398,7 @@ function StationForm({
             >
               <span>{k}</span>
               <span className={`text-[10px] ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>
-                ${STATION_RATES[k].toFixed(2)}/hr
+                ${dynamicRates[k].toFixed(2)}/hr
               </span>
             </button>
           ))}

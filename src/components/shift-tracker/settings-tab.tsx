@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useTheme } from "next-themes";
 import {
-  Moon, Sun, ChevronDown, ChevronRight,
+  Moon, Sun, ChevronDown, ChevronRight, DollarSign,
   RefreshCw, Download, FileText, Sparkles,
   Smartphone, Share, CheckCircle2, Vibrate,
   Layout, Shield, LogOut, Palette,
@@ -139,6 +139,8 @@ export function SettingsTab() {
   const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
+  const [rates, setRates] = React.useState(store.payRates);
+  const [ratesSaved, setRatesSaved] = React.useState(false);
   const { canInstall, installed, isIos, promptInstall } = usePwaInstall();
 
   const handleInstall = async () => {
@@ -332,6 +334,74 @@ export function SettingsTab() {
           </div>
         </div>
       )}
+
+      {/* ── Pay Rates ── */}
+      <Section icon={DollarSign} title="Pay Rates">
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">Update when your award rate changes</p>
+          {[
+            { label: "Afternoon (weekday)", key: "afternoonRate" as const },
+            { label: "Saturday", key: "saturdayRate" as const },
+            { label: "Sunday", key: "sundayRate" as const },
+          ].map(({ label, key }) => (
+            <div key={key} className="flex items-center gap-3">
+              <p className="text-sm flex-1">{label}</p>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-muted-foreground">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={rates[key]}
+                  onChange={e => setRates(r => ({ ...r, [key]: Number(e.target.value) }))}
+                  className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+                <span className="text-xs text-muted-foreground">/hr</span>
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center gap-3">
+            <p className="text-sm flex-1">Tax rate (PAYG)</p>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="50"
+                value={(rates.taxRate * 100).toFixed(2)}
+                onChange={e => setRates(r => ({ ...r, taxRate: Number(e.target.value) / 100 }))}
+                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+              <span className="text-xs text-muted-foreground">%</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="text-sm flex-1">Default hall amount</p>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-muted-foreground">$</span>
+              <input
+                type="number"
+                step="1"
+                min="0"
+                value={rates.defaultHallAmount}
+                onChange={e => setRates(r => ({ ...r, defaultHallAmount: Number(e.target.value) }))}
+                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+              />
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              store.setPayRates(rates);
+              setRatesSaved(true);
+              setTimeout(() => setRatesSaved(false), 2000);
+              showToast({ type: "success", title: "Pay rates saved ✓" });
+            }}
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95 transition-all"
+          >
+            {ratesSaved ? "✓ Saved!" : "Save Pay Rates"}
+          </button>
+        </div>
+      </Section>
 
       {/* ── Data ── */}
       <Section icon={Shield} title="Data & Privacy">
