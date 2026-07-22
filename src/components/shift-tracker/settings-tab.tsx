@@ -139,7 +139,11 @@ export function SettingsTab() {
   const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
-  const [rates, setRates] = React.useState(store.payRates);
+  const defaultRates = {
+    afternoonRate: 37.91, saturdayRate: 47.38, sundayRate: 60.94,
+    taxRate: 0.0598, defaultHallAmount: 115,
+  };
+  const [rates, setRates] = React.useState(store.payRates ?? defaultRates);
   const [ratesSaved, setRatesSaved] = React.useState(false);
   const { canInstall, installed, isIos, promptInstall } = usePwaInstall();
 
