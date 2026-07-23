@@ -13,8 +13,9 @@ export async function POST(request: Request) {
   // Try both column name formats (snake_case from DB)
   const { data: shifts, error } = await supabase
     .from("shifts")
-    .select("id, notes, amount_earned")
-    .eq("location_name", "Station Cleaning");
+    .select("id, notes, amount_earned, status")
+    .eq("location_name", "Station Cleaning")
+    .eq("status", "Unpaid");  // Only recalculate unpaid - paid shifts are locked
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!shifts?.length) return NextResponse.json({ updated: 0, message: "No station shifts found. Check location_name = 'Station Cleaning'" });

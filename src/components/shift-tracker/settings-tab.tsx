@@ -394,11 +394,26 @@ export function SettingsTab() {
             </div>
           </div>
           <button
-            onClick={() => {
+            onClick={async () => {
               store.setPayRates(rates);
               setRatesSaved(true);
+              // Auto-recalculate all existing station shifts with new tax rate
+              try {
+                const res = await fetch("/api/shifts/migrate-tax", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ taxRate: rates.taxRate }),
+                });
+                const data = await res.json();
+                showToast({
+                  type: "success",
+                  title: `Pay rates saved ✓`,
+                  description: data.updated > 0 ? `Recalculated ${data.updated} unpaid shifts` : "No unpaid shifts to update",
+                });
+              } catch {
+                showToast({ type: "success", title: "Pay rates saved ✓" });
+              }
               setTimeout(() => setRatesSaved(false), 2000);
-              showToast({ type: "success", title: "Pay rates saved ✓" });
             }}
             className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold active:scale-95 transition-all"
           >
