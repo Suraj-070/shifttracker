@@ -402,7 +402,12 @@ export function SettingsTab() {
                 const res = await fetch("/api/shifts/migrate-tax", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ taxRate: rates.taxRate }),
+                  body: JSON.stringify({
+                  taxRate: rates.taxRate,
+                  afternoonRate: rates.afternoonRate,
+                  saturdayRate: rates.saturdayRate,
+                  sundayRate: rates.sundayRate,
+                }),
                 });
                 const data = await res.json();
                 showToast({
