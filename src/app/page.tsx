@@ -707,6 +707,7 @@ export default function ShiftTrackerPage() {
                   onBulkMarkPaid={handleBulkMarkPaid}
                   onAddShift={() => setAddDialogOpen(true)}
                   onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
+                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
                   compact={compactDashboard}
                 />
             )}

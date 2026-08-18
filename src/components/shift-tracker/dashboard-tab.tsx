@@ -137,6 +137,7 @@ interface DashboardTabProps {
   onBulkMarkPaid: (shifts: Shift[]) => void;
   onAddShift: () => void;
   onViewAllShifts: () => void;
+  onEditShift: (shift: Shift) => void;
   compact?: boolean;
 }
 
@@ -152,6 +153,7 @@ export function DashboardTab({
   onBulkMarkPaid,
   onAddShift,
   onViewAllShifts,
+  onEditShift,
   compact = false,
 }: DashboardTabProps) {
   const [dashKind, setDashKind] = useState<DashKind>("hall");
@@ -274,7 +276,7 @@ export function DashboardTab({
                   {recentShifts.map((shift) => {
                     const isPaid = shift.status === "Paid";
                     return (
-                      <div key={shift.id} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/30 transition-colors">
+                      <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/40 transition-colors cursor-pointer select-none">
                         <div className={`w-2 h-8 rounded-full shrink-0 ${isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500"}`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">{shift.coveringFor}</p>
@@ -535,7 +537,7 @@ export function DashboardTab({
                         const net = Math.max(0, parseFloat(shift.amountEarned) - tax);
                         const userNote = parseStationUserNote(shift.notes);
                         return (
-                          <div key={shift.id} className="flex items-center gap-3 px-4 py-3 active:bg-muted/50 transition-colors">
+                          <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-3 active:bg-muted/50 transition-colors cursor-pointer select-none">
                             <div className={`w-1 h-10 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
