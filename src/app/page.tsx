@@ -89,43 +89,63 @@ export default function ShiftTrackerPage() {
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
-  // Tab order — defined as const outside to avoid recreation
-  // (defined here so TypeScript can see TabKey; values are stable)
   const MOBILE_TABS = useMemo<TabKey[]>(
     () => ["dashboard", "shifts", "calendar", "reminders", "profile"],
     []
   );
 
-  // Keep activeTab in a ref so swipe callbacks never go stale
+  // Keep activeTab in a ref so swipe callbacks + popstate never go stale
   const activeTabRef = React.useRef(activeTab);
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
+  // Internal setter — does NOT push history (used by popstate handler)
+  const setTabOnly = useCallback((key: TabKey, dir: "left" | "right") => {
+    setSwipeDirection(dir);
+    setActiveTab(key);
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    });
+  }, []);
+
+  // navigateTab — pushes a real history entry so back button works
   const navigateTab = useCallback((key: TabKey) => {
-    // Bail if already on this tab — prevents refresh feel
     if (activeTabRef.current === key) return;
     const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
     const currentIdx = tabs.indexOf(activeTabRef.current);
-    const nextIdx = tabs.indexOf(key);
+    const nextIdx    = tabs.indexOf(key);
     const dir = nextIdx > currentIdx ? "left" : "right";
-    setSwipeDirection(dir);
-    setActiveTab(key);
-    window.history.replaceState({ shiftTrackerTab: key }, "");
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    });
-  }, []);
+    window.history.pushState({ shiftTrackerTab: key }, "");
+    setTabOnly(key, dir);
+  }, [setTabOnly]);
 
   const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
     if (activeTabRef.current === key) return;
-    setSwipeDirection(direction);
-    setActiveTab(key);
-    window.history.replaceState({ shiftTrackerTab: key }, "");
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    });
-  }, []);
+    window.history.pushState({ shiftTrackerTab: key }, "");
+    setTabOnly(key, direction);
+  }, [setTabOnly]);
 
-  // Swipe left → next tab, swipe right → prev tab
+  // Back button — popstate fires when user presses back
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const key = e.state?.shiftTrackerTab as TabKey | undefined;
+      if (!key) return;
+      const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+      const currentIdx = tabs.indexOf(activeTabRef.current);
+      const nextIdx    = tabs.indexOf(key);
+      const dir = nextIdx < currentIdx ? "right" : "left"; // going back = right
+      setTabOnly(key, dir);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [setTabOnly]);
+
+  // Seed initial history entry (no push — just annotate current state)
+  useEffect(() => {
+    window.history.replaceState({ shiftTrackerTab: defaultTab }, "");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Tab swipe — but ONLY when the touch didn't start on a shift card
+  // (shift cards handle their own horizontal swipe for pay/delete)
   useTabSwipe({
     disabled: !isMobile,
     onSwipeLeft: () => {
@@ -143,11 +163,6 @@ export default function ShiftTrackerPage() {
       }
     },
   });
-
-  useEffect(() => {
-    // Set initial history state so we can detect app state
-    window.history.replaceState({ shiftTrackerTab: "dashboard" }, "");
-  }, []);
 
   // Redirect away from analytics on mobile
   useEffect(() => {

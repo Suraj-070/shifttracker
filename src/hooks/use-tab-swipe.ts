@@ -3,13 +3,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Detects horizontal swipe gestures on the given element ref
- * and calls onSwipeLeft / onSwipeRight.
+ * Detects horizontal swipe gestures for tab switching.
  *
- * Tuned to feel like native iOS/Android tab switching:
- * - 40px minimum horizontal movement to register
- * - Must be more horizontal than vertical (ratio check)
- * - Velocity check so slow drags don't accidentally switch
+ * Ignores swipes that start on a shift card — those cards
+ * handle their own horizontal swipe for pay/delete.
  */
 export function useTabSwipe({
   onSwipeLeft,
@@ -24,6 +21,7 @@ export function useTabSwipe({
   const startY = useRef(0);
   const startTime = useRef(0);
   const tracking = useRef(false);
+  const blockedRef = useRef(false);
 
   const onSwipeLeftRef = useRef(onSwipeLeft);
   const onSwipeRightRef = useRef(onSwipeRight);
@@ -33,11 +31,27 @@ export function useTabSwipe({
   useEffect(() => {
     if (disabled) return;
 
-    const MIN_DISTANCE = 50;   // px — minimum horizontal travel
-    const MAX_VERTICAL = 60;   // px — if vertical > this, it's a scroll not a swipe
-    const MIN_VELOCITY = 0.3;  // px/ms — must move fast enough
+    const MIN_DISTANCE = 50;   // px
+    const MAX_VERTICAL = 60;   // px
+    const MIN_VELOCITY = 0.3;  // px/ms
+
+    // Check if touch started inside a shift card swipe zone
+    const isOnShiftCard = (target: EventTarget | null): boolean => {
+      if (!target || !(target instanceof Element)) return false;
+      return !!(
+        target.closest("[data-shift-card]") ||
+        target.closest(".touch-pan-y")      // SwipeWrapper cards use this class
+      );
+    };
 
     const onTouchStart = (e: TouchEvent) => {
+      // If finger lands on a swipeable card, block tab swipe entirely
+      if (isOnShiftCard(e.target)) {
+        blockedRef.current = true;
+        tracking.current = false;
+        return;
+      }
+      blockedRef.current = false;
       startX.current = e.touches[0].clientX;
       startY.current = e.touches[0].clientY;
       startTime.current = Date.now();
@@ -45,7 +59,7 @@ export function useTabSwipe({
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (!tracking.current) return;
+      if (!tracking.current || blockedRef.current) return;
       tracking.current = false;
 
       const dx = e.changedTouches[0].clientX - startX.current;
@@ -53,17 +67,14 @@ export function useTabSwipe({
       const dt = Date.now() - startTime.current;
       const velocity = Math.abs(dx) / dt;
 
-      const isHorizontal = Math.abs(dx) > Math.abs(dy);
+      const isHorizontal   = Math.abs(dx) > Math.abs(dy);
       const enoughDistance = Math.abs(dx) >= MIN_DISTANCE;
       const notTooVertical = Math.abs(dy) < MAX_VERTICAL;
-      const fastEnough = velocity >= MIN_VELOCITY;
+      const fastEnough     = velocity >= MIN_VELOCITY;
 
       if (isHorizontal && enoughDistance && notTooVertical && fastEnough) {
-        if (dx < 0) {
-          onSwipeLeftRef.current();   // swipe left → next tab
-        } else {
-          onSwipeRightRef.current();  // swipe right → prev tab
-        }
+        if (dx < 0) onSwipeLeftRef.current();
+        else        onSwipeRightRef.current();
       }
     };
 
@@ -71,19 +82,16 @@ export function useTabSwipe({
       if (!tracking.current) return;
       const dy = Math.abs(e.touches[0].clientY - startY.current);
       const dx = Math.abs(e.touches[0].clientX - startX.current);
-      // If clearly scrolling vertically, cancel swipe tracking
-      if (dy > dx * 1.5 && dy > 20) {
-        tracking.current = false;
-      }
+      if (dy > dx * 1.5 && dy > 20) tracking.current = false;
     };
 
     document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: true });
-    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    document.addEventListener("touchmove",  onTouchMove,  { passive: true });
+    document.addEventListener("touchend",   onTouchEnd,   { passive: true });
     return () => {
       document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchmove",  onTouchMove);
+      document.removeEventListener("touchend",   onTouchEnd);
     };
   }, [disabled]);
 }
