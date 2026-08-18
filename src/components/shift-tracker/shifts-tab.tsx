@@ -109,6 +109,7 @@ function BulkBar({
 }
 
 // ── Selectable shift card wrapper ──────────────────────────────────────────
+// No layout shift when selecting — overlay checkmark instead of pushing content
 
 function SelectableCard({
   shift, selected, selecting, onToggle, onToggleStatus, onDelete, onEdit, onLongPress,
@@ -119,17 +120,18 @@ function SelectableCard({
   onLongPress?: (s: Shift) => void;
 }) {
   return (
-    <div className="relative">
+    <div className={`relative transition-all ${selected ? "ring-2 ring-emerald-400 rounded-2xl" : ""}`}
+      onClick={selecting ? onToggle : undefined}
+      style={{ cursor: selecting ? "pointer" : undefined }}>
+      {/* Checkmark overlay — no layout shift */}
       {selecting && (
-        <button onClick={onToggle} className="absolute top-2 left-1 z-10 w-8 h-8 flex items-center justify-center rounded-xl active:bg-muted">
-          {selected ? <CheckSquare className="w-5 h-5 text-emerald-600" /> : <Square className="w-5 h-5 text-muted-foreground" />}
-        </button>
+        <div className={`absolute top-2.5 right-2.5 z-20 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+          selected ? "bg-emerald-500 shadow-sm" : "bg-black/10 dark:bg-white/10"
+        }`}>
+          {selected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+        </div>
       )}
-      <div
-        style={{ contentVisibility: "auto", containIntrinsicSize: "0 120px", cursor: selecting ? "pointer" : undefined }}
-        className={`transition-all ${selecting ? "pl-6" : ""} ${selected ? "ring-2 ring-emerald-400 rounded-xl" : ""}`}
-        onClick={selecting ? onToggle : undefined}
-      >
+      <div style={{ opacity: selecting && !selected ? 0.7 : 1, transition: "opacity 0.15s" }}>
         <ShiftCard
           shift={shift}
           index={0}
@@ -139,6 +141,25 @@ function SelectableCard({
           onLongPress={selecting ? undefined : onLongPress}
           disableSwipe={selecting}
         />
+      </div>
+    </div>
+  );
+}
+
+
+// ── Month header ──────────────────────────────────────────────────────────────
+function MonthHeader({ group }: { group: MonthGroup }) {
+  return (
+    <div className="flex items-center justify-between px-1 mb-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{group.monthLabel}</span>
+        <span className="text-[10px] text-muted-foreground/60">{group.shifts.length}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>
+        {group.unpaidCount > 0 && (
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">{group.unpaidCount} unpaid</span>
+        )}
       </div>
     </div>
   );
@@ -241,60 +262,52 @@ function ShiftsTab({
   return (
     <div className="space-y-3">
 
-      {/* ── Top bar: Hall/Station + View toggle ── */}
-      <div className="flex items-center justify-between gap-2">
-        {/* Hall / Station pill */}
-        <div className="flex gap-1 p-1 bg-muted rounded-xl">
+      {/* ── Top bar ── */}
+      <div className="flex items-center gap-2">
+        {/* Hall / Station pill — flex-1 */}
+        <div className="flex gap-0.5 p-1 bg-muted rounded-xl flex-1">
           <button onClick={() => setShiftKind("hall")}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${shiftKind === "hall" ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200" : "text-muted-foreground"}`}>
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${shiftKind === "hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "text-muted-foreground"}`}>
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
             Hall
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>{hallShifts.length}</span>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${shiftKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/15 text-muted-foreground"}`}>{hallShifts.length}</span>
           </button>
           <button onClick={() => setShiftKind("station")}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${shiftKind === "station" ? "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200" : "text-muted-foreground"}`}>
+            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${shiftKind === "station" ? "bg-white dark:bg-card text-blue-700 shadow-sm" : "text-muted-foreground"}`}>
             <MapPin className="w-3.5 h-3.5 shrink-0" />
             Station
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>{stationShifts.length}</span>
+            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/15 text-muted-foreground"}`}>{stationShifts.length}</span>
           </button>
         </div>
 
-        {/* Right side: view toggle (mobile: card/list only) + select */}
-        <div className="flex items-center gap-2">
-          {/* View mode — hide table on mobile */}
-          <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
-            <button onClick={() => setViewMode("card")}
-              className={`p-2 rounded-md transition-all ${effectiveViewMode === "card" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
-              title="Cards">
-              <LayoutGrid className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => setViewMode("list")}
-              className={`p-2 rounded-md transition-all ${effectiveViewMode === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
-              title="List">
-              <List className="w-3.5 h-3.5" />
-            </button>
-            {!isMobile && (
-              <button onClick={() => setViewMode("table")}
-                className={`p-2 rounded-md transition-all ${viewMode === "table" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
-                title="Table">
-                <CheckSquare className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-
-          {/* Select toggle */}
-          {activeFiltered.length > 0 && (
-            <button
-              onClick={() => {
-                if (shiftKind === "hall") { setHallSelecting((v) => !v); setHallSelected(new Set()); }
-                else { setStationSelecting((v) => !v); setStationSelected(new Set()); }
-              }}
-              className={`h-9 px-3 rounded-xl text-xs font-semibold border transition-all active:scale-95 ${isSelecting ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground"}`}
-            >
-              {isSelecting ? "Done" : "Select"}
-            </button>
-          )}
+        {/* View mode */}
+        <div className="flex items-center gap-0.5 bg-muted rounded-xl p-1 shrink-0">
+          <button onClick={() => setViewMode("card")}
+            className={`p-2 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => setViewMode("list")}
+            className={`p-2 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+            <List className="w-3.5 h-3.5" />
+          </button>
         </div>
+
+        {/* Select toggle */}
+        {activeFiltered.length > 0 && (
+          <button
+            onClick={() => {
+              if (shiftKind === "hall") { setHallSelecting((v) => !v); setHallSelected(new Set()); }
+              else { setStationSelecting((v) => !v); setStationSelected(new Set()); }
+            }}
+            className={`h-9 px-3.5 rounded-xl text-xs font-bold border transition-all active:scale-90 shrink-0 ${
+              isSelecting
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background border-border/70 text-muted-foreground"
+            }`}
+          >
+            {isSelecting ? "Done" : "Select"}
+          </button>
+        )}
       </div>
 
       {/* ── Station net strip ── */}
@@ -385,12 +398,7 @@ function ShiftsTab({
         isLoading={bulkLoading} accent="blue"
       />
 
-      {/* ── Long-press hint (mobile, first visit feel) ── */}
-      {isMobile && !isSelecting && activeFiltered.length > 0 && (
-        <p className="text-[11px] text-muted-foreground/60 text-center">
-          Hold a card for quick actions · Swipe right to pay · Swipe left to delete
-        </p>
-      )}
+
 
       {/* ── Content ── */}
       {shiftKind === "hall" ? (
@@ -407,22 +415,8 @@ function ShiftsTab({
             <div className="space-y-6">
               {hallMonthGroups.map((group) => (
                 <div key={group.monthKey}>
-                  {/* Month header — compact on mobile */}
-                  <div className="flex items-center justify-between mb-3 px-0.5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold tracking-tight text-foreground">{group.monthLabel}</h3>
-                      <span className="text-xs text-muted-foreground">{group.shifts.length} shifts</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>
-                      {group.unpaidCount > 0 && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400">
-                          {group.unpaidCount} unpaid
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
+                  <MonthHeader group={group} />
+                  <div className="space-y-1.5">
                     {group.shifts.map((shift) => (
                       <SelectableCard
                         key={shift.id} shift={shift}
@@ -454,21 +448,8 @@ function ShiftsTab({
             <div className="space-y-6">
               {stationMonthGroups.map((group) => (
                 <div key={group.monthKey}>
-                  <div className="flex items-center justify-between mb-3 px-0.5">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold tracking-tight">{group.monthLabel}</h3>
-                      <span className="text-xs text-muted-foreground">{group.shifts.length} shifts</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold tabular-nums text-blue-600 dark:text-blue-400">{formatCurrency(group.totalEarned)}</span>
-                      {group.unpaidCount > 0 && (
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400">
-                          {group.unpaidCount} unpaid
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
+                  <MonthHeader group={group} />
+                  <div className="space-y-1.5">
                     {group.shifts.map((shift) => (
                       <SelectableCard
                         key={shift.id} shift={shift}
@@ -487,6 +468,7 @@ function ShiftsTab({
           )}
         </div>
       )}
+    <div className="h-20" />{/* FAB clearance */}
     </div>
   );
 }
