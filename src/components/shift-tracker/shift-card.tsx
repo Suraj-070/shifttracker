@@ -170,6 +170,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
   const station  = isStationShift(shift);
   const isPaid   = shift.status === "Paid";
   const covered  = Boolean(shift.coveredBy);
+  const isSelf   = !covered && (shift.coveringFor.toLowerCase() === "suraj" || shift.coveringFor.toLowerCase() === "myself");
   const tax      = station ? parseStationTax(shift.notes) : 0;
   const net      = station ? Math.max(0, parseFloat(shift.amountEarned) - tax) : 0;
   const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
@@ -189,15 +190,16 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
       {...deskEvents}
       onClick={() => { if (!isMobile) onEdit(shift); }}
       className={`select-none rounded-2xl border overflow-hidden transition-all duration-75 ${pressed ? "scale-[0.983] brightness-95" : ""} ${
-        covered ? "bg-purple-50/60 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900"
-        : station
-          ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900"
-          : "bg-white dark:bg-card border-border/50 shadow-sm shadow-black/[0.04]"
+        covered ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900"
+        : isSelf  ? "bg-purple-50/60 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900"
+        : station ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900"
+                  : "bg-white dark:bg-card border-border/50 shadow-sm shadow-black/[0.04]"
       }`}
     >
       {/* Top status stripe */}
       <div className={`h-[2.5px] ${
-        covered   ? "bg-gradient-to-r from-purple-400 to-purple-500"
+        covered   ? "bg-gradient-to-r from-amber-400 to-orange-400"
+        : isSelf  ? "bg-gradient-to-r from-purple-400 to-violet-500"
         : station ? "bg-gradient-to-r from-blue-400 to-blue-500"
         : isPaid  ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
                   : "bg-gradient-to-r from-rose-400 to-rose-500"
@@ -211,11 +213,12 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             <span className="text-[13px] font-bold">{formatShortDate(shift.shiftDate)}</span>
             <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
             {station && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
-            {covered && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">by {shift.coveredBy}</span>}
+            {covered && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400">💸 by {shift.coveredBy}</span>}
+            {isSelf && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">✦ You</span>}
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />}
           </div>
-          <p className={`text-[13px] font-semibold truncate ${covered ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
-            {covered ? "Your shift" : shift.coveringFor}
+          <p className={`text-[13px] font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : isSelf ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
+            {covered ? "Your shift" : isSelf ? "Suraj (You)" : shift.coveringFor}
           </p>
           <p className="text-[11px] text-muted-foreground truncate">
             {station ? `${shift.hoursWorked}h · tax ${formatCurrency(tax)}` : shift.locationName}
