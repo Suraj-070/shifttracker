@@ -41,7 +41,7 @@ function SwipeWrapper({
   const [leftPct,  setLeftPct]          = useState(0);
   const [rightPct, setRightPct]         = useState(0);
   const hapticFiredRef = useRef(false);
-  const timerRef    = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const startX      = useRef(0);
   const startY      = useRef(0);
   const swipeX      = useRef(0);
