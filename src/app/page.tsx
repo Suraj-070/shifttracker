@@ -128,7 +128,7 @@ export default function ShiftTrackerPage() {
   // Refs let the popstate closure always read latest open state
   const [addDialogOpen,    setAddDialogOpenRaw]    = useState(false);
   const [editDialogOpen,   setEditDialogOpenRaw]   = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpenRaw] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [actionsSheetOpen, setActionsSheetOpenRaw] = useState(false);
   const addOpenRef    = React.useRef(false);
   const editOpenRef   = React.useRef(false);
@@ -151,9 +151,6 @@ export default function ShiftTrackerPage() {
     setActionsSheetOpenRaw(v);
     if (v) window.history.pushState({ modal: "actions" }, "");
   }, []);
-
-  // deleteDialog is a toast — auto-dismisses, no history entry needed
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
   const [shiftToEdit, setShiftToEdit] = useState<Shift | null>(null);
