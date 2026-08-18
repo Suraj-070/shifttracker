@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useSettingsStore } from "@/stores/settings-store";
 
@@ -77,12 +76,11 @@ export default function ShiftTrackerPage() {
   const isMobile = useIsMobile();
   const haptics = useHaptics();
   const { status } = useSession();
-  const router = useRouter();
 
-  // redirect if not authenticated
+  // redirect if not authenticated — use window.location to avoid router re-render
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
-  }, [status, router]);
+    if (status === "unauthenticated") window.location.href = "/login";
+  }, [status]);
 
   const defaultTab = useSettingsStore((s) => s.defaultTab);
   const compactDashboard = useSettingsStore((s) => s.compactDashboard);
@@ -606,9 +604,8 @@ export default function ShiftTrackerPage() {
   // Don't block render on session loading — show skeleton immediately
   // Only redirect once we KNOW user is unauthenticated
   if (status === "unauthenticated") return null;
-
-  // While session is loading just show nothing — instant feel
-  if (status === "loading") return null;
+  // Don't return null while loading — that unmounts everything and causes flash
+  // isLoading state handles skeleton display inside tabs
 
   if (!isLoading && shifts.length === 0) {
     return (
