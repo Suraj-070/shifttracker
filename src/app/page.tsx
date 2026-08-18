@@ -24,14 +24,14 @@ import { GlassmorphismNav } from "@/components/shift-tracker/glassmorphism-nav";
 import { AddShiftDialog } from "@/components/shift-tracker/add-shift-dialog";
 import { DeleteShiftDialog } from "@/components/shift-tracker/delete-shift-dialog";
 // Lazy load non-critical tabs — loaded only when first visited
-const ShiftsTab       = React.lazy(() => import("@/components/shift-tracker/shifts-tab").then(m => ({ default: m.ShiftsTab })));
-const CalendarTab     = React.lazy(() => import("@/components/shift-tracker/calendar-tab").then(m => ({ default: m.CalendarTab })));
-const ProfileTab      = React.lazy(() => import("@/components/shift-tracker/profile-tab").then(m => ({ default: m.ProfileTab })));
-const RemindersTabLazy = React.lazy(() => import("@/components/shift-tracker/reminders-tab").then(m => ({ default: m.RemindersTab })));
-const SettingsTab     = React.lazy(() => import("@/components/shift-tracker/settings-tab").then(m => ({ default: m.SettingsTab })));
-const AnalyticsTab    = React.lazy(() => import("@/components/shift-tracker/analytics-tab").then(m => ({ default: m.AnalyticsTab })));
-const ShiftActionsSheet = React.lazy(() => import("@/components/shift-tracker/shift-actions-sheet").then(m => ({ default: m.ShiftActionsSheet })));
-const EditShiftDialog = React.lazy(() => import("@/components/shift-tracker/edit-shift-dialog").then(m => ({ default: m.EditShiftDialog })));
+import { ShiftsTab } from "@/components/shift-tracker/shifts-tab";
+import { CalendarTab } from "@/components/shift-tracker/calendar-tab";
+import { ProfileTab } from "@/components/shift-tracker/profile-tab";
+import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
+import { SettingsTab } from "@/components/shift-tracker/settings-tab";
+import { AnalyticsTab } from "@/components/shift-tracker/analytics-tab";
+import { ShiftActionsSheet } from "@/components/shift-tracker/shift-actions-sheet";
+import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
@@ -711,8 +711,6 @@ export default function ShiftTrackerPage() {
                 compact={compactDashboard}
               />
             </div>
-
-            <React.Suspense fallback={null}>
               <div style={{ display: activeTab === "shifts" ? "block" : "none" }}>
                 <ShiftsTab
                   shifts={shifts}
@@ -738,7 +736,7 @@ export default function ShiftTrackerPage() {
               </div>
 
               <div style={{ display: activeTab === "reminders" ? "block" : "none" }}>
-                <RemindersTabLazy savedStationNames={savedStationNames} />
+                <RemindersTab savedStationNames={savedStationNames} />
               </div>
 
               <div style={{ display: activeTab === "profile" ? "block" : "none" }}>
@@ -763,7 +761,6 @@ export default function ShiftTrackerPage() {
               <div style={{ display: activeTab === "settings" ? "block" : "none" }}>
                 <SettingsTab />
               </div>
-            </React.Suspense>
 
           </div>
         </main>
