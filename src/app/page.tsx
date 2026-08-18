@@ -115,13 +115,15 @@ export default function ShiftTrackerPage() {
     const currentIdx = tabs.indexOf(activeTabRef.current);
     const nextIdx    = tabs.indexOf(key);
     const dir = nextIdx > currentIdx ? "left" : "right";
-    window.history.pushState({ shiftTrackerTab: key }, "");
+    const hash = key === "dashboard" ? window.location.pathname : `${window.location.pathname}#${key}`;
+    window.history.pushState({ shiftTrackerTab: key }, "", hash);
     setTabOnly(key, dir);
   }, [setTabOnly]);
 
   const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
     if (activeTabRef.current === key) return;
-    window.history.pushState({ shiftTrackerTab: key }, "");
+    const hash = key === "dashboard" ? window.location.pathname : `${window.location.pathname}#${key}`;
+    window.history.pushState({ shiftTrackerTab: key }, "", hash);
     setTabOnly(key, direction);
   }, [setTabOnly]);
 
@@ -138,19 +140,19 @@ export default function ShiftTrackerPage() {
   const setAddDialogOpen = useCallback((v: boolean) => {
     addOpenRef.current = v;
     setAddDialogOpenRaw(v);
-    if (v) window.history.pushState({ modal: "add" }, "");
+    if (v) window.history.pushState({ modal: "add" }, "", "#modal-add");
   }, []);
 
   const setEditDialogOpen = useCallback((v: boolean) => {
     editOpenRef.current = v;
     setEditDialogOpenRaw(v);
-    if (v) window.history.pushState({ modal: "edit" }, "");
+    if (v) window.history.pushState({ modal: "edit" }, "", "#modal-edit");
   }, []);
 
   const setActionsSheetOpen = useCallback((v: boolean) => {
     actionsOpenRef.current = v;
     setActionsSheetOpenRaw(v);
-    if (v) window.history.pushState({ modal: "actions" }, "");
+    if (v) window.history.pushState({ modal: "actions" }, "", "#modal-actions");
   }, []);
 
   const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
@@ -184,8 +186,11 @@ export default function ShiftTrackerPage() {
         setAddShiftDefaults({});
         return;
       }
-      // 4. No modal — restore previous tab from history state
-      const key = (e.state as { shiftTrackerTab?: TabKey } | null)?.shiftTrackerTab;
+      // 4. No modal — restore previous tab from history state or hash
+      const state = e.state as { shiftTrackerTab?: TabKey; modal?: string } | null;
+      const hashTab = window.location.hash.replace("#", "") as TabKey;
+      const validTabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+      const key = state?.shiftTrackerTab || (validTabs.includes(hashTab) ? hashTab : "dashboard") as TabKey;
       if (!key) return;
       const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
       const dir = tabs.indexOf(key) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
@@ -195,9 +200,17 @@ export default function ShiftTrackerPage() {
     return () => window.removeEventListener("popstate", onPop);
   }, [setTabOnly]);
 
-  // Seed initial history state
+  // Seed initial history state with hash
   useEffect(() => {
-    window.history.replaceState({ shiftTrackerTab: defaultTab }, "");
+    const hash = defaultTab === "dashboard" ? "" : `#${defaultTab}`;
+    window.history.replaceState({ shiftTrackerTab: defaultTab }, "", hash || window.location.pathname);
+    // Also read hash on load in case user bookmarked a tab
+    const hashTab = window.location.hash.replace("#", "") as TabKey;
+    const validTabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    if (hashTab && validTabs.includes(hashTab) && hashTab !== defaultTab) {
+      setActiveTab(hashTab);
+      activeTabRef.current = hashTab;
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tab swipe — only fires when NOT on a shift card
