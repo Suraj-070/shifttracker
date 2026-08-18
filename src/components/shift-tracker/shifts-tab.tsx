@@ -3,19 +3,19 @@
 import React, { useState, useMemo, useCallback } from "react";
 
 import {
-  LayoutGrid, List, Table2, Users, DollarSign,
-  CheckCircle2, Clock, MapPin, CheckSquare, Square, X,
+  LayoutGrid, List, Users, DollarSign,
+  CheckCircle2, Clock, MapPin, CheckSquare, Square, X, ChevronDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ShiftCard } from "./shift-card";
 import { ShiftListView } from "./shift-list-view";
 import { ShiftTableView } from "./shift-table-view";
 import { FilterToolbar, type StatusFilter, type DateFilter, type SortOption } from "./filter-toolbar";
 import { ShiftsSkeleton } from "./loading-skeleton";
 import { useSettingsStore } from "@/stores/settings-store";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatCurrency, isToday, isThisWeek, isThisMonth } from "@/lib/utils";
 import { isStationShift, parseStationTax } from "@/types/database.types";
 import type { Shift, MonthGroup } from "@/types/database.types";
@@ -75,79 +75,32 @@ type ShiftKind = "hall" | "station";
 // ── Bulk action bar ────────────────────────────────────────────────────────
 
 function BulkBar({
-  visible,
-  selected,
-  total,
-  onSelectAll,
-  onClear,
-  onMarkPaid,
-  isLoading,
-  accent,
+  visible, selected, total, onSelectAll, onClear, onMarkPaid, isLoading, accent,
 }: {
-  visible: boolean;
-  selected: Set<string>;
-  total: number;
-  onSelectAll: () => void;
-  onClear: () => void;
-  onMarkPaid: () => void;
-  isLoading: boolean;
-  accent: "emerald" | "blue";
+  visible: boolean; selected: Set<string>; total: number;
+  onSelectAll: () => void; onClear: () => void; onMarkPaid: () => void;
+  isLoading: boolean; accent: "emerald" | "blue";
 }) {
   const count = selected.size;
   const isEmerald = accent === "emerald";
-
   return (
-    <div
-      className="overflow-hidden"
-      style={{
-        maxHeight: visible ? "80px" : "0px",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(-8px)",
-        transition: "max-height 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1)",
-        pointerEvents: visible ? "auto" : "none",
-      }}
-    >
-      <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl ring-1 ${
-        isEmerald
-          ? "ring-emerald-200 bg-emerald-50 dark:bg-emerald-950/30"
-          : "ring-blue-200 bg-blue-50 dark:bg-blue-950/30"
-      }`}>
-        {/* Count badge */}
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-          isEmerald
-            ? "bg-emerald-500 text-white"
-            : "bg-blue-500 text-white"
-        }`}>
-          {count}
-        </span>
-        <span className="text-sm font-medium flex-1 text-foreground">
-          shift{count !== 1 ? "s" : ""} selected
-        </span>
-        <button
-          onClick={onSelectAll}
-          className="text-xs text-muted-foreground hover:text-foreground underline shrink-0"
-        >
-          All {total}
-        </button>
-        <button
-          onClick={onMarkPaid}
-          disabled={isLoading || count === 0}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60 shrink-0 ${
-            isEmerald
-              ? "bg-emerald-500 shadow-sm shadow-emerald-500/30"
-              : "bg-blue-500 shadow-sm shadow-blue-500/30"
-          }`}
-        >
-          {isLoading
-            ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            : <CheckCircle2 className="w-3.5 h-3.5" />
-          }
+    <div className="overflow-hidden" style={{
+      maxHeight: visible ? "80px" : "0px",
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(-8px)",
+      transition: "max-height 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1)",
+      pointerEvents: visible ? "auto" : "none",
+    }}>
+      <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl ring-1 ${isEmerald ? "ring-emerald-200 bg-emerald-50 dark:bg-emerald-950/30" : "ring-blue-200 bg-blue-50 dark:bg-blue-950/30"}`}>
+        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${isEmerald ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"}`}>{count}</span>
+        <span className="text-sm font-medium flex-1 text-foreground">shift{count !== 1 ? "s" : ""} selected</span>
+        <button onClick={onSelectAll} className="text-xs text-muted-foreground underline shrink-0">All {total}</button>
+        <button onClick={onMarkPaid} disabled={isLoading || count === 0}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60 shrink-0 ${isEmerald ? "bg-emerald-500 shadow-sm shadow-emerald-500/30" : "bg-blue-500 shadow-sm shadow-blue-500/30"}`}>
+          {isLoading ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
           {isLoading ? "Saving…" : "Mark Paid"}
         </button>
-        <button
-          onClick={onClear}
-          className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-transform shrink-0"
-        >
+        <button onClick={onClear} className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground active:scale-90 transition-transform shrink-0">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -158,36 +111,18 @@ function BulkBar({
 // ── Selectable shift card wrapper ──────────────────────────────────────────
 
 function SelectableCard({
-  shift,
-  selected,
-  selecting,
-  onToggle,
-  onToggleStatus,
-  onDelete,
-  onEdit,
-  onLongPress,
-  index = 0,
+  shift, selected, selecting, onToggle, onToggleStatus, onDelete, onEdit, onLongPress,
 }: {
-  shift: Shift;
-  selected: boolean;
-  selecting: boolean;
-  onToggle: () => void;
-  onToggleStatus: (s: Shift) => void;
-  onDelete: (s: Shift) => void;
-  onEdit: (s: Shift) => void;
+  shift: Shift; selected: boolean; selecting: boolean;
+  onToggle: () => void; onToggleStatus: (s: Shift) => void;
+  onDelete: (s: Shift) => void; onEdit: (s: Shift) => void;
   onLongPress?: (s: Shift) => void;
-  index?: number;
 }) {
   return (
     <div className="relative">
       {selecting && (
-        <button
-          onClick={onToggle}
-          className="absolute top-2 left-1 z-10 w-8 h-8 flex items-center justify-center rounded-xl active:bg-muted"
-        >
-          {selected
-            ? <CheckSquare className="w-5 h-5 text-emerald-600" />
-            : <Square className="w-5 h-5 text-muted-foreground" />}
+        <button onClick={onToggle} className="absolute top-2 left-1 z-10 w-8 h-8 flex items-center justify-center rounded-xl active:bg-muted">
+          {selected ? <CheckSquare className="w-5 h-5 text-emerald-600" /> : <Square className="w-5 h-5 text-muted-foreground" />}
         </button>
       )}
       <div
@@ -209,99 +144,25 @@ function SelectableCard({
   );
 }
 
-// ── Selectable list row wrapper ────────────────────────────────────────────
-
-function SelectableListView({
-  monthGroups,
-  selected,
-  selecting,
-  onToggle,
-  onToggleStatus,
-  onDelete,
-  onEdit,
-}: {
-  monthGroups: MonthGroup[];
-  selected: Set<string>;
-  selecting: boolean;
-  onToggle: (id: string) => void;
-  onToggleStatus: (s: Shift) => void;
-  onDelete: (s: Shift) => void;
-  onEdit: (s: Shift) => void;
-}) {
-  if (!selecting) {
-    return <ShiftListView monthGroups={monthGroups} onToggleStatus={onToggleStatus} onDelete={onDelete} onEdit={onEdit} />;
-  }
-
-  return (
-    <div className="space-y-8">
-      {monthGroups.map((group) => (
-        <div key={group.monthKey}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold tracking-tight">{group.monthLabel}</h3>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-emerald-600 font-medium">{formatCurrency(group.totalEarned)}</span>
-              <Separator orientation="vertical" className="h-4" />
-              <span className="text-muted-foreground text-xs">{group.paidCount}p / {group.unpaidCount}u</span>
-            </div>
-          </div>
-          <div className="rounded-lg border bg-card divide-y">
-            {group.shifts.map((shift) => (
-              <div
-                key={shift.id}
-                onClick={() => onToggle(shift.id)}
-                className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors ${
-                  selected.has(shift.id) ? "bg-emerald-50 dark:bg-emerald-950/20" : "hover:bg-muted/50"
-                }`}
-              >
-                {selected.has(shift.id)
-                  ? <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0" />
-                  : <Square className="w-4 h-4 text-muted-foreground shrink-0" />}
-                <span className="text-sm font-medium">{shift.shiftDate}</span>
-                <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
-                <span className="text-xs text-muted-foreground flex-1 truncate">
-                  {isStationShift(shift) ? shift.coveringFor : `${shift.coveringFor} · ${shift.locationName}`}
-                </span>
-                <span className="text-sm font-semibold tabular-nums shrink-0">{formatCurrency(parseFloat(shift.amountEarned))}</span>
-                <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 shrink-0 ${
-                  shift.status === "Paid"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-rose-50 text-rose-700 border-rose-200"
-                }`}>
-                  {shift.status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function ShiftsTab({
-  shifts,
-  isLoading,
-  onToggleStatus,
-  onDeleteShift,
-  onEditShift,
-  onAddShift,
-  onBulkPaid,
-  onLongPress,
+  shifts, isLoading, onToggleStatus, onDeleteShift, onEditShift, onAddShift, onBulkPaid, onLongPress,
 }: ShiftsTabProps) {
   const { viewMode, setViewMode } = useSettingsStore();
+  const isMobile = useIsMobile();
   const [shiftKind, setShiftKind] = useState<ShiftKind>("hall");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [selectedPerson, setSelectedPerson] = useState<string>("__all__");
-
-  // Bulk selection state
   const [hallSelecting, setHallSelecting] = useState(false);
   const [stationSelecting, setStationSelecting] = useState(false);
   const [hallSelected, setHallSelected] = useState<Set<string>>(new Set());
   const [stationSelected, setStationSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+
+  // On mobile, only card and list views make sense
+  const effectiveViewMode = isMobile && viewMode === "table" ? "card" : viewMode;
 
   const hallShifts = useMemo(() => shifts.filter((s) => !isStationShift(s)), [shifts]);
   const stationShifts = useMemo(() => shifts.filter(isStationShift), [shifts]);
@@ -324,29 +185,23 @@ function ShiftsTab({
 
   const applyFilters = useCallback((list: Shift[]) => {
     let result = [...list];
-    if (selectedPerson !== "__all__" && shiftKind === "hall") {
-      result = result.filter((s) => s.coveringFor === selectedPerson);
-    }
+    if (selectedPerson !== "__all__" && shiftKind === "hall") result = result.filter((s) => s.coveringFor === selectedPerson);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter((s) =>
-        s.locationName.toLowerCase().includes(q) ||
-        s.coveringFor.toLowerCase().includes(q) ||
-        (s.notes ?? "").toLowerCase().includes(q) ||
-        s.status.toLowerCase().includes(q),
+        s.locationName.toLowerCase().includes(q) || s.coveringFor.toLowerCase().includes(q) ||
+        (s.notes ?? "").toLowerCase().includes(q) || s.status.toLowerCase().includes(q),
       );
     }
     if (statusFilter !== "all") result = result.filter((s) => s.status === statusFilter);
-    if (dateFilter !== "all") {
-      result = result.filter((s) => {
-        switch (dateFilter) {
-          case "today": return isToday(s.shiftDate);
-          case "week": return isThisWeek(s.shiftDate);
-          case "month": return isThisMonth(s.shiftDate);
-          default: return true;
-        }
-      });
-    }
+    if (dateFilter !== "all") result = result.filter((s) => {
+      switch (dateFilter) {
+        case "today": return isToday(s.shiftDate);
+        case "week": return isThisWeek(s.shiftDate);
+        case "month": return isThisMonth(s.shiftDate);
+        default: return true;
+      }
+    });
     result.sort((a, b) => {
       switch (sortOption) {
         case "newest": return b.shiftDate.localeCompare(a.shiftDate);
@@ -374,106 +229,97 @@ function ShiftsTab({
     setBulkLoading(true);
     try {
       await onBulkPaid(ids);
-      setHallSelected(new Set());
-      setStationSelected(new Set());
-      setHallSelecting(false);
-      setStationSelecting(false);
-    } finally {
-      setBulkLoading(false);
-    }
+      setHallSelected(new Set()); setStationSelected(new Set());
+      setHallSelecting(false); setStationSelecting(false);
+    } finally { setBulkLoading(false); }
   }, [onBulkPaid]);
 
   if (isLoading) return <ShiftsSkeleton />;
 
-  const viewButtons: { key: "card" | "list" | "table"; icon: React.ElementType; label: string }[] = [
-    { key: "card", icon: LayoutGrid, label: "Cards" },
-    { key: "list", icon: List, label: "List" },
-    { key: "table", icon: Table2, label: "Table" },
-  ];
+  const isSelecting = shiftKind === "hall" ? hallSelecting : stationSelecting;
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Hall / Station switcher */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
-          <button
-            onClick={() => setShiftKind("hall")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              shiftKind === "hall"
-                ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+    <div className="space-y-3">
+
+      {/* ── Top bar: Hall/Station + View toggle ── */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Hall / Station pill */}
+        <div className="flex gap-1 p-1 bg-muted rounded-xl">
+          <button onClick={() => setShiftKind("hall")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${shiftKind === "hall" ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200" : "text-muted-foreground"}`}>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
             Hall
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
-              {hallShifts.length}
-            </span>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>{hallShifts.length}</span>
           </button>
-          <button
-            onClick={() => setShiftKind("station")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              shiftKind === "station"
-                ? "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <MapPin className="w-3.5 h-3.5" />
+          <button onClick={() => setShiftKind("station")}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${shiftKind === "station" ? "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200" : "text-muted-foreground"}`}>
+            <MapPin className="w-3.5 h-3.5 shrink-0" />
             Station
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
-              {stationShifts.length}
-            </span>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>{stationShifts.length}</span>
           </button>
         </div>
 
-        {/* View mode toggle */}
-        <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
-          {viewButtons.map((v) => {
-            const Icon = v.icon;
-            const active = viewMode === v.key;
-            return (
-              <button key={v.key} onClick={() => setViewMode(v.key)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-all ${active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                title={v.label}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{v.label}</span>
+        {/* Right side: view toggle (mobile: card/list only) + select */}
+        <div className="flex items-center gap-2">
+          {/* View mode — hide table on mobile */}
+          <div className="flex items-center gap-0.5 bg-muted rounded-lg p-1">
+            <button onClick={() => setViewMode("card")}
+              className={`p-2 rounded-md transition-all ${effectiveViewMode === "card" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
+              title="Cards">
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => setViewMode("list")}
+              className={`p-2 rounded-md transition-all ${effectiveViewMode === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
+              title="List">
+              <List className="w-3.5 h-3.5" />
+            </button>
+            {!isMobile && (
+              <button onClick={() => setViewMode("table")}
+                className={`p-2 rounded-md transition-all ${viewMode === "table" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground"}`}
+                title="Table">
+                <CheckSquare className="w-3.5 h-3.5" />
               </button>
-            );
-          })}
+            )}
+          </div>
+
+          {/* Select toggle */}
+          {activeFiltered.length > 0 && (
+            <button
+              onClick={() => {
+                if (shiftKind === "hall") { setHallSelecting((v) => !v); setHallSelected(new Set()); }
+                else { setStationSelecting((v) => !v); setStationSelected(new Set()); }
+              }}
+              className={`h-9 px-3 rounded-xl text-xs font-semibold border transition-all active:scale-95 ${isSelecting ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground"}`}
+            >
+              {isSelecting ? "Done" : "Select"}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Station net strip */}
+      {/* ── Station net strip ── */}
       {shiftKind === "station" && stationShifts.length > 0 && (
-        <div className="flex items-center gap-3 px-4 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 text-sm">
-          <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
-          <span className="text-blue-700 dark:text-blue-400 font-medium">Net take-home: {formatCurrency(stationNet)}</span>
-          <span className="text-muted-foreground text-xs">({stationShifts.length} shift{stationShifts.length !== 1 ? "s" : ""})</span>
+        <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
+          <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+          <span className="text-sm text-blue-700 dark:text-blue-400 font-medium">Net: {formatCurrency(stationNet)}</span>
+          <span className="text-xs text-muted-foreground">· {stationShifts.length} shifts</span>
         </div>
       )}
 
-      {/* Hall person tabs */}
-      {shiftKind === "hall" && persons.length > 0 && (
-        <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
-          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+      {/* ── Person filter tabs (hall only) — with fade edge ── */}
+      {shiftKind === "hall" && persons.length > 1 && (
+        <div className="relative -mx-4">
+          <div className="flex gap-2 overflow-x-auto px-4 pb-1" style={{ scrollbarWidth: "none" }}>
             <button onClick={() => setSelectedPerson("__all__")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all ${
-                selectedPerson === "__all__" ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />All
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all active:scale-95 ${selectedPerson === "__all__" ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground"}`}>
+              <Users className="w-3.5 h-3.5" /> All
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedPerson === "__all__" ? "bg-white/20 text-background" : "bg-muted text-muted-foreground"}`}>{hallShifts.length}</span>
             </button>
             {persons.map((person) => {
               const isActive = selectedPerson === person.name;
               return (
                 <button key={person.name} onClick={() => setSelectedPerson(isActive ? "__all__" : person.name)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all ${
-                    isActive ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground hover:text-foreground hover:border-primary/40"
-                  }`}
-                >
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all active:scale-95 ${isActive ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-muted-foreground"}`}>
                   {shortName(person.name, allNames)}
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/25 text-primary-foreground" : "bg-muted text-muted-foreground"}`}>{person.totalShifts}</span>
                   {person.unpaidShifts > 0 && !isActive && <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />}
@@ -481,211 +327,166 @@ function ShiftsTab({
               );
             })}
           </div>
+          {/* Fade edge hint */}
+          <div className="absolute right-0 top-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-background to-transparent" />
         </div>
       )}
 
-      {/* Hall person summary */}
+      {/* ── Person summary card ── */}
       {shiftKind === "hall" && selectedPerson !== "__all__" && selectedPersonSummary && (
-          <div>
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold">{selectedPersonSummary.name}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">{selectedPersonSummary.totalShifts} shifts</Badge>
-                    <button onClick={() => { const last = hallShifts.filter((s) => s.coveringFor === selectedPerson).sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))[0]; onAddShift(selectedPerson, last?.locationName); }} className="flex items-center gap-1 text-xs text-primary hover:underline font-medium">+ Add shift</button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div><div className="flex items-center justify-center gap-1 text-muted-foreground mb-1"><DollarSign className="w-3 h-3" /><span className="text-xs">Total</span></div><p className="text-sm font-bold tabular-nums">{formatCurrency(selectedPersonSummary.totalEarned)}</p></div>
-                  <div className="border-x border-border/50"><div className="flex items-center justify-center gap-1 text-muted-foreground mb-1"><CheckCircle2 className="w-3 h-3" /><span className="text-xs">Paid</span></div><p className="text-sm font-bold tabular-nums text-primary">{selectedPersonSummary.paidShifts}</p></div>
-                  <div><div className="flex items-center justify-center gap-1 text-muted-foreground mb-1"><Clock className="w-3 h-3" /><span className="text-xs">Owing</span></div><p className="text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400">{formatCurrency(selectedPersonSummary.unpaidAmount)}</p></div>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-semibold">{selectedPersonSummary.name}</p>
+            <button
+              onClick={() => { const last = hallShifts.filter((s) => s.coveringFor === selectedPerson).sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))[0]; onAddShift(selectedPerson, last?.locationName); }}
+              className="text-xs text-primary font-semibold px-3 py-1.5 rounded-lg bg-primary/10 active:scale-95 transition-transform">
+              + Add shift
+            </button>
           </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { icon: DollarSign, label: "Total", value: formatCurrency(selectedPersonSummary.totalEarned), color: "" },
+              { icon: CheckCircle2, label: "Paid", value: String(selectedPersonSummary.paidShifts), color: "text-emerald-600" },
+              { icon: Clock, label: "Owing", value: formatCurrency(selectedPersonSummary.unpaidAmount), color: "text-rose-600 dark:text-rose-400" },
+            ].map(({ icon: Icon, label, value, color }) => (
+              <div key={label} className="bg-background/60 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
+                <p className={`text-sm font-bold tabular-nums ${color}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Filter + bulk toggle row */}
-      <div className="flex items-center gap-2">
-        <div className="flex-1">
-          <FilterToolbar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            dateFilter={dateFilter}
-            onDateFilterChange={setDateFilter}
-            sortOption={sortOption}
-            onSortOptionChange={setSortOption}
-            totalResults={activeFiltered.length}
-          />
-        </div>
-        {/* Bulk select toggle */}
-        {shiftKind === "hall" && filteredHall.length > 0 && (
-          <Button
-            variant={hallSelecting ? "default" : "outline"}
-            size="sm"
-            className="h-9 gap-1.5 text-xs shrink-0"
-            onClick={() => { setHallSelecting((v) => !v); setHallSelected(new Set()); }}
-          >
-            <CheckSquare className="w-3.5 h-3.5" />
-            {hallSelecting ? "Cancel" : "Select"}
-          </Button>
-        )}
-        {shiftKind === "station" && filteredStation.length > 0 && (
-          <Button
-            variant={stationSelecting ? "default" : "outline"}
-            size="sm"
-            className="h-9 gap-1.5 text-xs shrink-0"
-            onClick={() => { setStationSelecting((v) => !v); setStationSelected(new Set()); }}
-          >
-            <CheckSquare className="w-3.5 h-3.5" />
-            {stationSelecting ? "Cancel" : "Select"}
-          </Button>
-        )}
-      </div>
+      {/* ── Filter toolbar ── */}
+      <FilterToolbar
+        searchQuery={searchQuery} onSearchChange={setSearchQuery}
+        statusFilter={statusFilter} onStatusFilterChange={setStatusFilter}
+        dateFilter={dateFilter} onDateFilterChange={setDateFilter}
+        sortOption={sortOption} onSortOptionChange={setSortOption}
+        totalResults={activeFiltered.length}
+      />
 
-      {/* Bulk bar — hall */}
+      {/* ── Bulk bar ── */}
       <BulkBar
         visible={shiftKind === "hall" && hallSelecting && hallSelected.size > 0}
-        selected={hallSelected}
-        total={filteredHall.length}
+        selected={hallSelected} total={filteredHall.length}
         onSelectAll={() => setHallSelected(new Set(filteredHall.map((s) => s.id)))}
         onClear={() => setHallSelected(new Set())}
         onMarkPaid={() => handleBulkPaid(Array.from(hallSelected))}
-        isLoading={bulkLoading}
-        accent="emerald"
+        isLoading={bulkLoading} accent="emerald"
       />
-      {/* Bulk bar — station */}
       <BulkBar
         visible={shiftKind === "station" && stationSelecting && stationSelected.size > 0}
-        selected={stationSelected}
-        total={filteredStation.length}
+        selected={stationSelected} total={filteredStation.length}
         onSelectAll={() => setStationSelected(new Set(filteredStation.map((s) => s.id)))}
         onClear={() => setStationSelected(new Set())}
         onMarkPaid={() => handleBulkPaid(Array.from(stationSelected))}
-        isLoading={bulkLoading}
-        accent="blue"
+        isLoading={bulkLoading} accent="blue"
       />
 
-      {/* Content */}
+      {/* ── Long-press hint (mobile, first visit feel) ── */}
+      {isMobile && !isSelecting && activeFiltered.length > 0 && (
+        <p className="text-[11px] text-muted-foreground/60 text-center">
+          Hold a card for quick actions · Swipe right to pay · Swipe left to delete
+        </p>
+      )}
+
+      {/* ── Content ── */}
       {shiftKind === "hall" ? (
-          <div>
-            {filteredHall.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                  <span className="text-2xl"></span>
-                </div>
-                <p className="text-sm font-semibold text-foreground">No shifts found</p>
-                <p className="text-xs text-muted-foreground text-center max-w-[200px]">
-                  {selectedPerson !== "__all__"
-                    ? `No shifts for ${shortName(selectedPerson, allNames)}`
-                    : "Try adjusting your filters"}
-                </p>
-              </div>
-            ) : viewMode === "card" ? (
-              <div className="space-y-8">
-                {hallMonthGroups.map((group) => (
-                  <div key={group.monthKey}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-primary font-medium">{formatCurrency(group.totalEarned)}</span>
-                        <Separator orientation="vertical" className="h-4" />
-                        <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
-                      </div>
+        <div>
+          {filteredHall.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center"><span className="text-2xl">🔍</span></div>
+              <p className="text-sm font-semibold">No shifts found</p>
+              <p className="text-xs text-muted-foreground text-center max-w-[200px]">
+                {selectedPerson !== "__all__" ? `No shifts for ${shortName(selectedPerson, allNames)}` : "Try adjusting your filters"}
+              </p>
+            </div>
+          ) : effectiveViewMode === "card" ? (
+            <div className="space-y-6">
+              {hallMonthGroups.map((group) => (
+                <div key={group.monthKey}>
+                  {/* Month header — compact on mobile */}
+                  <div className="flex items-center justify-between mb-3 px-0.5">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold tracking-tight text-foreground">{group.monthLabel}</h3>
+                      <span className="text-xs text-muted-foreground">{group.shifts.length} shifts</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {group.shifts.map((shift, i) => (
-                        <SelectableCard
-                          key={shift.id}
-                          shift={shift}
-                          index={i}
-                          selected={hallSelected.has(shift.id)}
-                          selecting={hallSelecting}
-                          onToggle={() => toggleHallSelect(shift.id)}
-                          onToggleStatus={onToggleStatus}
-                          onDelete={onDeleteShift}
-                          onEdit={onEditShift}
-                        />
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>
+                      {group.unpaidCount > 0 && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400">
+                          {group.unpaidCount} unpaid
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : viewMode === "list" ? (
-              <SelectableListView
-                monthGroups={hallMonthGroups}
-                selected={hallSelected}
-                selecting={hallSelecting}
-                onToggle={toggleHallSelect}
-                onToggleStatus={onToggleStatus}
-                onDelete={onDeleteShift}
-                onEdit={onEditShift}
-              />
-            ) : (
-              <ShiftTableView
-                shifts={filteredHall}
-                onToggleStatus={onToggleStatus}
-                onDelete={onDeleteShift}
-                onEdit={onEditShift}
-              />
-            )}
-          </div>
-        ) : (
-          <div>
-            {filteredStation.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center">
-                  <span className="text-2xl"></span>
+                  <div className="space-y-2">
+                    {group.shifts.map((shift) => (
+                      <SelectableCard
+                        key={shift.id} shift={shift}
+                        selected={hallSelected.has(shift.id)} selecting={hallSelecting}
+                        onToggle={() => toggleHallSelect(shift.id)}
+                        onToggleStatus={onToggleStatus} onDelete={onDeleteShift}
+                        onEdit={onEditShift} onLongPress={onLongPress}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <p className="text-sm font-semibold text-foreground">No station shifts found</p>
-                <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
-              </div>
-            ) : viewMode === "card" ? (
-              <div className="space-y-8">
-                {stationMonthGroups.map((group) => (
-                  <div key={group.monthKey}>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold tracking-tight">{group.monthLabel}</h3>
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-blue-600 dark:text-blue-400 font-medium">{formatCurrency(group.totalEarned)}</span>
-                        <Separator orientation="vertical" className="h-4" />
-                        <span className="text-muted-foreground">{group.paidCount} paid / {group.unpaidCount} unpaid</span>
-                      </div>
+              ))}
+            </div>
+          ) : effectiveViewMode === "list" ? (
+            <ShiftListView monthGroups={hallMonthGroups} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
+          ) : (
+            <ShiftTableView shifts={filteredHall} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
+          )}
+        </div>
+      ) : (
+        <div>
+          {filteredStation.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center"><span className="text-2xl">📍</span></div>
+              <p className="text-sm font-semibold">No station shifts found</p>
+              <p className="text-xs text-muted-foreground">Try adjusting your filters</p>
+            </div>
+          ) : effectiveViewMode === "card" ? (
+            <div className="space-y-6">
+              {stationMonthGroups.map((group) => (
+                <div key={group.monthKey}>
+                  <div className="flex items-center justify-between mb-3 px-0.5">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold tracking-tight">{group.monthLabel}</h3>
+                      <span className="text-xs text-muted-foreground">{group.shifts.length} shifts</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {group.shifts.map((shift, i) => (
-                        <SelectableCard
-                          key={shift.id}
-                          shift={shift}
-                          index={i}
-                          selected={stationSelected.has(shift.id)}
-                          selecting={stationSelecting}
-                          onToggle={() => toggleStationSelect(shift.id)}
-                          onToggleStatus={onToggleStatus}
-                          onDelete={onDeleteShift}
-                          onEdit={onEditShift}
-                        />
-                      ))}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold tabular-nums text-blue-600 dark:text-blue-400">{formatCurrency(group.totalEarned)}</span>
+                      {group.unpaidCount > 0 && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400">
+                          {group.unpaidCount} unpaid
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <SelectableListView
-                monthGroups={stationMonthGroups}
-                selected={stationSelected}
-                selecting={stationSelecting}
-                onToggle={toggleStationSelect}
-                onToggleStatus={onToggleStatus}
-                onDelete={onDeleteShift}
-                onEdit={onEditShift}
-              />
-            )}
-          </div>
-        )}
+                  <div className="space-y-2">
+                    {group.shifts.map((shift) => (
+                      <SelectableCard
+                        key={shift.id} shift={shift}
+                        selected={stationSelected.has(shift.id)} selecting={stationSelecting}
+                        onToggle={() => toggleStationSelect(shift.id)}
+                        onToggleStatus={onToggleStatus} onDelete={onDeleteShift}
+                        onEdit={onEditShift} onLongPress={onLongPress}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ShiftListView monthGroups={stationMonthGroups} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
+          )}
+        </div>
+      )}
     </div>
   );
 }
