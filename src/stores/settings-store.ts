@@ -95,7 +95,7 @@ export const useSettingsStore = create<SettingsState>()(
         saturdayRate: 47.38,
         sundayRate: 60.94,
         taxRate: 0.0598,
-        defaultHallAmount: 115,
+        defaultHallAmount: 110,
       },
       setPayRates: (rates) => set({ payRates: rates }),
       defaultTab: 'dashboard',

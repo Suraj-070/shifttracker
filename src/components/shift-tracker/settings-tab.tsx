@@ -141,7 +141,7 @@ export function SettingsTab() {
   const store = useSettingsStore();
   const defaultRates = {
     afternoonRate: 37.91, saturdayRate: 47.38, sundayRate: 60.94,
-    taxRate: 0.0598, defaultHallAmount: 115,
+    taxRate: 0.0598, defaultHallAmount: 110,
   };
   const [rates, setRates] = React.useState(store.payRates ?? defaultRates);
   const [ratesSaved, setRatesSaved] = React.useState(false);

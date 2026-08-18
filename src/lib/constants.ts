@@ -2,7 +2,7 @@ export const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursd
 
 export const DEFAULT_LOCATIONS: string[] = []
 export const DEFAULT_COVER_NAMES: string[] = []
-export const DEFAULT_SHIFT_AMOUNT = '115'
+export const DEFAULT_SHIFT_AMOUNT = '110'
 
 export const CHART_CONFIG = {
   paid: { label: 'Paid', color: 'oklch(0.7 0.17 155)' },

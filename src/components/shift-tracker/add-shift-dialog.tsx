@@ -89,7 +89,7 @@ function HallForm({
   const [formDate, setFormDate] = useState(today);
   const [location, setLocation] = useState(defaultLocation ?? "");
   const { payRates } = useSettingsStore();
-  const [amount, setAmount] = useState(String(payRates.defaultHallAmount || 115));
+  const [amount, setAmount] = useState(String(payRates.defaultHallAmount || 110));
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
 
@@ -215,7 +215,7 @@ function HallForm({
             type="number"
             step="0.01"
             min="0"
-            placeholder="115"
+            placeholder="110"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
