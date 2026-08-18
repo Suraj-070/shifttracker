@@ -137,6 +137,36 @@ function HallForm({
 
   return (
     <div className="space-y-5 py-2">
+      {/* Covered by — toggle sits above Covering For */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border text-sm font-medium transition-all active:scale-95 ${
+            isCovered
+              ? "bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400"
+              : "bg-background border-border text-muted-foreground"
+          }`}
+        >
+          <UserX className="w-4 h-4 shrink-0" />
+          {isCovered ? "✓ Someone covered this shift" : "Was this covered by someone else?"}
+        </button>
+        {isCovered && (
+          <div className="space-y-1.5">
+            <input
+              autoFocus
+              value={coveredBy}
+              onChange={e => setCoveredBy(e.target.value)}
+              placeholder="Who covered this? e.g. Suman"
+              className="w-full h-9 px-3 rounded-xl border border-amber-200 dark:border-amber-800 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+            />
+            <p className="text-[11px] text-muted-foreground px-1">
+              Tracked separately as &quot;Owe to {coveredBy || "them"}&quot; on dashboard.
+            </p>
+          </div>
+        )}
+      </div>
+
       {/* Covering For — hidden when someone else covered this shift */}
       <div className={`space-y-2 transition-all ${isCovered ? "hidden" : ""}`}>
         <Label className="flex items-center gap-1.5">
@@ -240,36 +270,6 @@ function HallForm({
           placeholder="Anything worth remembering about this shift..."
           className="min-h-20 resize-none"
         />
-      </div>
-
-      {/* Covered by — optional */}
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
-          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-            isCovered
-              ? "bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/30 dark:border-purple-800 dark:text-purple-400"
-              : "bg-background border-border text-muted-foreground"
-          }`}
-        >
-          <UserX className="w-4 h-4 shrink-0" />
-          {isCovered ? "Someone covered this shift" : "Was this covered by someone else?"}
-        </button>
-        {isCovered && (
-          <div>
-            <input
-              autoFocus
-              value={coveredBy}
-              onChange={e => setCoveredBy(e.target.value)}
-              placeholder="Who covered this? e.g. Suman"
-              className="w-full h-9 px-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30"
-            />
-            <p className="text-[11px] text-muted-foreground mt-1.5 px-1">
-              This shift won&apos;t count in your earnings — it goes into &quot;Owe to {coveredBy || "them"}&quot;.
-            </p>
-          </div>
-        )}
       </div>
 
       <DialogFooter>
