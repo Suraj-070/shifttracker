@@ -102,9 +102,10 @@ export default function ShiftTrackerPage() {
   const setTabOnly = useCallback((key: TabKey, dir: "left" | "right") => {
     setSwipeDirection(dir);
     setActiveTab(key);
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    });
+    // Only scroll to top going forward — back restores natural position
+    if (dir === "left") {
+      requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    }
   }, []);
 
   // navigateTab — pushes a real history entry so back button works
@@ -692,25 +693,27 @@ export default function ShiftTrackerPage() {
         )}
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
+          {/* Tabs stay mounted — visibility toggled via CSS so no remount flash */}
           <div className="relative">
-            {activeTab === "dashboard" && (
-                <DashboardTab
-                  summary={summary}
-                  recentShifts={recentShifts}
-                  stationShifts={stationShifts}
-                  hallShifts={hallShifts}
-                  isLoading={isLoading}
-                  onToggleStatus={toggleStatus}
-                  onBulkMarkPaid={handleBulkMarkPaid}
-                  onAddShift={() => setAddDialogOpen(true)}
-                  onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
-                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
-                  compact={compactDashboard}
-                />
-            )}
-            {activeTab === "shifts" && (
-              <React.Suspense fallback={null}>
 
+            <div style={{ display: activeTab === "dashboard" ? "block" : "none" }}>
+              <DashboardTab
+                summary={summary}
+                recentShifts={recentShifts}
+                stationShifts={stationShifts}
+                hallShifts={hallShifts}
+                isLoading={isLoading}
+                onToggleStatus={toggleStatus}
+                onBulkMarkPaid={handleBulkMarkPaid}
+                onAddShift={() => setAddDialogOpen(true)}
+                onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
+                onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                compact={compactDashboard}
+              />
+            </div>
+
+            <React.Suspense fallback={null}>
+              <div style={{ display: activeTab === "shifts" ? "block" : "none" }}>
                 <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
@@ -718,53 +721,27 @@ export default function ShiftTrackerPage() {
                   onBulkPaid={handleBulkPaid}
                   onDeleteShift={handleDeleteStart}
                   onLongPress={handleLongPress}
-                  onEditShift={(shift) => {
-                    setShiftToEdit(shift);
-                    setEditDialogOpen(true);
-                  }}
+                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
                   onAddShift={(person, location) => {
                     setAddShiftDefaults({ person, location });
                     setAddDialogOpen(true);
                   }}
                 />
-              </React.Suspense>
-            )}
-            {activeTab === "analytics" && (
-              <React.Suspense fallback={null}>
+              </div>
 
-                <AnalyticsTab
-                  summary={summary}
-                  monthlyEarnings={monthlyEarnings}
-                  isLoading={isLoading}
-                />
-              </React.Suspense>
-            )}
-            {activeTab === "calendar" && (
-              <React.Suspense fallback={null}>
-
+              <div style={{ display: activeTab === "calendar" ? "block" : "none" }}>
                 <CalendarTab
                   shifts={shifts}
-                  onShiftClick={(shift) => {
-                    setShiftToEdit(shift);
-                    setEditDialogOpen(true);
-                  }}
-                  onAddShift={(date) => {
-                    setAddDialogOpen(true);
-                  }}
+                  onShiftClick={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                  onAddShift={() => setAddDialogOpen(true)}
                 />
-              </React.Suspense>
-            )}
-            {activeTab === "reminders" && (
-              <React.Suspense fallback={null}>
+              </div>
 
-                <RemindersTabLazy
-                  savedStationNames={savedStationNames}
-                />
-              </React.Suspense>
-            )}
-            {activeTab === "profile" && (
-              <React.Suspense fallback={null}>
+              <div style={{ display: activeTab === "reminders" ? "block" : "none" }}>
+                <RemindersTabLazy savedStationNames={savedStationNames} />
+              </div>
 
+              <div style={{ display: activeTab === "profile" ? "block" : "none" }}>
                 <ProfileTab
                   profile={profile}
                   isLoading={isLoading}
@@ -773,14 +750,21 @@ export default function ShiftTrackerPage() {
                   totalEarnings={summary.totalEarned}
                   shifts={hallShifts}
                 />
-              </React.Suspense>
-            )}
-            {activeTab === "settings" && (
-              <React.Suspense fallback={null}>
+              </div>
 
+              <div style={{ display: activeTab === "analytics" ? "block" : "none" }}>
+                <AnalyticsTab
+                  summary={summary}
+                  monthlyEarnings={monthlyEarnings}
+                  isLoading={isLoading}
+                />
+              </div>
+
+              <div style={{ display: activeTab === "settings" ? "block" : "none" }}>
                 <SettingsTab />
-              </React.Suspense>
-            )}
+              </div>
+            </React.Suspense>
+
           </div>
         </main>
 
