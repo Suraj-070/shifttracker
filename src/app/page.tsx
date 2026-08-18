@@ -753,6 +753,7 @@ export default function ShiftTrackerPage() {
                 onAddShift={() => setAddDialogOpen(true)}
                 onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
                 onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                allShifts={shifts}
                 compact={compactDashboard}
               />
             </div>
