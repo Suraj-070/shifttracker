@@ -118,12 +118,12 @@ function HallForm({
     return [...from, ...extra].slice(0, 10);
   }, [hallShifts]);
 
-  const canSubmit = !!coveringFor && !!formDate && !!location && !!amount;
+  const canSubmit = (isCovered || !!coveringFor) && !!formDate && !!location && !!amount;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
-      coveringFor,
+      coveringFor: isCovered ? "Myself" : coveringFor,
       shiftDate: formDate,
       locationName: location,
       notes: notes.trim(),
@@ -137,8 +137,8 @@ function HallForm({
 
   return (
     <div className="space-y-5 py-2">
-      {/* Covering For */}
-      <div className="space-y-2">
+      {/* Covering For — hidden when someone else covered this shift */}
+      <div className={`space-y-2 transition-all ${isCovered ? "hidden" : ""}`}>
         <Label className="flex items-center gap-1.5">
           <User className="w-3.5 h-3.5" /> Covering For
         </Label>

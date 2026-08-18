@@ -214,8 +214,8 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             {covered && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">by {shift.coveredBy}</span>}
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />}
           </div>
-          <p className={`text-[13px] font-semibold truncate ${station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
-            {shift.coveringFor}
+          <p className={`text-[13px] font-semibold truncate ${covered ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
+            {covered ? "Your shift" : shift.coveringFor}
           </p>
           <p className="text-[11px] text-muted-foreground truncate">
             {station ? `${shift.hoursWorked}h · tax ${formatCurrency(tax)}` : shift.locationName}
