@@ -37,6 +37,7 @@ export async function GET() {
       amountEarned: s.amount_earned,
       hoursWorked: s.hours_worked ?? 0,
       status: s.status,
+      coveredBy: s.covered_by ?? null,
       createdAt: s.created_at,
     }))
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { coveringFor, shiftDate, locationName, notes, shiftDay, amountEarned, hoursWorked, status } = body
+    const { coveringFor, shiftDate, locationName, notes, shiftDay, amountEarned, hoursWorked, status, coveredBy } = body
 
     if (!coveringFor || !shiftDate || !locationName || !shiftDay || !amountEarned) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
         notes: notes ?? '',
         shift_day: shiftDay,
         amount_earned: amountEarned,
+        covered_by: coveredBy ?? null,
         hours_worked: hoursWorked ?? 0,
         status: status ?? 'Unpaid',
       })

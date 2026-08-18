@@ -138,10 +138,52 @@ interface DashboardTabProps {
   onAddShift: () => void;
   onViewAllShifts: () => void;
   onEditShift: (shift: Shift) => void;
+  allShifts: Shift[];
   compact?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
+
+// ── Owe card ─────────────────────────────────────────────────────────────────
+function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift[]; total: number }[]; totalOwe: number }) {
+  if (oweData.length === 0) return null;
+  return (
+    <div className="rounded-2xl border border-purple-200 dark:border-purple-800 bg-purple-50/60 dark:bg-purple-950/20 overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-4 pb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center">
+            <span className="text-base">💸</span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wide">To Pay Out</p>
+            <p className="text-[11px] text-purple-600/70 dark:text-purple-500">Shifts covered by others</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-xl font-black tabular-nums text-purple-700 dark:text-purple-300">{formatCurrency(totalOwe)}</p>
+          <p className="text-[10px] text-purple-500">{oweData.reduce((s, d) => s + d.shifts.length, 0)} shifts</p>
+        </div>
+      </div>
+      <div className="border-t border-purple-200 dark:border-purple-800 divide-y divide-purple-100 dark:divide-purple-900">
+        {oweData.map((d) => (
+          <div key={d.name} className="flex items-center justify-between px-4 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-purple-200 dark:bg-purple-800 flex items-center justify-center text-[10px] font-bold text-purple-700 dark:text-purple-300">
+                {d.name[0].toUpperCase()}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">{d.name}</p>
+                <p className="text-[11px] text-muted-foreground">{d.shifts.length} shift{d.shifts.length !== 1 ? "s" : ""}</p>
+              </div>
+            </div>
+            <span className="text-sm font-bold tabular-nums text-purple-700 dark:text-purple-400">{formatCurrency(d.total)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DashboardTab({
   summary,
@@ -154,9 +196,26 @@ function DashboardTab({
   onAddShift,
   onViewAllShifts,
   onEditShift,
+  allShifts,
   compact = false,
 }: DashboardTabProps) {
   const [dashKind, setDashKind] = useState<DashKind>("hall");
+
+  // Covered-by-others: shifts where someone else covered, grouped by person
+  const oweData = useMemo(() => {
+    const map = new Map<string, { shifts: Shift[]; total: number }>();
+    for (const s of allShifts) {
+      if (!s.coveredBy) continue;
+      const name = s.coveredBy;
+      const existing = map.get(name) ?? { shifts: [], total: 0 };
+      existing.shifts.push(s);
+      existing.total += parseFloat(s.amountEarned);
+      map.set(name, existing);
+    }
+    return Array.from(map.entries()).map(([name, data]) => ({ name, ...data }));
+  }, [allShifts]);
+
+  const totalOwe = useMemo(() => oweData.reduce((s, d) => s + d.total, 0), [oweData]);
   const [expandedFortnight, setExpandedFortnight] = useState<number | null>(null);
 
   const fortnights = useMemo(() => buildFortnightData(stationShifts), [stationShifts]);

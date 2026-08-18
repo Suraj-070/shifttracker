@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Briefcase,
-  Plus, Loader2, User, MapPin, StickyNote, Check } from "lucide-react";
+import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -92,6 +91,8 @@ function HallForm({
   const [amount, setAmount] = useState(String(payRates.defaultHallAmount || 110));
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
+  const [coveredBy, setCoveredBy] = useState("");
+  const [isCovered, setIsCovered] = useState(false);
 
   const hallShifts = useMemo(
     () => shifts.filter((s) => !isStationShift(s)),
@@ -127,6 +128,7 @@ function HallForm({
       locationName: location,
       notes: notes.trim(),
       shiftDay: getDayFromDate(formDate),
+      coveredBy: isCovered && coveredBy.trim() ? coveredBy.trim() : null,
       amountEarned: parseFloat(amount).toFixed(2),
       hoursWorked: 0,
       status,
@@ -240,6 +242,36 @@ function HallForm({
         />
       </div>
 
+      {/* Covered by — optional */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
+          className={`flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+            isCovered
+              ? "bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-950/30 dark:border-purple-800 dark:text-purple-400"
+              : "bg-background border-border text-muted-foreground"
+          }`}
+        >
+          <UserX className="w-4 h-4 shrink-0" />
+          {isCovered ? "Someone covered this shift" : "Was this covered by someone else?"}
+        </button>
+        {isCovered && (
+          <div>
+            <input
+              autoFocus
+              value={coveredBy}
+              onChange={e => setCoveredBy(e.target.value)}
+              placeholder="Who covered this? e.g. Suman"
+              className="w-full h-9 px-3 rounded-xl border border-purple-200 dark:border-purple-800 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-purple-400/30"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1.5 px-1">
+              This shift won&apos;t count in your earnings — it goes into &quot;Owe to {coveredBy || "them"}&quot;.
+            </p>
+          </div>
+        )}
+      </div>
+
       <DialogFooter>
         <DialogClose asChild>
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
@@ -283,6 +315,8 @@ function StationForm({
   const [hours, setHours] = useState("5");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<ShiftStatus>("Unpaid");
+  const [coveredBy, setCoveredBy] = useState("");
+  const [isCovered, setIsCovered] = useState(false);
 
   // null = use auto-calc, string = user has manually overridden
   const [grossOverride, setGrossOverride] = useState<string | null>(null);

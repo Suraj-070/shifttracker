@@ -26,6 +26,7 @@ export interface Shift {
   amountEarned: string    // Decimal string e.g. "180.00"
   hoursWorked: number     // hours worked (0 for hall shifts if not tracked)
   status: ShiftStatus
+  coveredBy: string | null  // person who covered this shift on your behalf
   createdAt: string
 }
 
@@ -38,6 +39,7 @@ export interface ShiftCreateInput {
   amountEarned: string
   hoursWorked?: number
   status?: ShiftStatus
+  coveredBy?: string | null
 }
 
 export interface ShiftUpdateInput {
@@ -47,6 +49,7 @@ export interface ShiftUpdateInput {
   notes?: string
   amountEarned?: string
   hoursWorked?: number
+  coveredBy?: string | null
 }
 
 // Grouped shifts by month for the Shifts tab

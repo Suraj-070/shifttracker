@@ -19,6 +19,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         amount_earned: body.amountEarned,
         hours_worked: body.hoursWorked ?? 0,   // FIX: was missing
         status: body.status,
+        covered_by: body.coveredBy ?? null,
       })
       .eq('id', id)
       .select()
@@ -38,6 +39,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         amountEarned: shift.amount_earned,
         hoursWorked: shift.hours_worked ?? 0,  // FIX: was missing from response
         status: shift.status,
+        coveredBy: shift.covered_by ?? null,
         createdAt: shift.created_at,
       }
     })
