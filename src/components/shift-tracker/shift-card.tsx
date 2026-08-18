@@ -177,7 +177,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
   const [noteOpen, setNoteOpen] = useState(false);
   const [pressed,  setPressed]  = useState(false);
 
-  const deskTimer = useRef<ReturnType<typeof setTimeout>>();
+  const deskTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const deskEvents = isMobile ? {} : {
     onMouseDown: () => { deskTimer.current = setTimeout(() => { haptics(20); onLongPress?.(shift); }, 500); },
     onMouseUp:   () => clearTimeout(deskTimer.current),
