@@ -75,6 +75,7 @@ type ShiftKind = "hall" | "station";
 // ── Bulk action bar ────────────────────────────────────────────────────────
 
 function BulkBar({
+  visible,
   selected,
   total,
   onSelectAll,
@@ -83,6 +84,7 @@ function BulkBar({
   isLoading,
   accent,
 }: {
+  visible: boolean;
   selected: Set<string>;
   total: number;
   onSelectAll: () => void;
@@ -92,29 +94,63 @@ function BulkBar({
   accent: "emerald" | "blue";
 }) {
   const count = selected.size;
-  const ringColor = accent === "emerald" ? "ring-emerald-200 bg-emerald-50 dark:bg-emerald-950/30" : "ring-blue-200 bg-blue-50 dark:bg-blue-950/30";
-  const btnColor = accent === "emerald"
-    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-    : "bg-blue-600 hover:bg-blue-700 text-white";
+  const isEmerald = accent === "emerald";
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-2.5 rounded-lg ring-1 ${ringColor}`}>
-      <span className="text-sm font-medium flex-1">
-        {count} shift{count !== 1 ? "s" : ""} selected
-      </span>
-      <button
-        onClick={onSelectAll}
-        className="text-xs text-muted-foreground hover:text-foreground underline"
-      >
-        Select all {total}
-      </button>
-      <Button size="sm" className={`h-7 text-xs gap-1 ${btnColor}`} onClick={onMarkPaid} disabled={isLoading}>
-        <CheckCircle2 className="w-3.5 h-3.5" />
-        {isLoading ? "Saving…" : "Mark Paid"}
-      </Button>
-      <button onClick={onClear} className="text-muted-foreground hover:text-foreground">
-        <X className="w-4 h-4" />
-      </button>
+    <div
+      className="overflow-hidden"
+      style={{
+        maxHeight: visible ? "80px" : "0px",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-8px)",
+        transition: "max-height 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1)",
+        pointerEvents: visible ? "auto" : "none",
+      }}
+    >
+      <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl ring-1 ${
+        isEmerald
+          ? "ring-emerald-200 bg-emerald-50 dark:bg-emerald-950/30"
+          : "ring-blue-200 bg-blue-50 dark:bg-blue-950/30"
+      }`}>
+        {/* Count badge */}
+        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+          isEmerald
+            ? "bg-emerald-500 text-white"
+            : "bg-blue-500 text-white"
+        }`}>
+          {count}
+        </span>
+        <span className="text-sm font-medium flex-1 text-foreground">
+          shift{count !== 1 ? "s" : ""} selected
+        </span>
+        <button
+          onClick={onSelectAll}
+          className="text-xs text-muted-foreground hover:text-foreground underline shrink-0"
+        >
+          All {total}
+        </button>
+        <button
+          onClick={onMarkPaid}
+          disabled={isLoading || count === 0}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95 disabled:opacity-60 shrink-0 ${
+            isEmerald
+              ? "bg-emerald-500 shadow-sm shadow-emerald-500/30"
+              : "bg-blue-500 shadow-sm shadow-blue-500/30"
+          }`}
+        >
+          {isLoading
+            ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            : <CheckCircle2 className="w-3.5 h-3.5" />
+          }
+          {isLoading ? "Saving…" : "Mark Paid"}
+        </button>
+        <button
+          onClick={onClear}
+          className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:text-foreground active:scale-90 transition-transform shrink-0"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -511,28 +547,27 @@ export function ShiftsTab({
       </div>
 
       {/* Bulk bar — hall */}
-      {shiftKind === "hall" && hallSelecting && hallSelected.size > 0 && (
-          <BulkBar
-            selected={hallSelected}
-            total={filteredHall.length}
-            onSelectAll={() => setHallSelected(new Set(filteredHall.map((s) => s.id)))}
-            onClear={() => setHallSelected(new Set())}
-            onMarkPaid={() => handleBulkPaid(Array.from(hallSelected))}
-            isLoading={bulkLoading}
-            accent="emerald"
-          />
-      )}
-      {shiftKind === "station" && stationSelecting && stationSelected.size > 0 && (
-          <BulkBar
-            selected={stationSelected}
-            total={filteredStation.length}
-            onSelectAll={() => setStationSelected(new Set(filteredStation.map((s) => s.id)))}
-            onClear={() => setStationSelected(new Set())}
-            onMarkPaid={() => handleBulkPaid(Array.from(stationSelected))}
-            isLoading={bulkLoading}
-            accent="blue"
-          />
-      )}
+      <BulkBar
+        visible={shiftKind === "hall" && hallSelecting && hallSelected.size > 0}
+        selected={hallSelected}
+        total={filteredHall.length}
+        onSelectAll={() => setHallSelected(new Set(filteredHall.map((s) => s.id)))}
+        onClear={() => setHallSelected(new Set())}
+        onMarkPaid={() => handleBulkPaid(Array.from(hallSelected))}
+        isLoading={bulkLoading}
+        accent="emerald"
+      />
+      {/* Bulk bar — station */}
+      <BulkBar
+        visible={shiftKind === "station" && stationSelecting && stationSelected.size > 0}
+        selected={stationSelected}
+        total={filteredStation.length}
+        onSelectAll={() => setStationSelected(new Set(filteredStation.map((s) => s.id)))}
+        onClear={() => setStationSelected(new Set())}
+        onMarkPaid={() => handleBulkPaid(Array.from(stationSelected))}
+        isLoading={bulkLoading}
+        accent="blue"
+      />
 
       {/* Content */}
       {shiftKind === "hall" ? (

@@ -255,13 +255,19 @@ function SwipeWrapper({
       </div>
 
       {/* ── Delete confirm strip (appears after left snap) ── */}
-      {snapped === "left" && (
-        <div className="flex overflow-hidden rounded-b-2xl">
+      <div
+        style={{
+          maxHeight: snapped === "left" ? "52px" : "0px",
+          overflow: "hidden",
+          transition: "max-height 0.22s cubic-bezier(0.34,1.56,0.64,1)",
+        }}
+      >
+        <div className="flex rounded-b-2xl overflow-hidden">
           <button
             onClick={confirmDelete}
-            className="flex-1 py-3 text-xs font-bold text-white bg-rose-500 tracking-widest active:brightness-90"
+            className="flex-1 py-3 text-xs font-bold text-white bg-rose-500 tracking-widest active:brightness-90 flex items-center justify-center gap-1.5"
           >
-            DELETE
+            <Trash2 className="w-3.5 h-3.5" /> DELETE
           </button>
           <button
             onClick={resetSnap}
@@ -270,7 +276,7 @@ function SwipeWrapper({
             Cancel
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }

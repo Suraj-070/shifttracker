@@ -345,24 +345,27 @@ export default function ShiftTrackerPage() {
 
   const handleBulkMarkPaid = useCallback(async (shiftsToMark: Shift[]) => {
     if (!shiftsToMark.length) return;
-    haptics(12);
-    // Optimistic update
+    haptics(14);
+    const ids = shiftsToMark.map(s => s.id);
+    // Optimistic update — instant UI, single network call
     setShifts(prev => prev.map(s =>
-      shiftsToMark.find(m => m.id === s.id) ? { ...s, status: "Paid" as ShiftStatus } : s
+      ids.includes(s.id) ? { ...s, status: "Paid" as ShiftStatus } : s
     ));
-    // Save to DB
     try {
-      await Promise.all(shiftsToMark.map(s =>
-        fetch(`/api/shifts/${s.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "Paid" }),
-        })
-      ));
-      showToast({ type: "success", title: `${shiftsToMark.length} shifts marked paid ✓` });
+      const res = await fetch("/api/shifts/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids, status: "Paid" }),
+      });
+      if (!res.ok) throw new Error("bulk failed");
+      showToast({ type: "success", title: `${shiftsToMark.length} shift${shiftsToMark.length !== 1 ? "s" : ""} marked paid ✓` });
       await fetchProfile();
     } catch {
-      showToast({ type: "error", title: "Failed to update some shifts" });
+      // Rollback
+      setShifts(prev => prev.map(s =>
+        ids.includes(s.id) ? { ...s, status: "Unpaid" as ShiftStatus } : s
+      ));
+      showToast({ type: "error", title: "Failed to update shifts" });
     }
   }, [haptics, fetchProfile, showToast]);
 
