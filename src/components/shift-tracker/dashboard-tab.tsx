@@ -305,7 +305,7 @@ function DashboardTab({
                 <EarningsChart shifts={hallShifts} weeks={6} />
               </div>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* ── STATION DASHBOARD ──────────────────────────────── */}
