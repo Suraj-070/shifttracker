@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   DollarSign, CheckCircle2, XCircle, TrendingUp,
   Plus, CalendarDays, ChevronRight, User, MapPin,
@@ -472,46 +472,36 @@ function DashboardTab({
                           </button>
 
                           {/* Expanded shifts */}
-                          <AnimatePresence>
-                            {isExpanded && (
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="overflow-hidden"
-                              >
-                                <div className="border-t border-blue-100 dark:border-blue-900 divide-y divide-border/50">
-                                  {fn.shifts.map((shift) => {
-                                    const isPaid = shift.status === "Paid";
-                                    const tax = parseStationTax(shift.notes);
-                                    const net = Math.max(0, parseFloat(shift.amountEarned) - tax);
-                                    const userNote = parseStationUserNote(shift.notes);
-                                    return (
-                                      <div key={shift.id} className="flex items-center gap-3 px-4 py-2.5">
-                                        <div className={`w-1 h-8 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-xs font-medium">{formatShortDate(shift.shiftDate)}</span>
-                                            <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
-                                            <span className="text-[11px] text-blue-600 dark:text-blue-300 font-medium truncate">{shift.coveringFor}</span>
-                                          </div>
-                                          <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{userNote ? ` · ${userNote}` : ""}</p>
-                                        </div>
-                                        <div className="text-right shrink-0">
-                                          <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
-                                          <p className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</p>
-                                        </div>
-                                        <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 cursor-pointer shrink-0 ${isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"}`} onClick={() => onToggleStatus(shift)}>
-                                          {shift.status}
-                                        </Badge>
+                          {isExpanded && (
+                            <div className="border-t border-blue-100 dark:border-blue-900 divide-y divide-border/50">
+                              {fn.shifts.map((shift) => {
+                                const isPaid = shift.status === "Paid";
+                                const tax = parseStationTax(shift.notes);
+                                const net = Math.max(0, parseFloat(shift.amountEarned) - tax);
+                                const userNote = parseStationUserNote(shift.notes);
+                                return (
+                                  <div key={shift.id} className="flex items-center gap-3 px-4 py-2.5">
+                                    <div className={`w-1 h-8 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium">{formatShortDate(shift.shiftDate)}</span>
+                                        <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
+                                        <span className="text-[11px] text-blue-600 dark:text-blue-300 font-medium truncate">{shift.coveringFor}</span>
                                       </div>
-                                    );
-                                  })}
-                                </div>
-                              </motion.div>
-                            )}
-                          </>
+                                      <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{userNote ? ` · ${userNote}` : ""}</p>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+                                      <p className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</p>
+                                    </div>
+                                    <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 cursor-pointer shrink-0 ${isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"}`} onClick={() => onToggleStatus(shift)}>
+                                      {shift.status}
+                                    </Badge>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </Card>
                       );
                     })}
