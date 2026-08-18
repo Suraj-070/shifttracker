@@ -124,28 +124,85 @@ export default function ShiftTrackerPage() {
     setTabOnly(key, direction);
   }, [setTabOnly]);
 
-  // Back button — popstate fires when user presses back
+  // ── Dialog state with ref mirrors ────────────────────────────────────────
+  // Refs let the popstate closure always read latest open state
+  const [addDialogOpen,    setAddDialogOpenRaw]    = useState(false);
+  const [editDialogOpen,   setEditDialogOpenRaw]   = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpenRaw] = useState(false);
+  const [actionsSheetOpen, setActionsSheetOpenRaw] = useState(false);
+  const addOpenRef    = React.useRef(false);
+  const editOpenRef   = React.useRef(false);
+  const actionsOpenRef = React.useRef(false);
+
+  const setAddDialogOpen = useCallback((v: boolean) => {
+    addOpenRef.current = v;
+    setAddDialogOpenRaw(v);
+    if (v) window.history.pushState({ modal: "add" }, "");
+  }, []);
+
+  const setEditDialogOpen = useCallback((v: boolean) => {
+    editOpenRef.current = v;
+    setEditDialogOpenRaw(v);
+    if (v) window.history.pushState({ modal: "edit" }, "");
+  }, []);
+
+  const setActionsSheetOpen = useCallback((v: boolean) => {
+    actionsOpenRef.current = v;
+    setActionsSheetOpenRaw(v);
+    if (v) window.history.pushState({ modal: "actions" }, "");
+  }, []);
+
+  // deleteDialog is a toast — auto-dismisses, no history entry needed
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
+  const [shiftToEdit, setShiftToEdit] = useState<Shift | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
+  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
+  const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
+
+  // ── Back button / popstate ────────────────────────────────────────────────
+  // Priority: close topmost modal → then restore previous tab
   useEffect(() => {
     const onPop = (e: PopStateEvent) => {
-      const key = e.state?.shiftTrackerTab as TabKey | undefined;
+      // 1. Actions sheet open → close it
+      if (actionsOpenRef.current) {
+        setActionsSheetOpenRaw(false);
+        actionsOpenRef.current = false;
+        return;
+      }
+      // 2. Edit dialog open → close it
+      if (editOpenRef.current) {
+        setEditDialogOpenRaw(false);
+        editOpenRef.current = false;
+        setShiftToEdit(null);
+        return;
+      }
+      // 3. Add dialog open → close it
+      if (addOpenRef.current) {
+        setAddDialogOpenRaw(false);
+        addOpenRef.current = false;
+        setAddShiftDefaults({});
+        return;
+      }
+      // 4. No modal — restore previous tab from history state
+      const key = (e.state as { shiftTrackerTab?: TabKey } | null)?.shiftTrackerTab;
       if (!key) return;
       const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-      const currentIdx = tabs.indexOf(activeTabRef.current);
-      const nextIdx    = tabs.indexOf(key);
-      const dir = nextIdx < currentIdx ? "right" : "left"; // going back = right
+      const dir = tabs.indexOf(key) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
       setTabOnly(key, dir);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [setTabOnly]);
 
-  // Seed initial history entry (no push — just annotate current state)
+  // Seed initial history state
   useEffect(() => {
     window.history.replaceState({ shiftTrackerTab: defaultTab }, "");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tab swipe — but ONLY when the touch didn't start on a shift card
-  // (shift cards handle their own horizontal swipe for pay/delete)
+  // Tab swipe — only fires when NOT on a shift card
   useTabSwipe({
     disabled: !isMobile,
     onSwipeLeft: () => {
@@ -177,18 +234,6 @@ export default function ShiftTrackerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [profile, setProfile] = useState<UserProfile | null>(null);
-
-  // Dialog state
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
-  const [shiftToEdit, setShiftToEdit] = useState<Shift | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
-  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
-  const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
-  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
 
   // Fetch shifts
   const fetchShifts = useCallback(async () => {
@@ -275,7 +320,10 @@ export default function ShiftTrackerPage() {
         if (res.ok) {
           const data = await res.json();
           setShifts((prev) => [data.shift, ...prev]);
-          setAddDialogOpen(false);
+          // Close dialog + pop its history entry
+          addOpenRef.current = false;
+          setAddDialogOpenRaw(false);
+          window.history.back();
           haptics(15);
           setShowSuccessBurst(true);
           showToast({
@@ -311,8 +359,11 @@ export default function ShiftTrackerPage() {
           setShifts((prev) =>
             prev.map((s) => (s.id === id ? result.shift : s)),
           );
-          setEditDialogOpen(false);
+          // Close dialog + pop its history entry
+          editOpenRef.current = false;
+          setEditDialogOpenRaw(false);
           setShiftToEdit(null);
+          window.history.back();
           showToast({ type: "edit", title: "Shift updated!", description: "Changes saved." });
           await fetchProfile();
         }
@@ -541,7 +592,15 @@ export default function ShiftTrackerPage() {
           </main>
           <AddShiftDialog
             open={addDialogOpen}
-            onOpenChange={setAddDialogOpen}
+            onOpenChange={(v) => {
+              if (!v && addOpenRef.current) {
+                addOpenRef.current = false;
+                setAddDialogOpenRaw(false);
+                window.history.back();
+              } else if (v) {
+                setAddDialogOpen(true);
+              }
+            }}
             onSubmit={handleAddShift}
             isSubmitting={isSubmitting}
             shifts={shifts}
@@ -760,8 +819,15 @@ export default function ShiftTrackerPage() {
         <AddShiftDialog
           open={addDialogOpen}
           onOpenChange={(v) => {
-            setAddDialogOpen(v);
-            if (!v) setAddShiftDefaults({});
+            if (!v && addOpenRef.current) {
+              // Closing via UI — pop the history entry we pushed
+              addOpenRef.current = false;
+              setAddDialogOpenRaw(false);
+              setAddShiftDefaults({});
+              window.history.back();
+            } else if (v) {
+              setAddDialogOpen(true);
+            }
           }}
           onSubmit={handleAddShift}
           isSubmitting={isSubmitting}
@@ -771,7 +837,16 @@ export default function ShiftTrackerPage() {
         />
         <EditShiftDialog
           open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
+          onOpenChange={(v) => {
+            if (!v && editOpenRef.current) {
+              editOpenRef.current = false;
+              setEditDialogOpenRaw(false);
+              setShiftToEdit(null);
+              window.history.back();
+            } else if (v) {
+              setEditDialogOpen(true);
+            }
+          }}
           shift={shiftToEdit}
           shifts={shifts}
           onSave={handleEditShift}
@@ -780,7 +855,13 @@ export default function ShiftTrackerPage() {
         <ShiftActionsSheet
           shift={longPressShift}
           open={actionsSheetOpen}
-          onClose={() => setActionsSheetOpen(false)}
+          onClose={() => {
+            if (actionsOpenRef.current) {
+              actionsOpenRef.current = false;
+              setActionsSheetOpenRaw(false);
+              window.history.back();
+            }
+          }}
           onEdit={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
           onToggleStatus={toggleStatus}
           onDelete={handleDeleteStart}
