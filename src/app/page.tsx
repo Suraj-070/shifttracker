@@ -94,124 +94,125 @@ export default function ShiftTrackerPage() {
     []
   );
 
-  // Keep activeTab in a ref so swipe callbacks + popstate never go stale
   const activeTabRef = React.useRef(activeTab);
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
-  // Internal setter — does NOT push history (used by popstate handler)
+  // ── Custom back-stack — no browser history manipulation ──────────────────
+  // Next.js App Router intercepts ALL popstate events and re-renders the page.
+  // Solution: maintain our own stack in React state. Android back button
+  // is intercepted via a single dummy pushState entry that we always keep live.
+
+  // Tab history stack — tracks where user came from
+  const [tabStack, setTabStack] = React.useState<TabKey[]>([]);
+  const tabStackRef = React.useRef<TabKey[]>([]);
+
+  // Modal stack — tracks open modals in order
+  const [modalStack, setModalStack] = React.useState<string[]>([]);
+  const modalStackRef = React.useRef<string[]>([]);
+
   const setTabOnly = useCallback((key: TabKey, dir: "left" | "right") => {
     setSwipeDirection(dir);
     setActiveTab(key);
-    // Only scroll to top going forward — back restores natural position
     if (dir === "left") {
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
     }
   }, []);
 
-  // navigateTab — pushes a real history entry so back button works
   const navigateTab = useCallback((key: TabKey) => {
     if (activeTabRef.current === key) return;
     const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-    const currentIdx = tabs.indexOf(activeTabRef.current);
-    const nextIdx    = tabs.indexOf(key);
-    const dir = nextIdx > currentIdx ? "left" : "right";
-    const hash = key === "dashboard" ? window.location.pathname : `${window.location.pathname}#${key}`;
-    window.history.pushState({ shiftTrackerTab: key }, "", hash);
+    const dir = tabs.indexOf(key) > tabs.indexOf(activeTabRef.current) ? "left" : "right";
+    // Push current tab onto stack before moving
+    const newStack = [...tabStackRef.current, activeTabRef.current];
+    tabStackRef.current = newStack;
+    setTabStack(newStack);
     setTabOnly(key, dir);
   }, [setTabOnly]);
 
   const navigateTabWithDirection = useCallback((key: TabKey, direction: "left" | "right") => {
     if (activeTabRef.current === key) return;
-    const hash = key === "dashboard" ? window.location.pathname : `${window.location.pathname}#${key}`;
-    window.history.pushState({ shiftTrackerTab: key }, "", hash);
+    const newStack = [...tabStackRef.current, activeTabRef.current];
+    tabStackRef.current = newStack;
+    setTabStack(newStack);
     setTabOnly(key, direction);
   }, [setTabOnly]);
 
-  // ── Dialog state with ref mirrors ────────────────────────────────────────
-  // Refs let the popstate closure always read latest open state
-  const [addDialogOpen,    setAddDialogOpenRaw]    = useState(false);
-  const [editDialogOpen,   setEditDialogOpenRaw]   = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [actionsSheetOpen, setActionsSheetOpenRaw] = useState(false);
-  const addOpenRef    = React.useRef(false);
-  const editOpenRef   = React.useRef(false);
-  const actionsOpenRef = React.useRef(false);
-
-  const setAddDialogOpen = useCallback((v: boolean) => {
-    addOpenRef.current = v;
-    setAddDialogOpenRaw(v);
-    if (v) window.history.pushState({ modal: "add" }, "", "#modal-add");
+  // Push a modal onto our stack
+  const pushModal = useCallback((name: string) => {
+    const newStack = [...modalStackRef.current, name];
+    modalStackRef.current = newStack;
+    setModalStack(newStack);
   }, []);
 
-  const setEditDialogOpen = useCallback((v: boolean) => {
-    editOpenRef.current = v;
-    setEditDialogOpenRaw(v);
-    if (v) window.history.pushState({ modal: "edit" }, "", "#modal-edit");
+  // Pop the topmost modal, returns its name
+  const popModal = useCallback((): string | null => {
+    const stack = modalStackRef.current;
+    if (stack.length === 0) return null;
+    const popped = stack[stack.length - 1];
+    const newStack = stack.slice(0, -1);
+    modalStackRef.current = newStack;
+    setModalStack(newStack);
+    return popped;
   }, []);
 
-  const setActionsSheetOpen = useCallback((v: boolean) => {
-    actionsOpenRef.current = v;
-    setActionsSheetOpenRaw(v);
-    if (v) window.history.pushState({ modal: "actions" }, "", "#modal-actions");
-  }, []);
+  // Go back — close modal or pop tab stack
+  const goBack = useCallback(() => {
+    // Close topmost modal first
+    const modal = popModal();
+    if (modal === "actions") {
+      actionsOpenRef.current = false;
+      setActionsSheetOpenRaw(false);
+      return;
+    }
+    if (modal === "edit") {
+      editOpenRef.current = false;
+      setEditDialogOpenRaw(false);
+      setShiftToEdit(null);
+      return;
+    }
+    if (modal === "add") {
+      addOpenRef.current = false;
+      setAddDialogOpenRaw(false);
+      setAddShiftDefaults({});
+      return;
+    }
+    // No modal — pop tab stack
+    const stack = tabStackRef.current;
+    if (stack.length === 0) return;
+    const prev = stack[stack.length - 1];
+    const newStack = stack.slice(0, -1);
+    tabStackRef.current = newStack;
+    setTabStack(newStack);
+    const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    const dir = tabs.indexOf(prev) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
+    setTabOnly(prev, dir);
+  }, [popModal, setTabOnly]);
 
-  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
-  const [shiftToEdit, setShiftToEdit] = useState<Shift | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
-  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
-  const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
+  // ── Android back button interception ─────────────────────────────────────
+  // Keep ONE dummy history entry ahead of us. When back is pressed, popstate
+  // fires, we handle it ourselves and immediately push the dummy back.
+  const goBackRef = React.useRef(goBack);
+  useEffect(() => { goBackRef.current = goBack; }, [goBack]);
 
-  // ── Back button / popstate ────────────────────────────────────────────────
-  // Priority: close topmost modal → then restore previous tab
+  const hasBackableState = modalStack.length > 0 || tabStack.length > 0;
+
   useEffect(() => {
-    const onPop = (e: PopStateEvent) => {
-      // 1. Actions sheet open → close it
-      if (actionsOpenRef.current) {
-        setActionsSheetOpenRaw(false);
-        actionsOpenRef.current = false;
-        return;
+    // Push a single sentinel entry so back button fires popstate instead of leaving app
+    window.history.pushState({ sentinel: true }, "");
+
+    const onPop = () => {
+      const canGoBack = modalStackRef.current.length > 0 || tabStackRef.current.length > 0;
+      if (canGoBack) {
+        goBackRef.current();
+        // Re-push sentinel so next back press also fires
+        window.history.pushState({ sentinel: true }, "");
       }
-      // 2. Edit dialog open → close it
-      if (editOpenRef.current) {
-        setEditDialogOpenRaw(false);
-        editOpenRef.current = false;
-        setShiftToEdit(null);
-        return;
-      }
-      // 3. Add dialog open → close it
-      if (addOpenRef.current) {
-        setAddDialogOpenRaw(false);
-        addOpenRef.current = false;
-        setAddShiftDefaults({});
-        return;
-      }
-      // 4. No modal — restore previous tab from history state or hash
-      const state = e.state as { shiftTrackerTab?: TabKey; modal?: string } | null;
-      const hashTab = window.location.hash.replace("#", "") as TabKey;
-      const validTabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-      const key = state?.shiftTrackerTab || (validTabs.includes(hashTab) ? hashTab : "dashboard") as TabKey;
-      if (!key) return;
-      const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-      const dir = tabs.indexOf(key) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
-      setTabOnly(key, dir);
+      // If nothing to go back to, let the browser exit naturally (don't re-push)
     };
+
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [setTabOnly]);
-
-  // Seed initial history state with hash
-  useEffect(() => {
-    const hash = defaultTab === "dashboard" ? "" : `#${defaultTab}`;
-    window.history.replaceState({ shiftTrackerTab: defaultTab }, "", hash || window.location.pathname);
-    // Also read hash on load in case user bookmarked a tab
-    const hashTab = window.location.hash.replace("#", "") as TabKey;
-    const validTabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
-    if (hashTab && validTabs.includes(hashTab) && hashTab !== defaultTab) {
-      setActiveTab(hashTab);
-      activeTabRef.current = hashTab;
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // Only run once — goBackRef stays current via ref
 
   // Tab swipe — only fires when NOT on a shift card
   useTabSwipe({
@@ -239,6 +240,40 @@ export default function ShiftTrackerPage() {
       return () => clearTimeout(t);
     }
   }, [isMobile, activeTab, navigateTab]);
+
+  // ── Dialog state with ref mirrors ───────────────────────────────────────
+  const [addDialogOpen,    setAddDialogOpenRaw]    = useState(false);
+  const [editDialogOpen,   setEditDialogOpenRaw]   = useState(false);
+  const [actionsSheetOpen, setActionsSheetOpenRaw] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen]    = useState(false);
+  const addOpenRef     = React.useRef(false);
+  const editOpenRef    = React.useRef(false);
+  const actionsOpenRef = React.useRef(false);
+
+  const setAddDialogOpen = useCallback((v: boolean) => {
+    addOpenRef.current = v;
+    setAddDialogOpenRaw(v);
+    if (v) pushModal("add");
+  }, [pushModal]);
+
+  const setEditDialogOpen = useCallback((v: boolean) => {
+    editOpenRef.current = v;
+    setEditDialogOpenRaw(v);
+    if (v) pushModal("edit");
+  }, [pushModal]);
+
+  const setActionsSheetOpen = useCallback((v: boolean) => {
+    actionsOpenRef.current = v;
+    setActionsSheetOpenRaw(v);
+    if (v) pushModal("actions");
+  }, [pushModal]);
+
+  const [shiftToDelete, setShiftToDelete]   = useState<Shift | null>(null);
+  const [shiftToEdit,   setShiftToEdit]     = useState<Shift | null>(null);
+  const [isSubmitting,  setIsSubmitting]    = useState(false);
+  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
+  const [showSuccessBurst, setShowSuccessBurst] = useState(false);
+  const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
 
   // Data state
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -334,7 +369,7 @@ export default function ShiftTrackerPage() {
           // Close dialog + pop its history entry
           addOpenRef.current = false;
           setAddDialogOpenRaw(false);
-          window.history.back();
+          popModal();
           haptics(15);
           setShowSuccessBurst(true);
           showToast({
@@ -374,7 +409,7 @@ export default function ShiftTrackerPage() {
           editOpenRef.current = false;
           setEditDialogOpenRaw(false);
           setShiftToEdit(null);
-          window.history.back();
+          popModal();
           showToast({ type: "edit", title: "Shift updated!", description: "Changes saved." });
           await fetchProfile();
         }
@@ -607,7 +642,7 @@ export default function ShiftTrackerPage() {
               if (!v && addOpenRef.current) {
                 addOpenRef.current = false;
                 setAddDialogOpenRaw(false);
-                window.history.back();
+                popModal();
               } else if (v) {
                 setAddDialogOpen(true);
               }
@@ -816,7 +851,7 @@ export default function ShiftTrackerPage() {
               addOpenRef.current = false;
               setAddDialogOpenRaw(false);
               setAddShiftDefaults({});
-              window.history.back();
+              popModal();
             } else if (v) {
               setAddDialogOpen(true);
             }
@@ -834,7 +869,7 @@ export default function ShiftTrackerPage() {
               editOpenRef.current = false;
               setEditDialogOpenRaw(false);
               setShiftToEdit(null);
-              window.history.back();
+              popModal();
             } else if (v) {
               setEditDialogOpen(true);
             }
@@ -851,7 +886,7 @@ export default function ShiftTrackerPage() {
             if (actionsOpenRef.current) {
               actionsOpenRef.current = false;
               setActionsSheetOpenRaw(false);
-              window.history.back();
+              popModal();
             }
           }}
           onEdit={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
