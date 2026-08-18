@@ -18,7 +18,7 @@ interface AnalyticsTabProps {
   isLoading: boolean;
 }
 
-export function AnalyticsTab({ summary, monthlyEarnings, isLoading }: AnalyticsTabProps) {
+function AnalyticsTab({ summary, monthlyEarnings, isLoading }: AnalyticsTabProps) {
   if (isLoading) return <DashboardSkeleton />;
 
   const chartData = [...monthlyEarnings].reverse().map((m) => ({
@@ -139,3 +139,6 @@ export function AnalyticsTab({ summary, monthlyEarnings, isLoading }: AnalyticsT
     </div>
   );
 }
+
+export default React.memo(AnalyticsTab);
+export { AnalyticsTab };

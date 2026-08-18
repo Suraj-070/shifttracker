@@ -143,7 +143,7 @@ interface DashboardTabProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function DashboardTab({
+function DashboardTab({
   summary,
   recentShifts,
   stationShifts,
@@ -224,15 +224,15 @@ export function DashboardTab({
         </button>
       </div>
 
-      <AnimatePresence mode="wait">
+      <>
 
         {/* ── HALL DASHBOARD ─────────────────────────────────── */}
         {dashKind === "hall" && (
-          <motion.div key="hall" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-3">
+          <div className="space-y-3">
 
             {/* ── Unpaid hero — only when unpaid shifts exist ── */}
             {summary.totalUnpaid > 0 && (
-              <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 flex items-center justify-between">
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-primary/60 uppercase tracking-widest mb-1">Unpaid</p>
                   <AnimatedCurrency value={summary.totalUnpaid} className="text-3xl font-bold text-primary tabular-nums" duration={500} />
@@ -241,7 +241,7 @@ export function DashboardTab({
                 <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                   <DollarSign className="w-8 h-8 text-primary" />
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* ── 2 key stats only ── */}
@@ -310,7 +310,7 @@ export function DashboardTab({
 
         {/* ── STATION DASHBOARD ──────────────────────────────── */}
         {dashKind === "station" && (
-          <motion.div key="station" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.18 }} className="space-y-4">
+          <div className="space-y-4">
 
             {stationCount === 0 ? (
               <Card>
@@ -324,8 +324,7 @@ export function DashboardTab({
               <>
                 {/* ── Net take-home hero ── */}
                 {stationUnpaid > 0 && (
-                  <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
-                    className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-2xl p-4 flex items-center justify-between">
                     <div>
                       <p className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1">Unpaid</p>
                       <AnimatedCurrency value={stationUnpaid > 0 ? stationNet * (stationUnpaid / stationCount) : 0} className="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums" duration={500} />
@@ -334,7 +333,7 @@ export function DashboardTab({
                     <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                       <MapPin className="w-8 h-8 text-blue-500" />
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* ── 2 key stats ── */}
@@ -512,7 +511,7 @@ export function DashboardTab({
                                 </div>
                               </motion.div>
                             )}
-                          </AnimatePresence>
+                          </>
                         </Card>
                       );
                     })}
@@ -568,9 +567,12 @@ export function DashboardTab({
                 </Card>
               </>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </div>
   );
 }
+
+export default React.memo(DashboardTab);
+export { DashboardTab };

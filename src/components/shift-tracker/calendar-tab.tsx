@@ -26,7 +26,7 @@ function isSameDay(a: Date, b: Date) {
     a.getDate() === b.getDate();
 }
 
-export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
+function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -245,3 +245,6 @@ export function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabPro
     </div>
   );
 }
+
+export default React.memo(CalendarTab);
+export { CalendarTab };

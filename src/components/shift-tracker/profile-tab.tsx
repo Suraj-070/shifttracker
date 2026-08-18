@@ -46,7 +46,7 @@ function StatBadge({ icon: Icon, label, value, color }: {
   );
 }
 
-export function ProfileTab({
+function ProfileTab({
   profile,
   isLoading,
   onRefresh,
@@ -401,3 +401,6 @@ export function ProfileTab({
     </div>
   );
 }
+
+export default React.memo(ProfileTab);
+export { ProfileTab };

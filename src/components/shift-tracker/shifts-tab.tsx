@@ -278,7 +278,7 @@ function SelectableListView({
   );
 }
 
-export function ShiftsTab({
+function ShiftsTab({
   shifts,
   isLoading,
   onToggleStatus,
@@ -689,3 +689,6 @@ export function ShiftsTab({
     </div>
   );
 }
+
+export default React.memo(ShiftsTab);
+export { ShiftsTab };

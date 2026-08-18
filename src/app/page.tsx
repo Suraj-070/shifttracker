@@ -693,10 +693,10 @@ export default function ShiftTrackerPage() {
         )}
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
-          {/* Tabs stay mounted — visibility toggled via CSS so no remount flash */}
+          {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
-            <div style={{ display: activeTab === "dashboard" ? "block" : "none" }}>
+            <div style={{ display: activeTab === "dashboard" ? "block" : "none", contain: "layout style" }}>
               <DashboardTab
                 summary={summary}
                 recentShifts={recentShifts}
@@ -711,7 +711,7 @@ export default function ShiftTrackerPage() {
                 compact={compactDashboard}
               />
             </div>
-              <div style={{ display: activeTab === "shifts" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "shifts" ? "block" : "none", contain: "layout style" }}>
                 <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
@@ -727,7 +727,7 @@ export default function ShiftTrackerPage() {
                 />
               </div>
 
-              <div style={{ display: activeTab === "calendar" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "calendar" ? "block" : "none", contain: "layout style" }}>
                 <CalendarTab
                   shifts={shifts}
                   onShiftClick={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
@@ -735,11 +735,11 @@ export default function ShiftTrackerPage() {
                 />
               </div>
 
-              <div style={{ display: activeTab === "reminders" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "reminders" ? "block" : "none", contain: "layout style" }}>
                 <RemindersTab savedStationNames={savedStationNames} />
               </div>
 
-              <div style={{ display: activeTab === "profile" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "profile" ? "block" : "none", contain: "layout style" }}>
                 <ProfileTab
                   profile={profile}
                   isLoading={isLoading}
@@ -750,7 +750,7 @@ export default function ShiftTrackerPage() {
                 />
               </div>
 
-              <div style={{ display: activeTab === "analytics" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "analytics" ? "block" : "none", contain: "layout style" }}>
                 <AnalyticsTab
                   summary={summary}
                   monthlyEarnings={monthlyEarnings}
@@ -758,7 +758,7 @@ export default function ShiftTrackerPage() {
                 />
               </div>
 
-              <div style={{ display: activeTab === "settings" ? "block" : "none" }}>
+              <div style={{ display: activeTab === "settings" ? "block" : "none", contain: "layout style" }}>
                 <SettingsTab />
               </div>
 

@@ -9,7 +9,7 @@ interface RemindersTabProps {
   savedStationNames?: string[];
 }
 
-export function RemindersTab({ savedStationNames = [] }: RemindersTabProps) {
+function RemindersTab({ savedStationNames = [] }: RemindersTabProps) {
   const { isSubscribed, permission } = usePushNotifications();
 
   return (
@@ -44,3 +44,6 @@ export function RemindersTab({ savedStationNames = [] }: RemindersTabProps) {
     </div>
   );
 }
+
+export default React.memo(RemindersTab);
+export { RemindersTab };
