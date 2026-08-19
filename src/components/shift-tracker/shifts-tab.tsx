@@ -552,6 +552,7 @@ function ShiftsTab({
         </div>
       )}
     <div className="h-20" />{/* FAB clearance */}
+      </div>
     </div>
   );
 }
