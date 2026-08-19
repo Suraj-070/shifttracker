@@ -650,7 +650,7 @@ export default function ShiftTrackerPage() {
   if (!isLoading && shifts.length === 0) {
     return (
       <>
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="min-h-screen bg-background">
           <main className="flex-1 flex items-center justify-center p-6">
             <div className="text-center max-w-md">
               <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
@@ -698,7 +698,7 @@ export default function ShiftTrackerPage() {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-background">
+      <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl md:block hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -769,7 +769,7 @@ export default function ShiftTrackerPage() {
           </div>
         )}
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6">
+        <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6">
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
