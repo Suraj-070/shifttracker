@@ -102,8 +102,8 @@ export function ShiftDetailSheet({
                   : covered ? "bg-amber-500 text-white" : "bg-rose-500 text-white"
               }`}
             >
-              {isPaid ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-              {isPaid ? "Paid" : covered ? "Owed" : "Unpaid"}
+              {isPaid ? <CheckCircle2 className="w-4 h-4" /> : null}
+              {isPaid ? "Mark Unpaid" : covered ? "Mark Paid" : "Mark Paid"}
             </button>
           </div>
         </div>
@@ -122,11 +122,7 @@ export function ShiftDetailSheet({
                 {covered ? shift.coveredBy : isSelf ? "Suraj (You)" : shift.coveringFor}
               </p>
             </div>
-            {covered && (
-              <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400">
-                💸 by {shift.coveredBy}
-              </span>
-            )}
+
             {isSelf && (
               <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400">
                 ✦ You
@@ -155,7 +151,7 @@ export function ShiftDetailSheet({
             </div>
             <div>
               <p className="text-[11px] text-muted-foreground">Date</p>
-              <p className="text-sm font-semibold">{shift.shiftDate} · {shift.shiftDay}</p>
+              <p className="text-sm font-semibold">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
             </div>
           </div>
 
@@ -185,20 +181,7 @@ export function ShiftDetailSheet({
             </div>
           )}
 
-          {/* Covered by (if applicable) */}
-          {covered && (
-            <div className="flex items-center gap-3 px-4 py-3.5 bg-amber-50/50 dark:bg-amber-950/10">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
-                <UserX className="w-4 h-4 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">To pay out</p>
-                <p className="text-sm font-bold text-amber-700 dark:text-amber-300">
-                  {shift.coveredBy} · {formatCurrency(parseFloat(shift.amountEarned))}
-                </p>
-              </div>
-            </div>
-          )}
+
         </div>
 
         {/* Action buttons */}
@@ -217,10 +200,9 @@ export function ShiftDetailSheet({
           </button>
         </div>
 
-        {/* Cancel */}
-        <div className="px-4 pb-4 pt-1">
+        <div className="px-4 pb-3 pt-1">
           <button onClick={onClose}
-            className="w-full py-3.5 rounded-2xl bg-muted text-sm font-semibold text-muted-foreground active:brightness-95">
+            className="w-full py-3 rounded-2xl bg-muted text-sm font-semibold text-muted-foreground active:brightness-95">
             Close
           </button>
         </div>
