@@ -769,7 +769,7 @@ export default function ShiftTrackerPage() {
           </div>
         )}
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6">
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 

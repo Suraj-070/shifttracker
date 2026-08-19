@@ -296,7 +296,7 @@ function ShiftsTab({
     <div className="space-y-0">
 
       {/* ── Sticky segmented control ── */}
-      <div className="sticky z-30" style={{ top: 0 }}>
+      <div className="sticky top-0 z-30">
         <div
           className="absolute inset-0 -mx-4"
           style={{

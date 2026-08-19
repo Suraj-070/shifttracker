@@ -252,10 +252,7 @@ function DashboardTab({
     <div className="space-y-4">
 
       {/* Hall / Station sticky segmented control */}
-      <div
-        className="sticky z-30"
-        style={{ top: 0 }}
-      >
+      <div className="sticky top-0 z-30">
         {/* Blur backdrop */}
         <div
           className="absolute inset-0 -mx-4"
