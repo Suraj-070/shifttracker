@@ -700,7 +700,7 @@ export default function ShiftTrackerPage() {
     <>
       <div className="min-h-screen flex flex-col bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl md:block hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center gap-2.5">
@@ -773,11 +773,14 @@ export default function ShiftTrackerPage() {
           </div>
         )}
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-36 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
             <div style={{ display: activeTab === "dashboard" ? "block" : "none", contain: "layout style" }}>
+              <div className="flex items-center justify-between mb-5 md:hidden">
+                <h1 className="text-2xl font-black tracking-tight">Dashboard</h1>
+              </div>
               <DashboardTab
                 summary={summary}
                 recentShifts={recentShifts}
@@ -794,6 +797,9 @@ export default function ShiftTrackerPage() {
               />
             </div>
               <div style={{ display: activeTab === "shifts" ? "block" : "none", contain: "layout style" }}>
+                <div className="flex items-center justify-between mb-4 md:hidden">
+                  <h1 className="text-2xl font-black tracking-tight">Shifts</h1>
+                </div>
                 <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
@@ -819,6 +825,9 @@ export default function ShiftTrackerPage() {
               </div>
 
               <div style={{ display: activeTab === "owe" ? "block" : "none", contain: "layout style" }}>
+                <div className="flex items-center justify-between mb-4 md:hidden">
+                  <h1 className="text-2xl font-black tracking-tight">Owe</h1>
+                </div>
                 <OweTab
                   shifts={shifts}
                   onToggleStatus={toggleStatus}
@@ -832,6 +841,9 @@ export default function ShiftTrackerPage() {
               </div>
 
               <div style={{ display: activeTab === "profile" ? "block" : "none", contain: "layout style" }}>
+                <div className="flex items-center justify-between mb-4 md:hidden">
+                  <h1 className="text-2xl font-black tracking-tight">Profile</h1>
+                </div>
                 <ProfileTab
                   profile={profile}
                   isLoading={isLoading}
