@@ -337,17 +337,21 @@ function DashboardTab({
                 <div className="divide-y divide-border/30">
                   {recentShifts.map((shift) => {
                     const isPaid = shift.status === "Paid";
+                    const isCovered = Boolean(shift.coveredBy);
+                    const isSelf = !isCovered && (shift.coveringFor?.toLowerCase() === "suraj" || shift.coveringFor?.toLowerCase() === "myself");
+                    const displayName = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? "Suraj (You)" : shift.coveringFor;
+                    const stripeColor = isCovered ? "bg-gradient-to-b from-amber-400 to-amber-500" : isSelf ? "bg-gradient-to-b from-purple-400 to-purple-600" : isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500";
                     return (
                       <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/40 transition-colors cursor-pointer select-none">
-                        <div className={`w-2 h-8 rounded-full shrink-0 ${isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500"}`} />
+                        <div className={`w-2 h-8 rounded-full shrink-0 ${stripeColor}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">{shift.coveringFor}</p>
+                          <p className={`text-sm font-semibold truncate ${isCovered ? "text-amber-600 dark:text-amber-400" : isSelf ? "text-purple-600 dark:text-purple-400" : ""}`}>{displayName}</p>
                           <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
-                          <span className={`text-[10px] font-bold ${isPaid ? "text-emerald-600" : "text-rose-500"}`}>
-                            {isPaid ? "✓ Paid" : "Unpaid"}
+                          <span className={`text-[10px] font-bold ${isPaid ? "text-emerald-600" : isCovered ? "text-amber-500" : "text-rose-500"}`}>
+                            {isPaid ? "✓ Paid" : isCovered ? "Owed" : "Unpaid"}
                           </span>
                         </div>
                       </div>

@@ -11,7 +11,7 @@ import {
   Settings,
   Plus,
   Clock,
-  Wallet,
+  HandCoins,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
@@ -64,8 +64,8 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "shifts", label: "Shifts", icon: CalendarDays },
-  { key: "owe", label: "Owe", icon: Wallet },
-  { key: "calendar", label: "Calendar", icon: Calendar },
+  { key: "owe", label: "Owe", icon: HandCoins },
+  { key: "calendar", label: "Calendar", icon: CalendarRange },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "reminders", label: "Reminders", icon: Bell },
   { key: "profile", label: "Profile", icon: User },
