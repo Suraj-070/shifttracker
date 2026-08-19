@@ -266,57 +266,62 @@ function ShiftsTab({
   return (
     <div className="space-y-3">
 
-      {/* ── Top bar ── */}
+      {/* ── Top bar — single tight row ── */}
       <div className="flex items-center gap-2">
-        {/* Hall / Station pill — flex-1 */}
-        <div className="flex gap-0.5 p-1 bg-muted rounded-xl flex-1">
-          <button onClick={() => setShiftKind("hall")}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${shiftKind === "hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "text-muted-foreground"}`}>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-            Hall
-            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${shiftKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/15 text-muted-foreground"}`}>{hallShifts.length}</span>
-          </button>
-          <button onClick={() => setShiftKind("station")}
-            className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${shiftKind === "station" ? "bg-white dark:bg-card text-blue-700 shadow-sm" : "text-muted-foreground"}`}>
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
-            Station
-            <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${shiftKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/15 text-muted-foreground"}`}>{stationShifts.length}</span>
-          </button>
-        </div>
 
-        {/* View mode */}
-        <div className="flex items-center gap-0.5 bg-muted rounded-xl p-1 shrink-0">
-          <button onClick={() => { setViewMode("card"); setCalendarView(false); }}
-            className={`p-2 rounded-lg transition-all active:scale-90 ${!calendarView && effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-            <LayoutGrid className="w-3.5 h-3.5" />
+        {/* Hall / Station segmented */}
+        <div className="flex gap-0.5 p-1 bg-muted rounded-xl flex-1 min-w-0">
+          <button onClick={() => { setShiftKind("hall"); setCalendarView(false); }}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${shiftKind === "hall" && !calendarView ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "text-muted-foreground"}`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            Hall
+            <span className="tabular-nums opacity-70">{hallShifts.length}</span>
           </button>
-          <button onClick={() => { setViewMode("list"); setCalendarView(false); }}
-            className={`p-2 rounded-lg transition-all active:scale-90 ${!calendarView && effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-            <List className="w-3.5 h-3.5" />
+          <button onClick={() => { setShiftKind("station"); setCalendarView(false); }}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${shiftKind === "station" && !calendarView ? "bg-white dark:bg-card text-blue-700 shadow-sm" : "text-muted-foreground"}`}>
+            <MapPin className="w-3 h-3 shrink-0" />
+            Station
+            <span className="tabular-nums opacity-70">{stationShifts.length}</span>
           </button>
           <button onClick={() => setCalendarView(v => !v)}
-            className={`p-2 rounded-lg transition-all active:scale-90 ${calendarView ? "bg-white dark:bg-card shadow-sm text-primary" : "text-muted-foreground"}`}>
-            <CalendarDays className="w-3.5 h-3.5" />
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"}`}>
+            <CalendarDays className="w-3 h-3 shrink-0" />
+            Cal
           </button>
         </div>
 
-        {/* Select toggle */}
-        {activeFiltered.length > 0 && (
+        {/* View mode — only when not in calendar */}
+        {!calendarView && (
+          <div className="flex items-center gap-0.5 bg-muted rounded-xl p-1 shrink-0">
+            <button onClick={() => setViewMode("card")}
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+              <LayoutGrid className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => setViewMode("list")}
+              className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+              <List className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Select — only in list/card mode */}
+        {!calendarView && activeFiltered.length > 0 && (
           <button
             onClick={() => {
-              if (shiftKind === "hall") { setHallSelecting((v) => !v); setHallSelected(new Set()); }
-              else { setStationSelecting((v) => !v); setStationSelected(new Set()); }
+              if (shiftKind === "hall") { setHallSelecting(v => !v); setHallSelected(new Set()); }
+              else { setStationSelecting(v => !v); setStationSelected(new Set()); }
             }}
-            className={`h-9 px-3.5 rounded-xl text-xs font-bold border transition-all active:scale-90 shrink-0 ${
-              isSelecting
-                ? "bg-primary text-primary-foreground border-primary"
-                : "bg-background border-border/70 text-muted-foreground"
+            className={`h-8 px-3 rounded-xl text-xs font-bold border transition-all active:scale-90 shrink-0 ${
+              isSelecting ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border/70 text-muted-foreground"
             }`}
           >
             {isSelecting ? "Done" : "Select"}
           </button>
         )}
       </div>
+
+      {/* ── Below hidden in calendar view ── */}
+      {!calendarView && <>
 
       {/* ── Station net strip ── */}
       {shiftKind === "station" && stationShifts.length > 0 && (
@@ -408,11 +413,13 @@ function ShiftsTab({
 
 
 
-      {/* ── Calendar view ── */}
+      </> }
+
+      {/* ── Calendar view — shows ALL shifts across hall+station ── */}
       {calendarView && (
         <div className="mt-2">
           <CalendarTab
-            shifts={shiftKind === "hall" ? filteredHall : filteredStation}
+            shifts={shifts}
             onShiftClick={onShiftClick ?? onEditShift}
             onAddShift={onAddShift ? () => onAddShift() : undefined}
           />
