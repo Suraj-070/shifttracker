@@ -308,3 +308,26 @@ textarea:focus-visible {
   /* NO will-change here - it creates a new stacking context for ALL children
      causing glass/blur effects to be much more expensive */
 }
+
+/* ── Tab content transitions ── */
+[data-tab-content] {
+  animation: tab-in 0.18s ease-out;
+}
+
+@keyframes tab-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Hide scrollbars but keep scroll ── */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar { display: none; }
+
+/* ── Smooth tap highlight removal ── */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ── Better touch action ── */
+button, a { touch-action: manipulation; }

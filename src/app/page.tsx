@@ -701,25 +701,21 @@ export default function ShiftTrackerPage() {
     <>
       <div className="min-h-screen flex flex-col bg-background">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b">
+        <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-14">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-sm shadow-emerald-500/30">
+                  <Clock className="w-4 h-4 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="font-semibold text-lg tracking-tight">
-                  ShiftTracker
-                </span>
+                <span className="font-bold text-[17px] tracking-tight">ShiftTracker</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => setAddDialogOpen(true)}
-                  className="gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Add Shift
-                </Button>
+                {!isMobile && (
+                  <Button size="sm" onClick={() => setAddDialogOpen(true)} className="gap-1.5 rounded-xl">
+                    <Plus className="w-3.5 h-3.5" /> Add Shift
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -778,7 +774,7 @@ export default function ShiftTrackerPage() {
           </div>
         )}
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-28 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 pb-36 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
@@ -861,20 +857,10 @@ export default function ShiftTrackerPage() {
           </div>
         </main>
 
-        {/* Floating Add Button — mobile only */}
-        {isMobile && (
-          <button
-            onClick={() => setAddDialogOpen(true)}
-            className="fixed bottom-20 right-4 z-40 w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/30 flex items-center justify-center active:scale-90 transition-transform"
-            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-          >
-            <Plus className="w-7 h-7 stroke-[2.5]" />
-          </button>
-        )}
-
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
+            onFabPress={() => setAddDialogOpen(true)}
             tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders").map((t) => ({
               ...t,
               badge: t.key === "shifts"
