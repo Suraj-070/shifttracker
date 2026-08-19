@@ -253,7 +253,7 @@ export default function ShiftTrackerPage() {
 
   // Redirect away from analytics on mobile
   useEffect(() => {
-    if (isMobile && activeTab === "analytics") {
+    if (activeTab === "analytics") {
       const t = setTimeout(() => navigateTab("dashboard"), 0);
       return () => clearTimeout(t);
     }
@@ -710,19 +710,16 @@ export default function ShiftTrackerPage() {
                 <span className="font-bold text-[17px] tracking-tight">ShiftTracker</span>
               </div>
               <div className="flex items-center gap-2">
-                {!isMobile && (
-                  <Button size="sm" onClick={() => setAddDialogOpen(true)} className="gap-1.5 rounded-xl">
-                    <Plus className="w-3.5 h-3.5" /> Add Shift
-                  </Button>
-                )}
+                <Button size="sm" onClick={() => setAddDialogOpen(true)} className="gap-1.5 rounded-xl hidden md:flex">
+                  <Plus className="w-3.5 h-3.5" /> Add Shift
+                </Button>
               </div>
             </div>
           </div>
         </header>
 
         {/* Desktop Tab Nav */}
-        {!isMobile && (
-          <nav className="border-b bg-background/80 backdrop-blur-lg">
+        <nav className="border-b bg-background/80 backdrop-blur-lg hidden md:block">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex items-center gap-1 h-10 overflow-x-auto">
                 {TABS.map((tab) => {
@@ -750,7 +747,6 @@ export default function ShiftTrackerPage() {
               </div>
             </div>
           </nav>
-        )}
 
         {/* Main Content */}
         {/* Pull to refresh indicator — fixed overlay so it appears above content */}
