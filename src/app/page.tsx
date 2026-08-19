@@ -773,7 +773,7 @@ export default function ShiftTrackerPage() {
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
-            <div style={{ display: activeTab === "dashboard" ? "block" : "none", contain: "layout style" }}>
+            <div style={{ display: activeTab === "dashboard" ? "block" : "none" }}>
               <DashboardTab
                 summary={summary}
                 recentShifts={recentShifts}
@@ -789,7 +789,7 @@ export default function ShiftTrackerPage() {
                 compact={compactDashboard}
               />
             </div>
-              <div style={{ display: activeTab === "shifts" ? "block" : "none", contain: "layout style" }}>
+              <div style={{ display: activeTab === "shifts" ? "block" : "none" }}>
               <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
