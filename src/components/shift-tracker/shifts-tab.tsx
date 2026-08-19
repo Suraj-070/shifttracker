@@ -266,56 +266,70 @@ function ShiftsTab({
   return (
     <div className="space-y-3">
 
-      {/* ── Top bar — single tight row ── */}
+      {/* ── Top bar ── */}
       <div className="flex items-center gap-2">
 
-        {/* Hall / Station segmented */}
-        <div className="flex gap-0.5 p-1 bg-muted rounded-xl flex-1 min-w-0">
-          <button onClick={() => { setShiftKind("hall"); setCalendarView(false); }}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${shiftKind === "hall" && !calendarView ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "text-muted-foreground"}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-            Hall
-            <span className="tabular-nums opacity-70">{hallShifts.length}</span>
-          </button>
-          <button onClick={() => { setShiftKind("station"); setCalendarView(false); }}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${shiftKind === "station" && !calendarView ? "bg-white dark:bg-card text-blue-700 shadow-sm" : "text-muted-foreground"}`}>
-            <MapPin className="w-3 h-3 shrink-0" />
-            Station
-            <span className="tabular-nums opacity-70">{stationShifts.length}</span>
-          </button>
-          <button onClick={() => setCalendarView(v => !v)}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold transition-all ${calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"}`}>
-            <CalendarDays className="w-3 h-3 shrink-0" />
-            Cal
+        {/* Segmented: Hall / Station / Calendar */}
+        <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl flex-1">
+          {[
+            { key: "hall",    label: "Hall",    badge: hallShifts.length,    color: "text-emerald-700" },
+            { key: "station", label: "Station", badge: stationShifts.length, color: "text-blue-700" },
+          ].map(tab => (
+            <button key={tab.key}
+              onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold transition-all ${
+                shiftKind===tab.key && !calendarView
+                  ? `bg-white dark:bg-card ${tab.color} shadow-sm`
+                  : "text-muted-foreground"
+              }`}>
+              {tab.label}
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                shiftKind===tab.key && !calendarView ? "bg-current/10" : "bg-muted-foreground/10"
+              }`}>{tab.badge}</span>
+            </button>
+          ))}
+          <button
+            onClick={() => setCalendarView(v => !v)}
+            className={`px-3 py-2 rounded-xl transition-all active:scale-90 ${
+              calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"
+            }`}>
+            <CalendarDays className="w-4 h-4" />
           </button>
         </div>
 
-        {/* View mode — only when not in calendar */}
+        {/* View toggle — card/list, only when not calendar */}
         {!calendarView && (
-          <div className="flex items-center gap-0.5 bg-muted rounded-xl p-1 shrink-0">
+          <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl shrink-0">
             <button onClick={() => setViewMode("card")}
-              className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+              className={`p-2 rounded-xl transition-all active:scale-90 ${effectiveViewMode==="card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
               <LayoutGrid className="w-3.5 h-3.5" />
             </button>
             <button onClick={() => setViewMode("list")}
-              className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+              className={`p-2 rounded-xl transition-all active:scale-90 ${effectiveViewMode==="list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
               <List className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
 
-        {/* Select — only in list/card mode */}
-        {!calendarView && activeFiltered.length > 0 && (
+        {/* Select */}
+        {!calendarView && !isSelecting && activeFiltered.length > 0 && (
           <button
             onClick={() => {
-              if (shiftKind === "hall") { setHallSelecting(v => !v); setHallSelected(new Set()); }
-              else { setStationSelecting(v => !v); setStationSelected(new Set()); }
+              if (shiftKind==="hall") { setHallSelecting(true); setHallSelected(new Set()); }
+              else { setStationSelecting(true); setStationSelected(new Set()); }
             }}
-            className={`h-8 px-3 rounded-xl text-xs font-bold border transition-all active:scale-90 shrink-0 ${
-              isSelecting ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border/70 text-muted-foreground"
-            }`}
-          >
-            {isSelecting ? "Done" : "Select"}
+            className="h-9 px-3 rounded-xl text-[11px] font-bold border border-border/70 text-muted-foreground active:scale-90 transition-transform shrink-0">
+            Select
+          </button>
+        )}
+        {!calendarView && isSelecting && (
+          <button
+            onClick={() => {
+              if (shiftKind==="hall") { setHallSelecting(false); setHallSelected(new Set()); }
+              else { setStationSelecting(false); setStationSelected(new Set()); }
+            }}
+            className="h-9 px-3 rounded-xl text-[11px] font-bold bg-primary text-primary-foreground active:scale-90 transition-transform shrink-0">
+            Done
           </button>
         )}
       </div>
