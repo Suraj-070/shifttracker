@@ -111,7 +111,6 @@ function BulkBar({
 }
 
 // ── Selectable shift card wrapper ──────────────────────────────────────────
-// No layout shift when selecting — overlay checkmark instead of pushing content
 
 function SelectableCard({
   shift, selected, selecting, onToggle, onToggleStatus, onDelete, onEdit, onLongPress, onTap,
@@ -122,18 +121,48 @@ function SelectableCard({
   onLongPress?: (s: Shift) => void; onTap?: (s: Shift) => void;
 }) {
   return (
-    <div className={`relative transition-all ${selected ? "ring-2 ring-emerald-400 rounded-2xl" : ""}`}
-      onClick={selecting ? onToggle : undefined}
-      style={{ cursor: selecting ? "pointer" : undefined }}>
-      {/* Checkmark overlay — no layout shift */}
-      {selecting && (
-        <div className={`absolute top-2.5 right-2.5 z-20 w-5 h-5 rounded-full flex items-center justify-center transition-all ${
-          selected ? "bg-emerald-500 shadow-sm" : "bg-black/10 dark:bg-white/10"
-        }`}>
-          {selected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-        </div>
-      )}
-      <div style={{ opacity: selecting && !selected ? 0.7 : 1, transition: "opacity 0.15s" }}>
+    <div className="flex items-center gap-2">
+      {/* Native-style checkbox — slides in from left */}
+      <div
+        style={{
+          width: selecting ? 28 : 0,
+          opacity: selecting ? 1 : 0,
+          overflow: "hidden",
+          transition: "width 0.22s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s ease",
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={onToggle}
+          className="w-7 h-7 flex items-center justify-center active:scale-90 transition-transform"
+        >
+          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+            selected
+              ? "bg-emerald-500 border-emerald-500"
+              : "border-border bg-background"
+          }`}>
+            {selected && (
+              <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
+                <path d="M1 4L4.5 7.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+        </button>
+      </div>
+
+      {/* Card */}
+      <div
+        className="flex-1 min-w-0"
+        onClick={selecting ? onToggle : undefined}
+        style={{
+          cursor: selecting ? "pointer" : undefined,
+          transform: selected ? "scale(0.984)" : "scale(1)",
+          transition: "transform 0.15s ease",
+          borderRadius: 16,
+          outline: selected ? "2px solid oklch(0.6 0.17 162 / 70%)" : "2px solid transparent",
+          outlineOffset: "1px",
+        }}
+      >
         <ShiftCard
           shift={shift}
           index={0}
@@ -311,25 +340,19 @@ function ShiftsTab({
           </div>
         )}
 
-        {/* Select */}
-        {!calendarView && !isSelecting && activeFiltered.length > 0 && (
+        {/* Select / Done */}
+        {!calendarView && activeFiltered.length > 0 && (
           <button
             onClick={() => {
-              if (shiftKind==="hall") { setHallSelecting(true); setHallSelected(new Set()); }
-              else { setStationSelecting(true); setStationSelected(new Set()); }
+              if (shiftKind==="hall") { setHallSelecting(v=>!v); setHallSelected(new Set()); }
+              else { setStationSelecting(v=>!v); setStationSelected(new Set()); }
             }}
-            className="h-9 px-3 rounded-xl text-[11px] font-bold border border-border/70 text-muted-foreground active:scale-90 transition-transform shrink-0">
-            Select
-          </button>
-        )}
-        {!calendarView && isSelecting && (
-          <button
-            onClick={() => {
-              if (shiftKind==="hall") { setHallSelecting(false); setHallSelected(new Set()); }
-              else { setStationSelecting(false); setStationSelected(new Set()); }
-            }}
-            className="h-9 px-3 rounded-xl text-[11px] font-bold bg-primary text-primary-foreground active:scale-90 transition-transform shrink-0">
-            Done
+            className={`h-9 px-3.5 rounded-xl text-[11px] font-bold transition-all active:scale-90 shrink-0 ${
+              isSelecting
+                ? "text-primary font-bold bg-primary/10"
+                : "text-muted-foreground border border-border/60"
+            }`}>
+            {isSelecting ? "Done" : "Select"}
           </button>
         )}
       </div>
