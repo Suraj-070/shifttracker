@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail, Calendar, Hash, DollarSign, Download,
   LogOut, RefreshCw, Cloud, CloudOff, Pencil,
-  Save, X, TrendingUp, Award, Flame, Star, Settings2,
+  Save, X, TrendingUp, Award, Flame, Star, Settings2, Bell,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
