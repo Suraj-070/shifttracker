@@ -99,11 +99,11 @@ export function ShiftDetailSheet({
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform ${
                 isPaid
                   ? "bg-emerald-500 text-white"
-                  : "bg-rose-500 text-white"
+                  : covered ? "bg-amber-500 text-white" : "bg-rose-500 text-white"
               }`}
             >
               {isPaid ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-              {isPaid ? "Paid" : "Unpaid"}
+              {isPaid ? "Paid" : covered ? "Owed" : "Unpaid"}
             </button>
           </div>
         </div>
@@ -117,9 +117,9 @@ export function ShiftDetailSheet({
               <User className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] text-muted-foreground">Covering for</p>
+              <p className="text-[11px] text-muted-foreground">{covered ? "Covered by" : "Covering for"}</p>
               <p className="text-sm font-semibold">
-                {covered ? "Your own shift" : isSelf ? "Suraj (You)" : shift.coveringFor}
+                {covered ? shift.coveredBy : isSelf ? "Suraj (You)" : shift.coveringFor}
               </p>
             </div>
             {covered && (
