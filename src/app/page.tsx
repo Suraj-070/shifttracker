@@ -85,7 +85,16 @@ export default function ShiftTrackerPage() {
 
   const defaultTab = useSettingsStore((s) => s.defaultTab);
   const compactDashboard = useSettingsStore((s) => s.compactDashboard);
-  const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
+
+  // Restore tab from URL hash on refresh — native app feel
+  const getInitialTab = (): TabKey => {
+    if (typeof window === "undefined") return defaultTab;
+    const hash = window.location.hash.replace("#", "") as TabKey;
+    const valid: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    return valid.includes(hash) ? hash : defaultTab;
+  };
+
+  const [activeTab, setActiveTab] = useState<TabKey>(getInitialTab);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
   const MOBILE_TABS = useMemo<TabKey[]>(
@@ -112,6 +121,9 @@ export default function ShiftTrackerPage() {
   const setTabOnly = useCallback((key: TabKey, dir: "left" | "right") => {
     setSwipeDirection(dir);
     setActiveTab(key);
+    // Update URL hash so refresh restores the same tab
+    const hash = key === "dashboard" ? "" : `#${key}`;
+    window.history.replaceState(null, "", window.location.pathname + hash);
     if (dir === "left") {
       requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "instant" }));
     }
