@@ -11,6 +11,7 @@ import {
   Settings,
   Plus,
   Clock,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
