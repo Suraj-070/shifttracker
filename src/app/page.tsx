@@ -778,9 +778,6 @@ export default function ShiftTrackerPage() {
           <div className="relative">
 
             <div style={{ display: activeTab === "dashboard" ? "block" : "none", contain: "layout style" }}>
-              <div className="flex items-center justify-between mb-5 md:hidden" suppressHydrationWarning>
-                <h1 className="text-2xl font-black tracking-tight">Dashboard</h1>
-              </div>
               <DashboardTab
                 summary={summary}
                 recentShifts={recentShifts}
@@ -797,10 +794,7 @@ export default function ShiftTrackerPage() {
               />
             </div>
               <div style={{ display: activeTab === "shifts" ? "block" : "none", contain: "layout style" }}>
-                <div className="flex items-center justify-between mb-4 md:hidden">
-                  <h1 className="text-2xl font-black tracking-tight">Shifts</h1>
-                </div>
-                <ShiftsTab
+              <ShiftsTab
                   shifts={shifts}
                   isLoading={isLoading}
                   onToggleStatus={toggleStatus}
@@ -825,10 +819,7 @@ export default function ShiftTrackerPage() {
               </div>
 
               <div style={{ display: activeTab === "owe" ? "block" : "none", contain: "layout style" }}>
-                <div className="flex items-center justify-between mb-4 md:hidden">
-                  <h1 className="text-2xl font-black tracking-tight">Owe</h1>
-                </div>
-                <OweTab
+              <OweTab
                   shifts={shifts}
                   onToggleStatus={toggleStatus}
                   onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
@@ -841,10 +832,7 @@ export default function ShiftTrackerPage() {
               </div>
 
               <div style={{ display: activeTab === "profile" ? "block" : "none", contain: "layout style" }}>
-                <div className="flex items-center justify-between mb-4 md:hidden">
-                  <h1 className="text-2xl font-black tracking-tight">Profile</h1>
-                </div>
-                <ProfileTab
+              <ProfileTab
                   profile={profile}
                   isLoading={isLoading}
                   onRefresh={fetchProfile}
