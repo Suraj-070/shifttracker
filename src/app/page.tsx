@@ -754,7 +754,7 @@ export default function ShiftTrackerPage() {
 
         {/* Main Content */}
         {/* Pull to refresh indicator — fixed overlay so it appears above content */}
-        {isMobile && (isPulling || isRefreshing) && (
+        {(isPulling || isRefreshing) && (
           <div className="fixed top-16 left-0 right-0 flex justify-center z-50 pointer-events-none">
             <div className="bg-background border border-border/60 rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
               <div
@@ -771,14 +771,14 @@ export default function ShiftTrackerPage() {
               </span>
             </div>
           </div>
-        )}
+        }
 
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6 overflow-x-hidden" style={{ isolation: "isolate" }}>
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 
             <div style={{ display: activeTab === "dashboard" ? "block" : "none", contain: "layout style" }}>
-              <div className="flex items-center justify-between mb-5 md:hidden">
+              <div className="flex items-center justify-between mb-5 md:hidden" suppressHydrationWarning>
                 <h1 className="text-2xl font-black tracking-tight">Dashboard</h1>
               </div>
               <DashboardTab
@@ -869,8 +869,8 @@ export default function ShiftTrackerPage() {
           </div>
         </main>
 
-        {/* Mobile Bottom Nav */}
-        {isMobile && (
+        {/* Mobile Bottom Nav — always rendered, CSS hides on desktop to avoid SSR flash */}
+        <div className="md:hidden">
           <GlassmorphismNav
             onFabPress={() => setAddDialogOpen(true)}
             tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders" && t.key !== "calendar").map((t) => ({

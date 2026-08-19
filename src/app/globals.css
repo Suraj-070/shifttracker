@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ── Prevent desktop flash on mobile during hydration ── */
+@media (max-width: 767px) {
+  .md\:hidden { display: none !important; }
+  .md\:block  { display: block !important; }
+}
+
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
