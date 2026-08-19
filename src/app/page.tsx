@@ -868,7 +868,7 @@ export default function ShiftTrackerPage() {
               navigateTab(key as TabKey);
             }}
           />
-        )}
+        </div>
 
 
 
