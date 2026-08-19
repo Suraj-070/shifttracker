@@ -293,70 +293,88 @@ function ShiftsTab({
   const isSelecting = shiftKind === "hall" ? hallSelecting : stationSelecting;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-0">
 
-      {/* ── Top bar ── */}
-      <div className="flex items-center gap-2">
-
-        {/* Segmented: Hall / Station / Calendar */}
-        <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl flex-1">
-          {[
-            { key: "hall",    label: "Hall",    badge: hallShifts.length,    color: "text-emerald-700" },
-            { key: "station", label: "Station", badge: stationShifts.length, color: "text-blue-700" },
-          ].map(tab => (
-            <button key={tab.key}
-              onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold transition-all ${
-                shiftKind===tab.key && !calendarView
-                  ? `bg-white dark:bg-card ${tab.color} shadow-sm`
-                  : "text-muted-foreground"
-              }`}>
-              {tab.label}
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                shiftKind===tab.key && !calendarView ? "bg-current/10" : "bg-muted-foreground/10"
-              }`}>{tab.badge}</span>
-            </button>
-          ))}
-          <button
-            onClick={() => setCalendarView(v => !v)}
-            className={`px-3 py-2 rounded-xl transition-all active:scale-90 ${
-              calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"
-            }`}>
-            <CalendarDays className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* View toggle — card/list, only when not calendar */}
-        {!calendarView && (
-          <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl shrink-0">
-            <button onClick={() => setViewMode("card")}
-              className={`p-2 rounded-xl transition-all active:scale-90 ${effectiveViewMode==="card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-              <LayoutGrid className="w-3.5 h-3.5" />
-            </button>
-            <button onClick={() => setViewMode("list")}
-              className={`p-2 rounded-xl transition-all active:scale-90 ${effectiveViewMode==="list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
-              <List className="w-3.5 h-3.5" />
-            </button>
+      {/* ── Sticky segmented control ── */}
+      <div className="sticky z-30" style={{ top: 0 }}>
+        <div
+          className="absolute inset-0 -mx-4"
+          style={{
+            background: "color-mix(in oklch, var(--background) 88%, transparent)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+        />
+        <div className="relative flex items-center justify-between py-2.5 gap-2">
+          {/* Centered pill */}
+          <div className="flex justify-center flex-1">
+            <div className="flex gap-0.5 p-1 bg-muted/90 rounded-2xl shadow-sm">
+              {[
+                { key: "hall",    label: "Hall",    badge: hallShifts.length },
+                { key: "station", label: "Station", badge: stationShifts.length },
+              ].map(tab => (
+                <button key={tab.key}
+                  onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
+                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
+                    shiftKind === tab.key && !calendarView
+                      ? tab.key === "hall"
+                        ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
+                        : "bg-white dark:bg-card text-blue-700 shadow-sm"
+                      : "text-muted-foreground"
+                  }`}>
+                  {tab.key === "hall"
+                    ? <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    : <MapPin className="w-3 h-3 shrink-0" />
+                  }
+                  {tab.label}
+                  <span className={`text-[10px] font-bold tabular-nums ${
+                    shiftKind === tab.key && !calendarView
+                      ? tab.key === "hall" ? "text-emerald-600" : "text-blue-600"
+                      : "text-muted-foreground/50"
+                  }`}>{tab.badge}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setCalendarView(v => !v)}
+                className={`px-3 py-1.5 rounded-xl transition-all active:scale-95 ${
+                  calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"
+                }`}>
+                <CalendarDays className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Select / Done */}
-        {!calendarView && activeFiltered.length > 0 && (
-          <button
-            onClick={() => {
-              if (shiftKind==="hall") { setHallSelecting(v=>!v); setHallSelected(new Set()); }
-              else { setStationSelecting(v=>!v); setStationSelected(new Set()); }
-            }}
-            className={`h-9 px-3.5 rounded-xl text-[11px] font-bold transition-all active:scale-90 shrink-0 ${
-              isSelecting
-                ? "text-primary font-bold bg-primary/10"
-                : "text-muted-foreground border border-border/60"
-            }`}>
-            {isSelecting ? "Done" : "Select"}
-          </button>
-        )}
+          {/* Right: view + select */}
+          {!calendarView && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex gap-0.5 p-0.5 bg-muted/80 rounded-xl">
+                <button onClick={() => setViewMode("card")}
+                  className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                </button>
+                <button onClick={() => setViewMode("list")}
+                  className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+                  <List className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              {activeFiltered.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (shiftKind === "hall") { setHallSelecting(v => !v); setHallSelected(new Set()); }
+                    else { setStationSelecting(v => !v); setStationSelected(new Set()); }
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all active:scale-90 ${
+                    isSelecting ? "text-primary bg-primary/10" : "text-muted-foreground"
+                  }`}>
+                  {isSelecting ? "Done" : "Select"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
+      <div className="space-y-3 pt-1">
       {/* ── Below hidden in calendar view ── */}
       {!calendarView && <>
 
