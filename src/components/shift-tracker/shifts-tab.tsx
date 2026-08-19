@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
+import { CalendarTab } from "./calendar-tab";
 
 import {
   LayoutGrid, List, Users, DollarSign,
-  CheckCircle2, Clock, MapPin, CheckSquare, Square, X, ChevronDown,
+  CheckCircle2, Clock, MapPin, CheckSquare, Square, X, ChevronDown, CalendarDays,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -68,6 +69,7 @@ interface ShiftsTabProps {
   onAddShift: (defaultPerson?: string, defaultLocation?: string) => void;
   onBulkPaid?: (ids: string[]) => Promise<void>;
   onLongPress?: (shift: Shift) => void;
+  onShiftClick?: (shift: Shift) => void;
 }
 
 type ShiftKind = "hall" | "station";
@@ -167,7 +169,7 @@ function MonthHeader({ group }: { group: MonthGroup }) {
 }
 
 function ShiftsTab({
-  shifts, isLoading, onToggleStatus, onDeleteShift, onEditShift, onAddShift, onBulkPaid, onLongPress,
+  shifts, isLoading, onToggleStatus, onDeleteShift, onEditShift, onAddShift, onBulkPaid, onLongPress, onShiftClick,
 }: ShiftsTabProps) {
   const { viewMode, setViewMode } = useSettingsStore();
   const isMobile = useIsMobile();
@@ -183,6 +185,7 @@ function ShiftsTab({
   const [stationSelected, setStationSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
 
+  const [calendarView, setCalendarView] = useState(false);
   // On mobile, only card and list views make sense
   const effectiveViewMode = isMobile && viewMode === "table" ? "card" : viewMode;
 
@@ -283,13 +286,17 @@ function ShiftsTab({
 
         {/* View mode */}
         <div className="flex items-center gap-0.5 bg-muted rounded-xl p-1 shrink-0">
-          <button onClick={() => setViewMode("card")}
-            className={`p-2 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => { setViewMode("card"); setCalendarView(false); }}
+            className={`p-2 rounded-lg transition-all active:scale-90 ${!calendarView && effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
             <LayoutGrid className="w-3.5 h-3.5" />
           </button>
-          <button onClick={() => setViewMode("list")}
-            className={`p-2 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+          <button onClick={() => { setViewMode("list"); setCalendarView(false); }}
+            className={`p-2 rounded-lg transition-all active:scale-90 ${!calendarView && effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
             <List className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => setCalendarView(v => !v)}
+            className={`p-2 rounded-lg transition-all active:scale-90 ${calendarView ? "bg-white dark:bg-card shadow-sm text-primary" : "text-muted-foreground"}`}>
+            <CalendarDays className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -401,8 +408,19 @@ function ShiftsTab({
 
 
 
+      {/* ── Calendar view ── */}
+      {calendarView && (
+        <div className="mt-2">
+          <CalendarTab
+            shifts={shiftKind === "hall" ? filteredHall : filteredStation}
+            onShiftClick={onShiftClick ?? onEditShift}
+            onAddShift={onAddShift ? () => onAddShift() : undefined}
+          />
+        </div>
+      )}
+
       {/* ── Content ── */}
-      {shiftKind === "hall" ? (
+      {!calendarView && shiftKind === "hall" ? (
         <div>
           {filteredHall.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">

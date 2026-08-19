@@ -65,7 +65,6 @@ const TABS: TabConfig[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "shifts", label: "Shifts", icon: CalendarDays },
   { key: "owe", label: "Owe", icon: HandCoins },
-  { key: "calendar", label: "Calendar", icon: CalendarRange },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "reminders", label: "Reminders", icon: Bell },
   { key: "profile", label: "Profile", icon: User },
@@ -93,7 +92,7 @@ export default function ShiftTrackerPage() {
   const getInitialTab = (): TabKey => {
     if (typeof window === "undefined") return defaultTab;
     const hash = window.location.hash.replace("#", "") as TabKey;
-    const valid: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
+    const valid: TabKey[] = ["dashboard", "shifts", "owe", "profile"];
     return valid.includes(hash) ? hash : defaultTab;
   };
 
@@ -101,7 +100,7 @@ export default function ShiftTrackerPage() {
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
   const MOBILE_TABS = useMemo<TabKey[]>(
-    () => ["dashboard", "shifts", "owe", "calendar", "profile"],
+    () => ["dashboard", "shifts", "owe", "profile"],
     []
   );
 
@@ -134,7 +133,7 @@ export default function ShiftTrackerPage() {
 
   const navigateTab = useCallback((key: TabKey) => {
     if (activeTabRef.current === key) return;
-    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
+    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "profile"];
     const dir = tabs.indexOf(key) > tabs.indexOf(activeTabRef.current) ? "left" : "right";
     // Push current tab onto stack before moving
     const newStack = [...tabStackRef.current, activeTabRef.current];
@@ -202,7 +201,7 @@ export default function ShiftTrackerPage() {
     const newStack = stack.slice(0, -1);
     tabStackRef.current = newStack;
     setTabStack(newStack);
-    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
+    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "profile"];
     const dir = tabs.indexOf(prev) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
     setTabOnly(prev, dir);
   }, [popModal, setTabOnly]);
@@ -803,6 +802,7 @@ export default function ShiftTrackerPage() {
                   onDeleteShift={handleDeleteStart}
                   onLongPress={handleLongPress}
                   onEditShift={openDetailSheet}
+                  onShiftClick={openDetailSheet}
                   onAddShift={(person, location) => {
                     setAddShiftDefaults({ person, location });
                     setAddDialogOpen(true);
@@ -814,7 +814,7 @@ export default function ShiftTrackerPage() {
                 <CalendarTab
                   shifts={shifts}
                   onShiftClick={openDetailSheet}
-                  onAddShift={() => setAddDialogOpen(true)}
+                  onAddShift={(date) => { setAddDialogOpen(true); }}
                 />
               </div>
 
@@ -861,7 +861,7 @@ export default function ShiftTrackerPage() {
         {isMobile && (
           <GlassmorphismNav
             onFabPress={() => setAddDialogOpen(true)}
-            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders").map((t) => ({
+            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders" && t.key !== "calendar").map((t) => ({
               ...t,
               badge: t.key === "shifts"
                 ? shifts.filter((s) => s.status === "Unpaid").length
