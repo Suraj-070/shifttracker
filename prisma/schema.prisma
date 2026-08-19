@@ -65,6 +65,7 @@ model Shift {
   shiftDay     String   @map("shift_day")
   amountEarned String   @map("amount_earned")
   status       String   @default("Unpaid")
+  coveredBy    String?  @map("covered_by")
   createdAt    DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
