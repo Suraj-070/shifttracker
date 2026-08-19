@@ -251,36 +251,56 @@ function DashboardTab({
   return (
     <div className="space-y-4">
 
-      {/* Hall / Station tab switcher */}
-      <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit">
-        <button
-          onClick={() => setDashKind("hall")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-            dashKind === "hall"
-              ? "bg-background text-emerald-700 shadow-sm ring-1 ring-emerald-200"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-          Hall
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${dashKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
-            {summary.totalShifts}
-          </span>
-        </button>
-        <button
-          onClick={() => setDashKind("station")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-            dashKind === "station"
-              ? "bg-background text-blue-700 shadow-sm ring-1 ring-blue-200"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <MapPin className="w-3.5 h-3.5" />
-          Station
-          <span className={`text-xs px-1.5 py-0.5 rounded-full ${dashKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/20 text-muted-foreground"}`}>
-            {stationCount}
-          </span>
-        </button>
+      {/* Hall / Station sticky segmented control */}
+      <div
+        className="sticky z-30"
+        style={{ top: 0 }}
+      >
+        {/* Blur backdrop */}
+        <div
+          className="absolute inset-0 -mx-4"
+          style={{
+            background: "color-mix(in oklch, var(--background) 85%, transparent)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+          }}
+        />
+        <div className="relative flex justify-center py-2">
+          <div className="flex gap-0.5 p-1 bg-muted/90 rounded-2xl shadow-sm">
+            <button
+              onClick={() => setDashKind("hall")}
+              className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                dashKind === "hall"
+                  ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              Hall
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                dashKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/15 text-muted-foreground"
+              }`}>
+                {summary.totalShifts}
+              </span>
+            </button>
+            <button
+              onClick={() => setDashKind("station")}
+              className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                dashKind === "station"
+                  ? "bg-white dark:bg-card text-blue-700 shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
+              Station
+              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                dashKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/15 text-muted-foreground"
+              }`}>
+                {stationCount}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <>
