@@ -63,6 +63,7 @@ interface TabConfig {
 const TABS: TabConfig[] = [
   { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { key: "shifts", label: "Shifts", icon: CalendarDays },
+  { key: "owe", label: "Owe", icon: Wallet },
   { key: "calendar", label: "Calendar", icon: Calendar },
   { key: "analytics", label: "Analytics", icon: BarChart3 },
   { key: "reminders", label: "Reminders", icon: Bell },
@@ -873,7 +874,7 @@ export default function ShiftTrackerPage() {
         {/* Mobile Bottom Nav */}
         {isMobile && (
           <GlassmorphismNav
-            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings").map((t) => ({
+            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders").map((t) => ({
               ...t,
               badge: t.key === "shifts"
                 ? shifts.filter((s) => s.status === "Unpaid").length
