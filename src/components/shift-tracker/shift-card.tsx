@@ -15,6 +15,7 @@ interface ShiftCardProps {
   onEdit: (shift: Shift) => void;
   onDelete: (shift: Shift) => void;
   onLongPress?: (shift: Shift) => void;
+  onTap?: (shift: Shift) => void;
   density?: CardDensity;
   disableSwipe?: boolean;
   index?: number;
@@ -164,7 +165,7 @@ function SwipeWrapper({
 }
 
 // ── Card inner — compact, single-row layout ───────────────────────────────────
-function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, disableSwipe = false }: ShiftCardProps) {
+function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, onTap, disableSwipe = false }: ShiftCardProps) {
   const haptics  = useHaptics();
   const isMobile = useIsMobile();
   const station  = isStationShift(shift);
@@ -188,7 +189,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
   const card = (
     <div
       {...deskEvents}
-      onClick={() => { if (!isMobile) onEdit(shift); }}
+      onClick={() => { if (isMobile) onTap?.(shift); else onEdit(shift); }}
       className={`select-none rounded-2xl border overflow-hidden transition-all duration-75 ${pressed ? "scale-[0.983] brightness-95" : ""} ${
         covered ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900"
         : isSelf  ? "bg-purple-50/60 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900"

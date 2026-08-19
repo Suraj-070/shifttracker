@@ -30,6 +30,7 @@ import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
 import { SettingsTab } from "@/components/shift-tracker/settings-tab";
 import { AnalyticsTab } from "@/components/shift-tracker/analytics-tab";
 import { ShiftActionsSheet } from "@/components/shift-tracker/shift-actions-sheet";
+import { ShiftDetailSheet } from "@/components/shift-tracker/shift-detail-sheet";
 import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 
 import { useHaptics } from "@/hooks/use-haptics";
@@ -162,6 +163,11 @@ export default function ShiftTrackerPage() {
       setActionsSheetOpenRaw(false);
       return;
     }
+    if (modal === "detail") {
+      detailOpenRef.current = false;
+      setDetailSheetOpenRaw(false);
+      return;
+    }
     if (modal === "edit") {
       editOpenRef.current = false;
       setEditDialogOpenRaw(false);
@@ -265,6 +271,26 @@ export default function ShiftTrackerPage() {
     setActionsSheetOpenRaw(v);
     if (v) pushModal("actions");
   }, [pushModal]);
+
+  // Detail sheet
+  const [detailSheetOpen, setDetailSheetOpenRaw] = useState(false);
+  const [detailShift,     setDetailShift]        = useState<Shift | null>(null);
+  const detailOpenRef = React.useRef(false);
+
+  const openDetailSheet = useCallback((shift: Shift) => {
+    setDetailShift(shift);
+    detailOpenRef.current = true;
+    setDetailSheetOpenRaw(true);
+    pushModal("detail");
+  }, [pushModal]);
+
+  const closeDetailSheet = useCallback(() => {
+    if (detailOpenRef.current) {
+      detailOpenRef.current = false;
+      setDetailSheetOpenRaw(false);
+      popModal();
+    }
+  }, [popModal]);
 
   const [shiftToDelete, setShiftToDelete]   = useState<Shift | null>(null);
   const [shiftToEdit,   setShiftToEdit]     = useState<Shift | null>(null);
@@ -765,7 +791,7 @@ export default function ShiftTrackerPage() {
                   onBulkPaid={handleBulkPaid}
                   onDeleteShift={handleDeleteStart}
                   onLongPress={handleLongPress}
-                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                  onEditShift={openDetailSheet}
                   onAddShift={(person, location) => {
                     setAddShiftDefaults({ person, location });
                     setAddDialogOpen(true);
@@ -776,7 +802,7 @@ export default function ShiftTrackerPage() {
               <div style={{ display: activeTab === "calendar" ? "block" : "none", contain: "layout style" }}>
                 <CalendarTab
                   shifts={shifts}
-                  onShiftClick={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                  onShiftClick={openDetailSheet}
                   onAddShift={() => setAddDialogOpen(true)}
                 />
               </div>
@@ -897,6 +923,20 @@ export default function ShiftTrackerPage() {
           shift={shiftToDelete}
           onConfirm={handleDeleteConfirm}
           onUndo={handleDeleteUndo}
+        />
+        <ShiftDetailSheet
+          shift={detailShift}
+          open={detailSheetOpen}
+          onClose={closeDetailSheet}
+          onEdit={(shift) => {
+            closeDetailSheet();
+            setTimeout(() => { setShiftToEdit(shift); setEditDialogOpen(true); }, 320);
+          }}
+          onDelete={(shift) => {
+            closeDetailSheet();
+            setTimeout(() => handleDeleteStart(shift), 320);
+          }}
+          onToggleStatus={toggleStatus}
         />
 
         {/* Footer */}

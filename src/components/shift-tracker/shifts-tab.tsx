@@ -112,12 +112,12 @@ function BulkBar({
 // No layout shift when selecting — overlay checkmark instead of pushing content
 
 function SelectableCard({
-  shift, selected, selecting, onToggle, onToggleStatus, onDelete, onEdit, onLongPress,
+  shift, selected, selecting, onToggle, onToggleStatus, onDelete, onEdit, onLongPress, onTap,
 }: {
   shift: Shift; selected: boolean; selecting: boolean;
   onToggle: () => void; onToggleStatus: (s: Shift) => void;
   onDelete: (s: Shift) => void; onEdit: (s: Shift) => void;
-  onLongPress?: (s: Shift) => void;
+  onLongPress?: (s: Shift) => void; onTap?: (s: Shift) => void;
 }) {
   return (
     <div className={`relative transition-all ${selected ? "ring-2 ring-emerald-400 rounded-2xl" : ""}`}
@@ -139,6 +139,7 @@ function SelectableCard({
           onDelete={selecting ? () => {} : onDelete}
           onEdit={selecting ? () => {} : onEdit}
           onLongPress={selecting ? undefined : onLongPress}
+          onTap={selecting ? undefined : onTap}
           disableSwipe={selecting}
         />
       </div>
@@ -424,6 +425,7 @@ function ShiftsTab({
                         onToggle={() => toggleHallSelect(shift.id)}
                         onToggleStatus={onToggleStatus} onDelete={onDeleteShift}
                         onEdit={onEditShift} onLongPress={onLongPress}
+                        onTap={onEditShift}
                       />
                     ))}
                   </div>
@@ -457,6 +459,7 @@ function ShiftsTab({
                         onToggle={() => toggleStationSelect(shift.id)}
                         onToggleStatus={onToggleStatus} onDelete={onDeleteShift}
                         onEdit={onEditShift} onLongPress={onLongPress}
+                        onTap={onEditShift}
                       />
                     ))}
                   </div>
