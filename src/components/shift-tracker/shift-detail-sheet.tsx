@@ -10,6 +10,7 @@ import { isStationShift, parseStationTax, parseStationUserNote } from "@/types/d
 import type { Shift } from "@/types/database.types";
 
 interface ShiftDetailSheetProps {
+  userName?: string;
   shift: Shift | null;
   open: boolean;
   onClose: () => void;
@@ -19,17 +20,18 @@ interface ShiftDetailSheetProps {
 }
 
 export function ShiftDetailSheet({
-  shift, open, onClose, onEdit, onDelete, onToggleStatus,
+  shift, open, onClose, onEdit, onDelete, onToggleStatus, userName = "Suraj",
 }: ShiftDetailSheetProps) {
   if (!shift) return null;
 
+  const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
   const station  = isStationShift(shift);
   const isPaid   = shift.status === "Paid";
   const tax      = station ? parseStationTax(shift.notes) : 0;
   const net      = station ? Math.max(0, parseFloat(shift.amountEarned) - tax) : 0;
   const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
   const covered  = Boolean(shift.coveredBy);
-  const isSelf   = !covered && (shift.coveringFor?.toLowerCase() === "suraj" || shift.coveringFor?.toLowerCase() === "myself");
+  const isSelf   = !covered && (isSelfName(shift.coveringFor ?? ""));
 
   const accentColor = covered ? "amber" : isSelf ? "purple" : station ? "blue" : isPaid ? "emerald" : "rose";
 
@@ -127,7 +129,7 @@ export function ShiftDetailSheet({
             <div className="flex-1 min-w-0">
               <p className="text-[11px] text-muted-foreground">{covered ? "Covered by" : "Covering for"}</p>
               <p className="text-sm font-semibold">
-                {covered ? shift.coveredBy : isSelf ? "Suraj (You)" : shift.coveringFor}
+                {covered ? shift.coveredBy : isSelf ? `${userName} (You)` : shift.coveringFor}
               </p>
             </div>
 

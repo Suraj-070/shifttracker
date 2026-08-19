@@ -339,7 +339,19 @@ export function SettingsTab() {
         </div>
       )}
 
-      {/* ── Pay Rates ── */}
+      {/* ── Fortnight Anchor ── */}
+        <div className="space-y-2">
+          <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pay Cycle Start</Label>
+          <p className="text-[11px] text-muted-foreground">The Wednesday your pay fortnight anchors to</p>
+          <input
+            type="date"
+            value={fortnightAnchor}
+            onChange={e => setFortnightAnchor(e.target.value)}
+            className="w-full h-9 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+          />
+        </div>
+
+        {/* ── Pay Rates ── */}
       <Section icon={DollarSign} title="Pay Rates">
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">Update when your award rate changes</p>

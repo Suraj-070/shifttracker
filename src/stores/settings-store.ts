@@ -50,6 +50,8 @@ interface SettingsState {
   setSwipeSensitivity: (s: SwipeSensitivity) => void
   compactDashboard: boolean
   setCompactDashboard: (v: boolean) => void
+  fortnightAnchor: string  // ISO date string e.g. "2026-06-24"
+  setFortnightAnchor: (date: string) => void
   longPressDelay: number  // ms
   setLongPressDelay: (ms: number) => void
 

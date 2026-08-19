@@ -11,6 +11,7 @@ import type { CardDensity } from "@/stores/settings-store";
 
 interface ShiftCardProps {
   shift: Shift;
+  userName?: string;
   onToggleStatus: (shift: Shift) => void;
   onEdit: (shift: Shift) => void;
   onDelete: (shift: Shift) => void;
@@ -165,13 +166,14 @@ function SwipeWrapper({
 }
 
 // ── Card inner — compact, single-row layout ───────────────────────────────────
-function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, onTap, disableSwipe = false }: ShiftCardProps) {
+function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, onTap, disableSwipe = false, userName = "Suraj" }: ShiftCardProps) {
+  const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
   const haptics  = useHaptics();
   const isMobile = useIsMobile();
   const station  = isStationShift(shift);
   const isPaid   = shift.status === "Paid";
   const covered  = Boolean(shift.coveredBy);
-  const isSelf   = !covered && (shift.coveringFor.toLowerCase() === "suraj" || shift.coveringFor.toLowerCase() === "myself");
+  const isSelf   = !covered && (isSelfName(shift.coveringFor));
   const tax      = station ? parseStationTax(shift.notes) : 0;
   const net      = station ? Math.max(0, parseFloat(shift.amountEarned) - tax) : 0;
   const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
@@ -219,7 +221,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />}
           </div>
           <p className={`text-[13px] font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : isSelf ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
-            {covered ? "Your shift" : isSelf ? "Suraj (You)" : shift.coveringFor}
+            {covered ? "Your shift" : isSelf ? `${userName} (You)` : shift.coveringFor}
           </p>
           <p className="text-[11px] text-muted-foreground truncate">
             {station ? `${shift.hoursWorked}h · tax ${formatCurrency(tax)}` : shift.locationName}

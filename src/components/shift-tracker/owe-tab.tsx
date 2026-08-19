@@ -10,11 +10,14 @@ interface OweTabProps {
   onToggleStatus: (shift: Shift) => void;
   onEditShift: (shift: Shift) => void;
   onDeleteShift: (shift: Shift) => void;
+  onBulkPaid?: (ids: string[]) => Promise<void>;
+  userName?: string;
 }
 
 type OweFilter = "all" | "unpaid" | "paid";
 
-function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabProps) {
+function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift, onBulkPaid, userName = "Suraj" }: OweTabProps) {
+  const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
   const [personFilter, setPersonFilter] = useState("__all__");
   const [statusFilter, setStatusFilter] = useState<OweFilter>("all");
   const [filtersOpen, setFiltersOpen]   = useState(false);
@@ -135,9 +138,8 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
         </div>
       </div>
 
-      {/* ── Filter bar ── */}
-      <div className="flex gap-2">
-        {/* Status quick pills */}
+      {/* ── Select + Bulk bar ── */}
+      <div className="flex items-center gap-2">
         <div className="flex gap-1.5 flex-1">
           {(["all", "unpaid", "paid"] as OweFilter[]).map(f => (
             <button key={f} onClick={() => setStatusFilter(f)}
@@ -152,15 +154,36 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
             </button>
           ))}
         </div>
-
-        {/* Clear filters */}
-        {hasFilters && (
-          <button onClick={() => { setPersonFilter("__all__"); setStatusFilter("all"); }}
-            className="h-8 w-8 rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/30 text-rose-500 flex items-center justify-center active:scale-90 transition-transform">
-            <X className="w-3.5 h-3.5" />
+        {filtered.length > 0 && (
+          <button onClick={() => { setSelecting(v => !v); setSelected(new Set()); }}
+            className={`px-3 h-8 rounded-xl text-[11px] font-bold transition-all active:scale-90 shrink-0 ${selecting ? "text-primary bg-primary/10" : "text-muted-foreground"}`}>
+            {selecting ? "Done" : "Select"}
           </button>
         )}
       </div>
+
+      {/* Bulk paid bar */}
+      <div style={{ maxHeight: selecting && selected.size > 0 ? "60px" : "0px", overflow: "hidden", transition: "max-height 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}>
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
+          <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500 text-white">{selected.size}</span>
+          <span className="text-sm font-medium flex-1">shift{selected.size !== 1 ? "s" : ""} selected</span>
+          <button onClick={async () => {
+            if (!onBulkPaid) return;
+            setBulkLoading(true);
+            try { await onBulkPaid(Array.from(selected)); setSelected(new Set()); setSelecting(false); }
+            finally { setBulkLoading(false); }
+          }} disabled={bulkLoading}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-500 active:scale-95 disabled:opacity-60">
+            {bulkLoading ? <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "✓"}
+            {bulkLoading ? "Saving…" : "Mark Paid"}
+          </button>
+          <button onClick={() => setSelected(new Set())} className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center">
+            <X className="w-3.5 h-3.5 text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+
+
 
       {/* ── Month groups ── */}
       {monthGroups.length === 0 ? (

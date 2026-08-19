@@ -318,6 +318,7 @@ export default function ShiftTrackerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const userName = profile?.name?.split(" ")[0] || "Suraj";
 
   // Fetch shifts
   const fetchShifts = useCallback(async () => {
@@ -810,6 +811,7 @@ export default function ShiftTrackerPage() {
                 <CalendarTab
                   shifts={shifts}
                   onShiftClick={openDetailSheet}
+                  userName={userName}
                   onAddShift={(date) => { setAddDialogOpen(true); }}
                 />
               </div>
@@ -820,6 +822,8 @@ export default function ShiftTrackerPage() {
                   onToggleStatus={toggleStatus}
                   onEditShift={openDetailSheet}
                   onDeleteShift={handleDeleteStart}
+                  onBulkPaid={handleBulkMarkPaid}
+                  userName={userName}
                 />
               </div>
 
@@ -933,6 +937,7 @@ export default function ShiftTrackerPage() {
         <ShiftDetailSheet
           shift={detailShift}
           open={detailSheetOpen}
+          userName={userName}
           onClose={closeDetailSheet}
           onEdit={(shift) => {
             closeDetailSheet();

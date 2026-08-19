@@ -1,4 +1,5 @@
 "use client";
+import { useSettingsStore } from "@/stores/settings-store";
 
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
@@ -139,6 +140,7 @@ interface DashboardTabProps {
   onViewAllShifts: () => void;
   onEditShift: (shift: Shift) => void;
   allShifts: Shift[];
+  userName?: string;
   compact?: boolean;
 }
 
@@ -197,9 +199,12 @@ function DashboardTab({
   onViewAllShifts,
   onEditShift,
   allShifts,
+  userName = "Suraj",
   compact = false,
 }: DashboardTabProps) {
   const [dashKind, setDashKind] = useState<DashKind>("hall");
+  const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
+  const fortnightAnchor = useSettingsStore(s => s.fortnightAnchor);
 
   // Covered-by-others: shifts where someone else covered, grouped by person
   const oweData = useMemo(() => {
@@ -223,6 +228,28 @@ function DashboardTab({
   const pastFortnights = useMemo(() => fortnights.filter((f) => f.isPast), [fortnights]);
 
   if (isLoading) return <DashboardSkeleton />;
+
+  if (!hallShifts.length && !stationShifts.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-8">
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/40 flex items-center justify-center">
+          <span className="text-4xl">📋</span>
+        </div>
+        <div>
+          <p className="text-xl font-black mb-1">No shifts yet</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Add your first shift to start tracking your earnings
+          </p>
+        </div>
+        <button
+          onClick={onAddShift}
+          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-primary/25"
+        >
+          + Add First Shift
+        </button>
+      </div>
+    );
+  }
 
   const paidPercent = summary.totalShifts > 0
     ? Math.round((summary.paidShifts / summary.totalShifts) * 100)
@@ -355,8 +382,8 @@ function DashboardTab({
                   {recentShifts.map((shift) => {
                     const isPaid = shift.status === "Paid";
                     const isCovered = Boolean(shift.coveredBy);
-                    const isSelf = !isCovered && (shift.coveringFor?.toLowerCase() === "suraj" || shift.coveringFor?.toLowerCase() === "myself");
-                    const displayName = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? "Suraj (You)" : shift.coveringFor;
+                    const isSelf = !isCovered && (isSelfName(shift.coveringFor ?? ""));
+                    const displayName = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? `${userName} (You)` : shift.coveringFor;
                     const stripeColor = isCovered ? "bg-gradient-to-b from-amber-400 to-amber-500" : isSelf ? "bg-gradient-to-b from-purple-400 to-purple-600" : isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500";
                     return (
                       <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/40 transition-colors cursor-pointer select-none">

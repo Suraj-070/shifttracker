@@ -8,6 +8,7 @@ import type { Shift } from "@/types/database.types";
 
 interface CalendarTabProps {
   shifts: Shift[];
+  userName?: string;
   onShiftClick: (shift: Shift) => void;
   onAddShift?: (date?: string) => void;
 }
@@ -19,7 +20,8 @@ function dateKey(y: number, m: number, d: number) {
   return `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 }
 
-function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
+function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: CalendarTabProps) {
+  const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
   const today = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -104,7 +106,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
             // Dot colors
             const dots = dayShifts.slice(0,3).map(s => {
               if (s.coveredBy) return "bg-amber-400";
-              const self = s.coveringFor?.toLowerCase()==="suraj"||s.coveringFor?.toLowerCase()==="myself";
+              const self = isSelfName(s.coveringFor ?? "");
               if (self) return "bg-purple-400";
               if (isStationShift(s)) return "bg-blue-400";
               return s.status==="Paid" ? "bg-emerald-400" : "bg-rose-400";
@@ -185,10 +187,10 @@ function CalendarTab({ shifts, onShiftClick, onAddShift }: CalendarTabProps) {
               {selectedShifts.map(shift => {
                 const isPaid    = shift.status==="Paid";
                 const isCovered = Boolean(shift.coveredBy);
-                const isSelf    = shift.coveringFor?.toLowerCase()==="suraj"||shift.coveringFor?.toLowerCase()==="myself";
+                const isSelf    = isSelfName(shift.coveringFor ?? "");
                 const isStation = isStationShift(shift);
                 const stripe    = isCovered?"bg-amber-400":isSelf?"bg-purple-400":isStation?"bg-blue-400":isPaid?"bg-emerald-400":"bg-rose-400";
-                const name      = isCovered?`Your shift · by ${shift.coveredBy}`:isSelf?"Suraj (You)":shift.coveringFor;
+                const name      = isCovered?`Your shift · by ${shift.coveredBy}`:isSelf?`${userName} (You)`:shift.coveringFor;
                 return (
                   <div key={shift.id} onClick={()=>onShiftClick(shift)}
                     className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/40 cursor-pointer transition-colors">
