@@ -27,6 +27,7 @@ import { ShiftsTab } from "@/components/shift-tracker/shifts-tab";
 import { CalendarTab } from "@/components/shift-tracker/calendar-tab";
 import { ProfileTab } from "@/components/shift-tracker/profile-tab";
 import { RemindersTab } from "@/components/shift-tracker/reminders-tab";
+import { OweTab } from "@/components/shift-tracker/owe-tab";
 import { SettingsTab } from "@/components/shift-tracker/settings-tab";
 import { AnalyticsTab } from "@/components/shift-tracker/analytics-tab";
 import { ShiftActionsSheet } from "@/components/shift-tracker/shift-actions-sheet";
@@ -51,7 +52,7 @@ import type {
 // ============================================================
 // Tab Navigation
 // ============================================================
-type TabKey = "dashboard" | "shifts" | "analytics" | "calendar" | "reminders" | "profile" | "settings";
+type TabKey = "dashboard" | "shifts" | "owe" | "analytics" | "calendar" | "reminders" | "profile" | "settings";
 
 interface TabConfig {
   key: TabKey;
@@ -90,7 +91,7 @@ export default function ShiftTrackerPage() {
   const getInitialTab = (): TabKey => {
     if (typeof window === "undefined") return defaultTab;
     const hash = window.location.hash.replace("#", "") as TabKey;
-    const valid: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    const valid: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
     return valid.includes(hash) ? hash : defaultTab;
   };
 
@@ -98,7 +99,7 @@ export default function ShiftTrackerPage() {
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right">("left");
 
   const MOBILE_TABS = useMemo<TabKey[]>(
-    () => ["dashboard", "shifts", "calendar", "reminders", "profile"],
+    () => ["dashboard", "shifts", "owe", "calendar", "profile"],
     []
   );
 
@@ -131,7 +132,7 @@ export default function ShiftTrackerPage() {
 
   const navigateTab = useCallback((key: TabKey) => {
     if (activeTabRef.current === key) return;
-    const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
     const dir = tabs.indexOf(key) > tabs.indexOf(activeTabRef.current) ? "left" : "right";
     // Push current tab onto stack before moving
     const newStack = [...tabStackRef.current, activeTabRef.current];
@@ -199,7 +200,7 @@ export default function ShiftTrackerPage() {
     const newStack = stack.slice(0, -1);
     tabStackRef.current = newStack;
     setTabStack(newStack);
-    const tabs: TabKey[] = ["dashboard", "shifts", "calendar", "reminders", "profile"];
+    const tabs: TabKey[] = ["dashboard", "shifts", "owe", "calendar", "profile"];
     const dir = tabs.indexOf(prev) < tabs.indexOf(activeTabRef.current) ? "right" : "left";
     setTabOnly(prev, dir);
   }, [popModal, setTabOnly]);
@@ -816,6 +817,15 @@ export default function ShiftTrackerPage() {
                   shifts={shifts}
                   onShiftClick={openDetailSheet}
                   onAddShift={() => setAddDialogOpen(true)}
+                />
+              </div>
+
+              <div style={{ display: activeTab === "owe" ? "block" : "none", contain: "layout style" }}>
+                <OweTab
+                  shifts={shifts}
+                  onToggleStatus={toggleStatus}
+                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                  onDeleteShift={handleDeleteStart}
                 />
               </div>
 

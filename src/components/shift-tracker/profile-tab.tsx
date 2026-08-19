@@ -19,6 +19,7 @@ import { AnimatedCurrency } from "./animated-number";
 import { ProfileSkeleton } from "./loading-skeleton";
 import { signOut } from "next-auth/react";
 import { SettingsTab } from "./settings-tab";
+import { RemindersTab } from "./reminders-tab";
 import { isStationShift } from "@/types/database.types";
 import type { Shift, UserProfile } from "@/types/database.types";
 
@@ -57,6 +58,7 @@ function ProfileTab({
   const { showToast } = useAppToast();
   const [isEditing, setIsEditing] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showReminders, setShowReminders] = useState(false);
   const [profileSection, setProfileSection] = useState<"overview" | "records">("overview");
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
@@ -189,6 +191,22 @@ function ProfileTab({
   return (
     <div className="max-w-lg mx-auto space-y-5 pb-8">
 
+      {/* Reminders bottom sheet */}
+      <div className={`fixed inset-0 z-50 ${showReminders ? "" : "pointer-events-none"}`}>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+          style={{ opacity: showReminders ? 1 : 0 }}
+          onClick={() => setShowReminders(false)} />
+        <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl shadow-2xl overflow-y-auto max-h-[90dvh]"
+          style={{ transform: showReminders ? "translateY(0)" : "translateY(100%)", transition: "transform 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom)" }}>
+          <div className="flex justify-center pt-3 pb-1"><div className="w-10 h-1 rounded-full bg-muted-foreground/25" /></div>
+          <div className="flex items-center justify-between px-5 py-3 border-b border-border/50">
+            <h2 className="text-lg font-bold">Reminders</h2>
+            <button onClick={() => setShowReminders(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><X className="w-4 h-4" /></button>
+          </div>
+          <div className="p-4"><RemindersTab savedStationNames={[]} /></div>
+        </div>
+      </div>
+
       {/* Settings bottom sheet */}
       <AnimatePresence>
         {showSettings && (
@@ -240,13 +258,22 @@ function ProfileTab({
 
       {/* ── Gear button ── */}
       <div className="flex justify-end">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => setShowSettings(true)}
-          className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center"
-        >
-          <Settings2 className="w-4 h-4 text-muted-foreground" />
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowReminders(true)}
+            className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center"
+          >
+            <Bell className="w-4 h-4 text-muted-foreground" />
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowSettings(true)}
+            className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center"
+          >
+            <Settings2 className="w-4 h-4 text-muted-foreground" />
+          </motion.button>
+        </div>
       </div>
 
       {/* ── Hero ── */}
