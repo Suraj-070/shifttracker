@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { UserX, Calendar, SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
-import { ShiftDetailSheet } from "./shift-detail-sheet";
 import type { Shift } from "@/types/database.types";
 
 interface OweTabProps {
@@ -19,8 +18,6 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
   const [personFilter, setPersonFilter] = useState("__all__");
   const [statusFilter, setStatusFilter] = useState<OweFilter>("all");
   const [filtersOpen, setFiltersOpen]   = useState(false);
-  const [detailShift, setDetailShift]   = useState<Shift | null>(null);
-  const [detailOpen,  setDetailOpen]    = useState(false);
 
   // Only covered-by shifts
   const oweShifts = useMemo(() => shifts.filter(s => s.coveredBy), [shifts]);
@@ -76,8 +73,6 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
   const totalPaid   = useMemo(() => oweShifts.filter(s => s.status === "Paid").reduce((s, sh) => s + parseFloat(sh.amountEarned), 0), [oweShifts]);
   const hasFilters  = personFilter !== "__all__" || statusFilter !== "all";
 
-  const openDetail  = useCallback((shift: Shift) => { setDetailShift(shift); setDetailOpen(true); }, []);
-  const closeDetail = useCallback(() => setDetailOpen(false), []);
 
   if (oweShifts.length === 0) {
     return (
@@ -195,7 +190,7 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
                 {group.shifts.map(shift => {
                   const isPaid = shift.status === "Paid";
                   return (
-                    <div key={shift.id} onClick={() => openDetail(shift)}
+                    <div key={shift.id} onClick={() => onEditShift(shift)}
                       className="flex items-center gap-3 px-4 py-3.5 active:bg-amber-50/60 dark:active:bg-amber-950/20 transition-colors cursor-pointer">
                       {/* Stripe */}
                       <div className={`w-1 h-9 rounded-full shrink-0 ${isPaid ? "bg-emerald-500" : "bg-amber-400"}`} />
@@ -234,15 +229,7 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift }: OweTabPr
 
       <div className="h-20" />
 
-      {/* Detail sheet */}
-      <ShiftDetailSheet
-        shift={detailShift}
-        open={detailOpen}
-        onClose={closeDetail}
-        onEdit={(shift) => { closeDetail(); setTimeout(() => onEditShift(shift), 320); }}
-        onDelete={(shift) => { closeDetail(); setTimeout(() => onDeleteShift(shift), 320); }}
-        onToggleStatus={onToggleStatus}
-      />
+
     </div>
   );
 }

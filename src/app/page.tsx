@@ -818,7 +818,7 @@ export default function ShiftTrackerPage() {
               <OweTab
                   shifts={shifts}
                   onToggleStatus={toggleStatus}
-                  onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                  onEditShift={openDetailSheet}
                   onDeleteShift={handleDeleteStart}
                 />
               </div>

@@ -45,8 +45,15 @@ export function ShiftDetailSheet({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
-        style={{ opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.2s" }}
+        className="fixed inset-0 z-40 transition-all"
+        style={{
+          background: "rgba(0,0,0,0.55)",
+          backdropFilter: open ? "blur(4px)" : "none",
+          WebkitBackdropFilter: open ? "blur(4px)" : "none",
+          opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
+          transition: "opacity 0.22s ease",
+        }}
         onClick={onClose}
       />
 
@@ -56,9 +63,10 @@ export function ShiftDetailSheet({
         style={{
           transform: open ? "translateY(0)" : "translateY(100%)",
           transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)",
-          paddingBottom: "env(safe-area-inset-bottom, 16px)",
-          maxHeight: "92dvh",
+          paddingBottom: "env(safe-area-inset-bottom, 20px)",
+          maxHeight: "88dvh",
           overflowY: "auto",
+          overscrollBehavior: "contain",
         }}
       >
         {/* Color stripe */}
