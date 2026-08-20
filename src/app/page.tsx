@@ -800,8 +800,8 @@ export default function ShiftTrackerPage() {
                   onLongPress={handleLongPress}
                   onEditShift={openDetailSheet}
                   onShiftClick={openDetailSheet}
-                  onAddShift={(person, location) => {
-                    setAddShiftDefaults({ person, location });
+                  onAddShift={(person, location, date) => {
+                    setAddShiftDefaults({ person, location, date });
                     setAddDialogOpen(true);
                   }}
                 />

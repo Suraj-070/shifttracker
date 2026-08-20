@@ -66,7 +66,7 @@ interface ShiftsTabProps {
   onToggleStatus: (shift: Shift) => void;
   onDeleteShift: (shift: Shift) => void;
   onEditShift: (shift: Shift) => void;
-  onAddShift: (defaultPerson?: string, defaultLocation?: string) => void;
+  onAddShift: (defaultPerson?: string, defaultLocation?: string, defaultDate?: string) => void;
   onBulkPaid?: (ids: string[]) => Promise<void>;
   onLongPress?: (shift: Shift) => void;
   onShiftClick?: (shift: Shift) => void;
@@ -476,7 +476,7 @@ function ShiftsTab({
           <CalendarTab
             shifts={shifts}
             onShiftClick={onShiftClick ?? onEditShift}
-            onAddShift={onAddShift ? () => onAddShift() : undefined}
+            onAddShift={onAddShift ? (date?: string) => onAddShift(undefined, undefined, date) : undefined}
           />
         </div>
       )}
