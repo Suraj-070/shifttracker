@@ -878,6 +878,7 @@ export default function ShiftTrackerPage() {
 
         {/* Dialogs */}
         <AddShiftDialog
+          key={`add-${addShiftDefaults.date ?? "default"}`}
           open={addDialogOpen}
           onOpenChange={(v) => {
             if (!v && addOpenRef.current) {
