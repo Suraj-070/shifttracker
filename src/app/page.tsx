@@ -576,20 +576,19 @@ export default function ShiftTrackerPage() {
     [shifts],
   );
 
-  // ── Computed values (hall shifts only, excluding covered-by-others) ─────────────────────
+  // ── Computed values (hall shifts only) ─────────────────────
   const summary = useMemo<AnalyticsSummary>(() => {
-    const myShifts  = hallShifts.filter(s => !s.coveredBy); // exclude shifts others covered
-    const totalEarned = myShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
-    const paidShifts   = myShifts.filter((s) => s.status === "Paid");
-    const unpaidShifts = myShifts.filter((s) => s.status === "Unpaid");
+    const totalEarned = hallShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
+    const paidShifts   = hallShifts.filter((s) => s.status === "Paid");
+    const unpaidShifts = hallShifts.filter((s) => s.status === "Unpaid");
     return {
       totalEarned,
       totalPaid:    paidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
       totalUnpaid:  unpaidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
-      totalShifts:  myShifts.length,
+      totalShifts:  hallShifts.length,
       paidShifts:   paidShifts.length,
       unpaidShifts: unpaidShifts.length,
-      averagePerShift: myShifts.length > 0 ? totalEarned / myShifts.length : 0,
+      averagePerShift: hallShifts.length > 0 ? totalEarned / hallShifts.length : 0,
     };
   }, [hallShifts]);
 

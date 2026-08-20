@@ -252,6 +252,20 @@ function DashboardTab({
             <StatCard label="Avg / Shift"  value={formatCurrency(summary.averagePerShift)} sub={`${paidPct}% collected`} />
           </div>
 
+          {/* Net take-home after owe */}
+          {totalOwe > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl bg-muted/50 border border-border/40">
+              <div>
+                <p className="text-xs text-muted-foreground">Your net after paying out</p>
+                <p className="text-lg font-black tabular-nums text-primary">{formatCurrency(summary.totalEarned - totalOwe)}</p>
+              </div>
+              <div className="text-right text-xs text-muted-foreground">
+                <p>{formatCurrency(summary.totalEarned)} total</p>
+                <p className="text-amber-500">− {formatCurrency(totalOwe)} owed</p>
+              </div>
+            </div>
+          )}
+
           {/* Owe card */}
           <OweCard oweData={oweData} totalOwe={totalOwe} />
 
