@@ -822,7 +822,7 @@ export default function ShiftTrackerPage() {
                   onToggleStatus={toggleStatus}
                   onEditShift={openDetailSheet}
                   onDeleteShift={handleDeleteStart}
-                  onBulkPaid={handleBulkMarkPaid}
+                  onBulkPaid={async (ids: string[]) => { await handleBulkMarkPaid(shifts.filter(s => ids.includes(s.id))); }}
                   userName={userName}
                 />
               </div>
