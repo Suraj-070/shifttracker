@@ -57,9 +57,9 @@ function StatusToggle({ value, onChange }: { value: ShiftStatus; onChange: (v: S
 
 // ── Hall Form ────────────────────────────────────────────────────────────────
 
-function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmitting, onSubmit, onCancel }: {
+function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmitting, onSubmit, onCancel, userName }: {
   shifts: Shift[]; defaultPerson?: string; defaultLocation?: string; defaultDate?: string;
-  isSubmitting: boolean; onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void;
+  isSubmitting: boolean; onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void; userName?: string;
 }) {
   const today = new Date().toISOString().split("T")[0];
   const { payRates } = useSettingsStore();
@@ -92,7 +92,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
   const handleSubmit = () => {
     if (!canSubmit) return;
     onSubmit({
-      coveringFor: isCovered ? "Myself" : coveringFor,
+      coveringFor: isCovered ? (userName ?? "Myself") : coveringFor,
       shiftDate: formDate, locationName: location,
       notes: notes.trim(), shiftDay: getDayFromDate(formDate),
       coveredBy: isCovered && coveredBy.trim() ? coveredBy.trim() : null,
@@ -345,9 +345,10 @@ interface AddShiftDialogProps {
   defaultPerson?: string;
   defaultLocation?: string;
   defaultDate?: string;
+  userName?: string;
 }
 
-export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate }: AddShiftDialogProps) {
+export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, userName }: AddShiftDialogProps) {
   const [jobKind, setJobKind] = useState<JobKind>("Hall");
 
   return (

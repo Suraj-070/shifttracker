@@ -897,6 +897,7 @@ export default function ShiftTrackerPage() {
           defaultPerson={addShiftDefaults.person}
           defaultLocation={addShiftDefaults.location}
           defaultDate={addShiftDefaults.date}
+          userName={userName}
         />
         <EditShiftDialog
           open={editDialogOpen}
