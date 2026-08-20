@@ -489,7 +489,8 @@ function ShiftsTab({
       )}
 
       {/* ── Content ── */}
-      {!calendarView && (shiftKind === "hall" ? (
+      {!calendarView && (
+        shiftKind === "hall" ? (
         <div>
           {filteredHall.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
@@ -558,7 +559,7 @@ function ShiftsTab({
           )}
         </div>
       )}
-    <div className="h-20" />{/* FAB clearance */}
+      <div className="h-20" />{/* FAB clearance */}
       </div>
     </div>
   );
