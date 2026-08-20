@@ -378,7 +378,15 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-40 transition-all"
+        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: open ? "blur(4px)" : "none", WebkitBackdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.22s ease" }}
+        onClick={() => onOpenChange(false)} />
+
+      {/* Sheet */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-2xl"
+        style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)", maxHeight: "94dvh", overflowY: "auto", overscrollBehavior: "contain", paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -408,6 +416,7 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
           )
         )}
       </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }

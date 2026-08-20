@@ -309,7 +309,7 @@ export default function ShiftTrackerPage() {
   const [shiftToDelete, setShiftToDelete]   = useState<Shift | null>(null);
   const [shiftToEdit,   setShiftToEdit]     = useState<Shift | null>(null);
   const [isSubmitting,  setIsSubmitting]    = useState(false);
-  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; }>({});
+  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; date?: string }>({});
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
   const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
 
@@ -812,7 +812,7 @@ export default function ShiftTrackerPage() {
                   shifts={shifts}
                   onShiftClick={openDetailSheet}
                   userName={userName}
-                  onAddShift={(date) => { setAddDialogOpen(true); }}
+                  onAddShift={(date) => { setAddShiftDefaults(prev => ({ ...prev, date })); setAddDialogOpen(true); }}
                 />
               </div>
 
@@ -895,6 +895,7 @@ export default function ShiftTrackerPage() {
           shifts={shifts}
           defaultPerson={addShiftDefaults.person}
           defaultLocation={addShiftDefaults.location}
+          defaultDate={addShiftDefaults.date}
         />
         <EditShiftDialog
           open={editDialogOpen}
