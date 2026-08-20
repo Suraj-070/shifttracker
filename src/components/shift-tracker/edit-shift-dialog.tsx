@@ -107,7 +107,7 @@ function HallEditForm({
     <div className="space-y-5 py-2">
       {/* Covering For */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Covering For</Label>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Covering For</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {personPills.map((name) => (
             <button key={name} type="button" onClick={() => setCoveringFor(coveringFor === name ? "" : name)}
@@ -125,7 +125,7 @@ function HallEditForm({
 
       {/* Location */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Location</Label>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Location</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {locationPills.map((loc) => (
             <button key={loc} type="button" onClick={() => setLocation(location === loc ? "" : loc)}
@@ -143,26 +143,26 @@ function HallEditForm({
 
       {/* Date */}
       <div className="space-y-2">
-        <Label>Date</Label>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Date</p>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
       </div>
 
       {/* Amount + Status */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label>Amount ($)</Label>
-          <Input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Amount ($)</p>
+          <input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         </div>
         <div className="space-y-2">
-          <Label>Status</Label>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Status</p>
           <StatusToggle value={status} onChange={setStatus} />
         </div>
       </div>
 
       {/* Notes */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
-        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
+        <textarea value={notes} onChange={(e) =className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"> setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
       </div>
 
       <div className="flex gap-3 pt-1">
@@ -243,7 +243,7 @@ function StationEditForm({
     <div className="space-y-5 py-2">
       {/* Station name — pills + input */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Station Name</Label>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Station Name</p>
         {pastStationNames.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2">
             {pastStationNames.map((name) => (
@@ -263,12 +263,12 @@ function StationEditForm({
             ))}
           </div>
         )}
-        <Input
+        <input
           list="edit-station-name-list"
           value={stationName}
           onChange={(e) => setStationName(e.target.value)}
           placeholder={pastStationNames.length > 0 ? "Or type a new station…" : "e.g. Central, Redfern..."}
-        />
+        className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         <datalist id="edit-station-name-list">
           {pastStationNames.map((n) => <option key={n} value={n} />)}
         </datalist>
@@ -276,7 +276,7 @@ function StationEditForm({
 
       {/* Rate pills */}
       <div className="space-y-2">
-        <Label>Shift Type <span className="font-normal text-muted-foreground text-xs">(for reference — won't auto-recalc)</span></Label>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Shift Type <span className="font-normal text-muted-foreground text-xs">(for reference — won't auto-recalc)</span></p>
         <div className="flex gap-2">
           {RATE_KEYS.map((k) => (
             <button key={k} type="button" onClick={() => setRateKey(k)}
@@ -294,24 +294,24 @@ function StationEditForm({
       {/* Date + Hours */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label>Date</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Date</p>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         </div>
         <div className="space-y-2">
-          <Label>Hours Worked</Label>
-          <Input type="number" step="0.25" min="0" value={hours} onChange={(e) => setHours(e.target.value)} />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Hours Worked</p>
+          <input type="number" step="0.25" min="0" value={hours} onChange={(e) => setHours(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         </div>
       </div>
 
       {/* Gross + Tax */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label>Gross Amount ($)</Label>
-          <Input type="number" step="0.01" min="0" value={gross} onChange={(e) => { grossTouched.current = true; setGross(e.target.value); }} />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Gross Amount ($)</p>
+          <input type="number" step="0.01" min="0" value={gross} onChange={(e) => { grossTouched.current = true; setGross(e.target.value); }} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
         </div>
         <div className="space-y-2">
-          <Label>Tax Withheld ($)</Label>
-          <Input type="number" step="0.01" min="0" value={tax} onChange={(e) => { taxTouched.current = true; setTax(e.target.value); }} />
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Tax Withheld ($)</p>
+          <input type="number" step="0.01" min="0" value={tax} onChange={(e) => { taxTouched.current = true; setTax(e.target.value); }} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
           <p className="text-xs text-muted-foreground">Est. {(STATION_TAX_RATE * 100).toFixed(1)}%</p>
         </div>
       </div>
@@ -327,12 +327,12 @@ function StationEditForm({
 
       {/* Notes + Status */}
       <div className="space-y-2">
-        <Label className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></Label>
-        <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="min-h-20 resize-none" />
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
+        <textarea value={notes} onChange={(e) =className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"> setNotes(e.target.value)} placeholder="Anything to remember..." className="min-h-20 resize-none" />
       </div>
 
       <div className="space-y-2">
-        <Label>Status</Label>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Status</p>
         <StatusToggle value={status} onChange={setStatus} />
       </div>
 
