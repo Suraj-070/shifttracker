@@ -107,7 +107,7 @@ function HallEditForm({
     <div className="space-y-5 py-2">
       {/* Covering For */}
       <div className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Covering For</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Covering For</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {personPills.map((name) => (
             <button key={name} type="button" onClick={() => setCoveringFor(coveringFor === name ? "" : name)}
@@ -125,7 +125,7 @@ function HallEditForm({
 
       {/* Location */}
       <div className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Location</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Location</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {locationPills.map((loc) => (
             <button key={loc} type="button" onClick={() => setLocation(location === loc ? "" : loc)}
@@ -161,8 +161,8 @@ function HallEditForm({
 
       {/* Notes */}
       <div className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) =className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"> setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
       </div>
 
       <div className="flex gap-3 pt-1">
@@ -243,7 +243,7 @@ function StationEditForm({
     <div className="space-y-5 py-2">
       {/* Station name — pills + input */}
       <div className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Station Name</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> Station Name</p>
         {pastStationNames.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2">
             {pastStationNames.map((name) => (
@@ -327,8 +327,8 @@ function StationEditForm({
 
       {/* Notes + Status */}
       <div className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2" className="flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) =className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"> setNotes(e.target.value)} placeholder="Anything to remember..." className="min-h-20 resize-none" />
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="min-h-20 resize-none" />
       </div>
 
       <div className="space-y-2">
