@@ -21,6 +21,9 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift, onBulkPaid
   const [personFilter, setPersonFilter] = useState("__all__");
   const [statusFilter, setStatusFilter] = useState<OweFilter>("all");
   const [filtersOpen, setFiltersOpen]   = useState(false);
+  const [selecting, setSelecting]       = useState(false);
+  const [selected, setSelected]         = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading]   = useState(false);
 
   // Only covered-by shifts
   const oweShifts = useMemo(() => shifts.filter(s => s.coveredBy), [shifts]);
