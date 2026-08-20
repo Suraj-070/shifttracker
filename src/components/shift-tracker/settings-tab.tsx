@@ -139,6 +139,8 @@ export function SettingsTab() {
   const { showToast } = useAppToast();
   const { theme: currentTheme, setTheme } = useTheme();
   const store = useSettingsStore();
+  const fortnightAnchor    = store.fortnightAnchor;
+  const setFortnightAnchor = store.setFortnightAnchor;
   const defaultRates = {
     afternoonRate: 37.91, saturdayRate: 47.38, sundayRate: 60.94,
     taxRate: 0.0598, defaultHallAmount: 110,
