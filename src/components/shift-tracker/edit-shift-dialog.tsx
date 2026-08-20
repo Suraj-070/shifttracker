@@ -2,19 +2,6 @@
 
 import React, { useMemo, useRef, useState } from "react";
 import { Loader2, Save, User, MapPin, StickyNote, Check, UserX } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ComboInput } from "./combo-input";
 import {
   DEFAULT_LOCATIONS,
@@ -178,13 +165,14 @@ function HallEditForm({
         <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
       </div>
 
-      <DialogFooter>
-        <DialogClose asChild><Button variant="outline" onClick={onCancel}>Cancel</Button></DialogClose>
-        <Button onClick={handleSave} disabled={isSubmitting || !canSave}>
-          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-          Save Changes
-        </Button>
-      </DialogFooter>
+      <div className="flex gap-3 pt-1">
+        <button onClick={onCancel} className="flex-1 py-3.5 rounded-2xl bg-muted text-sm font-semibold text-muted-foreground active:brightness-95">Cancel</button>
+        <button onClick={handleSave} disabled={isSubmitting || !canSave}
+          className="flex-[2] py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {isSubmitting ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -348,13 +336,14 @@ function StationEditForm({
         <StatusToggle value={status} onChange={setStatus} />
       </div>
 
-      <DialogFooter>
-        <DialogClose asChild><Button variant="outline" onClick={onCancel}>Cancel</Button></DialogClose>
-        <Button onClick={handleSave} disabled={isSubmitting || !canSave}>
-          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : <Save className="w-4 h-4 mr-1.5" />}
-          Save Changes
-        </Button>
-      </DialogFooter>
+      <div className="flex gap-3 pt-1">
+        <button onClick={onCancel} className="flex-1 py-3.5 rounded-2xl bg-muted text-sm font-semibold text-muted-foreground active:brightness-95">Cancel</button>
+        <button onClick={handleSave} disabled={isSubmitting || !canSave}
+          className="flex-[2] py-3.5 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          {isSubmitting ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -387,35 +376,32 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
       {/* Sheet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-2xl"
         style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)", maxHeight: "94dvh", overflowY: "auto", overscrollBehavior: "contain", paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {station && <MapPin className="w-4 h-4 text-blue-500" />}
-            Edit {station ? "Station" : "Hall"} Shift
-          </DialogTitle>
-          <DialogDescription>Update shift details.</DialogDescription>
-        </DialogHeader>
 
-        {shift && (
-          station ? (
-            <StationEditForm
-              shift={shift}
-              shifts={shifts}
-              isSubmitting={isSubmitting}
-              onSave={handleSave}
-              onCancel={() => onOpenChange(false)}
-            />
-          ) : (
-            <HallEditForm
-              shift={shift}
-              shifts={shifts}
-              isSubmitting={isSubmitting}
-              onSave={handleSave}
-              onCancel={() => onOpenChange(false)}
-            />
-          )
-        )}
-      </DialogContent>
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background/95 backdrop-blur-sm z-10">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
+        </div>
+
+        <div className="px-4 pb-4">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-black flex items-center gap-2">
+              {station && <MapPin className="w-5 h-5 text-blue-500" />}
+              Edit {station ? "Station" : "Hall"} Shift
+            </h2>
+            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          </div>
+
+          {shift && (
+            station ? (
+              <StationEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
+            ) : (
+              <HallEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
+            )
+          )}
+        </div>
       </div>
     </>
   );
