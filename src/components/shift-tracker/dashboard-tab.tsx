@@ -1,16 +1,11 @@
 "use client";
 import { useSettingsStore } from "@/stores/settings-store";
-
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  DollarSign, CheckCircle2, XCircle, TrendingUp,
-  Plus, CalendarDays, ChevronRight, User, MapPin,
-  StickyNote, Wallet, Receipt, Clock, ChevronDown, Briefcase,
+  DollarSign, ChevronRight, MapPin,
+  StickyNote, Clock, ChevronDown, TrendingUp,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote } from "@/types/database.types";
@@ -18,114 +13,62 @@ import { AnimatedCurrency } from "./animated-number";
 import { EarningsChart } from "./earnings-chart";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
 
-// ─── Fortnight logic ─────────────────────────────────────────────────────────
-//
-// Anchor: Wed 24 Jun 2026 = actual payslip Wednesday (verified)
-// Period: Wednesday → Tuesday (14 days)
-//   - Work period idx 0: Wed 10 Jun → Tue 23 Jun | payslip Wed 24 Jun | pay Thu 25 Jun
-//   - Work period idx 1: Wed 24 Jun → Tue 7 Jul  | payslip Wed 8 Jul  | pay Thu 9 Jul
-//
-// Formula:
-//   payslip(idx) = ANCHOR + idx * 14
-//   start(idx)   = payslip(idx) - 14   (Wednesday, 2 weeks before payslip)
-//   end(idx)     = payslip(idx) - 1    (Tuesday, day before payslip)
-//   pay(idx)     = payslip(idx) + 1    (Thursday, day after payslip)
+// ─── Fortnight logic ──────────────────────────────────────────────────────────
+const DAY_MS       = 86400000;
+const FORTNIGHT_MS = DAY_MS * 14;
 
-const ANCHOR_PAYSLIP = new Date("2026-06-24T00:00:00"); // Wednesday 24 Jun 2026
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-const FORTNIGHT_MS = 14 * DAY_MS;
-
-function fortnightBounds(index: number): { start: Date; end: Date; payslipDate: Date; payDate: Date } {
-  const payslipMs = ANCHOR_PAYSLIP.getTime() + index * FORTNIGHT_MS;
+function getAnchor(anchorStr: string) {
+  return new Date(anchorStr + "T00:00:00");
+}
+function fortnightBounds(index: number, anchor: Date) {
+  const payslipMs = anchor.getTime() + index * FORTNIGHT_MS;
   return {
-    payslipDate: new Date(payslipMs),                    // Wednesday
-    start:       new Date(payslipMs - FORTNIGHT_MS),     // Wednesday 2 weeks before
-    end:         new Date(payslipMs - DAY_MS),           // Tuesday before payslip
-    payDate:     new Date(payslipMs + DAY_MS),           // Thursday after payslip
+    payslipDate: new Date(payslipMs),
+    start:       new Date(payslipMs - FORTNIGHT_MS),
+    end:         new Date(payslipMs - DAY_MS),
+    payDate:     new Date(payslipMs + DAY_MS),
   };
 }
-
-function fortnightIndexForDate(date: Date): number {
-  // Which index does this date fall into?
-  // date is in period idx N if: start(N) <= date <= end(N)
-  // start(N) = ANCHOR + N*14 - 14, end(N) = ANCHOR + N*14 - 1
-  // => ANCHOR + (N-1)*14 <= date <= ANCHOR + N*14 - 1
-  // => (date - ANCHOR) / 14 gives fractional index, ceil it
-  const msSinceAnchor = date.getTime() - ANCHOR_PAYSLIP.getTime();
-  // Days since anchor (can be negative for past periods)
-  const daysSinceAnchor = msSinceAnchor / DAY_MS;
-  // Index: anchor period (idx 0) covers days -14 to -1 relative to anchor
-  // idx 1 covers days 0 to 13, idx 2 covers 14 to 27, etc.
-  return Math.floor(daysSinceAnchor / 14) + 1;
+function fortnightIndexForDate(date: Date, anchor: Date) {
+  return Math.floor((date.getTime() - anchor.getTime()) / FORTNIGHT_MS) + 1;
 }
-
-function isInFortnight(shiftDate: string, index: number): boolean {
-  const { start, end } = fortnightBounds(index);
+function isInFortnight(shiftDate: string, index: number, anchor: Date) {
+  const { start, end } = fortnightBounds(index, anchor);
   const d = new Date(shiftDate + "T00:00:00");
   return d >= start && d <= end;
 }
-
-function formatDateShort(d: Date): string {
+function fmt(d: Date) {
   return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
 }
-
-function daysUntil(d: Date): number {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.ceil((d.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-}
-
-function currentFortnightIndex(): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return fortnightIndexForDate(today);
+function daysUntil(d: Date) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.ceil((d.getTime() - now.getTime()) / DAY_MS);
 }
 
 interface FortnightData {
-  index: number;
-  start: Date;
-  end: Date;
-  payslipDate: Date;
-  payDate: Date;
-  shifts: Shift[];
-  gross: number;
-  tax: number;
-  net: number;
-  isPast: boolean;
-  isCurrent: boolean;
+  index: number; start: Date; end: Date; payslipDate: Date; payDate: Date;
+  shifts: Shift[]; gross: number; tax: number; net: number; isPast: boolean; isCurrent: boolean;
 }
 
-function buildFortnightData(stationShifts: Shift[]): FortnightData[] {
-  const currentIdx = currentFortnightIndex();
-
-  // Find range of fortnight indices needed
+function buildFortnightData(stationShifts: Shift[], anchorStr: string): FortnightData[] {
+  const anchor = getAnchor(anchorStr);
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const currentIdx = fortnightIndexForDate(today, anchor);
   const indices = new Set<number>();
-  // Always include current and previous 5
   for (let i = currentIdx - 5; i <= currentIdx; i++) indices.add(i);
-  // Also include any index that has shifts
   for (const s of stationShifts) {
-    const d = new Date(s.shiftDate + "T00:00:00");
-    const idx = fortnightIndexForDate(d);
-    indices.add(idx);
+    indices.add(fortnightIndexForDate(new Date(s.shiftDate + "T00:00:00"), anchor));
   }
-
-  return Array.from(indices)
-    .sort((a, b) => b - a) // newest first
-    .map((idx) => {
-      const { start, end, payslipDate, payDate } = fortnightBounds(idx);
-      const shifts = stationShifts.filter((s) => isInFortnight(s.shiftDate, idx));
-      const gross = shifts.reduce((sum, s) => sum + parseFloat(s.amountEarned), 0);
-      const tax = shifts.reduce((sum, s) => sum + parseStationTax(s.notes), 0);
-      const net = Math.max(0, gross - tax);
-      const isPast = idx < currentIdx;
-      const isCurrent = idx === currentIdx;
-      return { index: idx, start, end, payslipDate, payDate, shifts, gross, tax, net, isPast, isCurrent };
-    });
+  return Array.from(indices).sort((a,b) => b-a).map(idx => {
+    const { start, end, payslipDate, payDate } = fortnightBounds(idx, anchor);
+    const shifts = stationShifts.filter(s => isInFortnight(s.shiftDate, idx, anchor));
+    const gross  = shifts.reduce((s,sh) => s + parseFloat(sh.amountEarned), 0);
+    const tax    = shifts.reduce((s,sh) => s + parseStationTax(sh.notes), 0);
+    return { index: idx, start, end, payslipDate, payDate, shifts, gross, tax, net: Math.max(0, gross-tax), isPast: idx < currentIdx, isCurrent: idx === currentIdx };
+  });
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
 type DashKind = "hall" | "station";
 
 interface DashboardTabProps {
@@ -144,42 +87,45 @@ interface DashboardTabProps {
   compact?: boolean;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-
-// ── Owe card ─────────────────────────────────────────────────────────────────
-function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift[]; total: number }[]; totalOwe: number }) {
-  if (oweData.length === 0) return null;
+function StatCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
-    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-950/20 overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-            <span className="text-base">💸</span>
-          </div>
+    <div className={`rounded-2xl p-4 ${accent ? "bg-primary text-primary-foreground" : "bg-card border border-border/50"}`}>
+      <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{label}</p>
+      <p className={`text-xl font-black tabular-nums ${accent ? "text-primary-foreground" : ""}`}>{value}</p>
+      {sub && <p className={`text-[11px] mt-1 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{sub}</p>}
+    </div>
+  );
+}
+
+function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift[]; total: number }[]; totalOwe: number }) {
+  if (!oweData.length) return null;
+  return (
+    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.98 0.03 85), oklch(0.96 0.04 75))" }}>
+      <div className="flex items-center justify-between px-4 py-3.5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center text-lg">💸</div>
           <div>
             <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">To Pay Out</p>
-            <p className="text-[11px] text-amber-600/70 dark:text-amber-500">Shifts covered by others</p>
+            <p className="text-[11px] text-amber-600/70">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-xl font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(totalOwe)}</p>
-          <p className="text-[10px] text-amber-500">{oweData.reduce((s, d) => s + d.shifts.length, 0)} shifts</p>
-        </div>
+        <p className="text-xl font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(totalOwe)}</p>
       </div>
-      <div className="border-t border-amber-200 dark:border-amber-800 divide-y divide-amber-100 dark:divide-amber-900">
-        {oweData.map((d) => (
-          <div key={d.name} className="flex items-center justify-between px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center text-[10px] font-bold text-amber-700 dark:text-amber-300">
+      <div className="border-t border-amber-200/70 dark:border-amber-800 divide-y divide-amber-100 dark:divide-amber-900/50">
+        {oweData.map(d => (
+          <div key={d.name} className="flex items-center justify-between px-4 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center text-xs font-black text-amber-700 dark:text-amber-300">
                 {d.name[0].toUpperCase()}
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">{d.name}</p>
-                <p className="text-[11px] text-muted-foreground">{d.shifts.length} shift{d.shifts.length !== 1 ? "s" : ""}</p>
+                <p className="text-sm font-semibold">{d.name}</p>
+                <p className="text-[10px] text-muted-foreground">{d.shifts.length} shift{d.shifts.length!==1?"s":""}</p>
               </div>
             </div>
-            <span className="text-sm font-bold tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(d.total)}</span>
+            <p className="text-sm font-black tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(d.total)}</p>
           </div>
         ))}
       </div>
@@ -187,45 +133,39 @@ function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift
   );
 }
 
+// ─── Main component ───────────────────────────────────────────────────────────
 function DashboardTab({
-  summary,
-  recentShifts,
-  stationShifts,
-  hallShifts,
-  isLoading,
-  onToggleStatus,
-  onBulkMarkPaid,
-  onAddShift,
-  onViewAllShifts,
-  onEditShift,
-  allShifts,
-  userName = "Suraj",
-  compact = false,
+  summary, recentShifts, stationShifts, hallShifts,
+  isLoading, onToggleStatus, onBulkMarkPaid,
+  onAddShift, onViewAllShifts, onEditShift,
+  allShifts, userName = "Suraj",
 }: DashboardTabProps) {
-  const [dashKind, setDashKind] = useState<DashKind>("hall");
+  const [dashKind, setDashKind]             = useState<DashKind>("hall");
+  const [expandedFortnight, setExpanded]    = useState<number | null>(null);
+  const fortnightAnchor                     = useSettingsStore(s => s.fortnightAnchor);
   const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
-  const fortnightAnchor = useSettingsStore(s => s.fortnightAnchor);
 
-  // Covered-by-others: shifts where someone else covered, grouped by person
   const oweData = useMemo(() => {
     const map = new Map<string, { shifts: Shift[]; total: number }>();
     for (const s of allShifts) {
       if (!s.coveredBy) continue;
-      const name = s.coveredBy;
-      const existing = map.get(name) ?? { shifts: [], total: 0 };
-      existing.shifts.push(s);
-      existing.total += parseFloat(s.amountEarned);
-      map.set(name, existing);
+      const ex = map.get(s.coveredBy) ?? { shifts: [], total: 0 };
+      ex.shifts.push(s); ex.total += parseFloat(s.amountEarned);
+      map.set(s.coveredBy, ex);
     }
-    return Array.from(map.entries()).map(([name, data]) => ({ name, ...data }));
+    return Array.from(map.entries()).map(([name, d]) => ({ name, ...d }));
   }, [allShifts]);
 
-  const totalOwe = useMemo(() => oweData.reduce((s, d) => s + d.total, 0), [oweData]);
-  const [expandedFortnight, setExpandedFortnight] = useState<number | null>(null);
-
-  const fortnights = useMemo(() => buildFortnightData(stationShifts), [stationShifts]);
-  const currentFortnight = useMemo(() => fortnights.find((f) => f.isCurrent), [fortnights]);
-  const pastFortnights = useMemo(() => fortnights.filter((f) => f.isPast), [fortnights]);
+  const totalOwe      = useMemo(() => oweData.reduce((s,d) => s+d.total, 0), [oweData]);
+  const fortnights    = useMemo(() => buildFortnightData(stationShifts, fortnightAnchor), [stationShifts, fortnightAnchor]);
+  const currentFN     = fortnights.find(f => f.isCurrent);
+  const pastFNs       = fortnights.filter(f => f.isPast && f.shifts.length > 0);
+  const stationCount  = stationShifts.length;
+  const stationGross  = stationShifts.reduce((s,sh) => s + parseFloat(sh.amountEarned), 0);
+  const stationTax    = stationShifts.reduce((s,sh) => s + parseStationTax(sh.notes), 0);
+  const stationNet    = Math.max(0, stationGross - stationTax);
+  const stationUnpaid = stationShifts.filter(s => s.status === "Unpaid").length;
+  const paidPct       = summary.totalShifts > 0 ? Math.round((summary.paidShifts / summary.totalShifts) * 100) : 0;
 
   if (isLoading) return <DashboardSkeleton />;
 
@@ -237,439 +177,305 @@ function DashboardTab({
         </div>
         <div>
           <p className="text-xl font-black mb-1">No shifts yet</p>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Add your first shift to start tracking your earnings
-          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">Add your first shift to start tracking your earnings</p>
         </div>
-        <button
-          onClick={onAddShift}
-          className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-primary/25"
-        >
+        <button onClick={onAddShift} className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-primary/25">
           + Add First Shift
         </button>
       </div>
     );
   }
 
-  const paidPercent = summary.totalShifts > 0
-    ? Math.round((summary.paidShifts / summary.totalShifts) * 100)
-    : 0;
-
-  const stationGross = stationShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
-  const stationTax = stationShifts.reduce((s, sh) => s + parseStationTax(sh.notes), 0);
-  const stationNet = Math.max(0, stationGross - stationTax);
-  const stationCount = stationShifts.length;
-  const stationPaid = stationShifts.filter((s) => s.status === "Paid").length;
-  const stationUnpaid = stationShifts.filter((s) => s.status === "Unpaid").length;
-  const stationPaidPct = stationCount > 0 ? Math.round((stationPaid / stationCount) * 100) : 0;
-  const recentStation = [...stationShifts]
-    .sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))
-    .slice(0, 5);
-
-  // Current fortnight progress
-  const cfDaysTotal = 14;
-  const cfDaysGone = currentFortnight
-    ? Math.min(14, Math.max(0, Math.ceil((new Date().getTime() - currentFortnight.start.getTime()) / (24 * 60 * 60 * 1000))))
-    : 0;
-  const cfProgress = Math.round((cfDaysGone / cfDaysTotal) * 100);
-  const daysToPayslip = currentFortnight ? daysUntil(currentFortnight.payslipDate) : 0;
-  const daysToPayment = currentFortnight ? daysUntil(currentFortnight.payDate) : 0;
-
   return (
     <div className="space-y-4">
 
-      {/* Hall / Station sticky segmented control */}
+      {/* ── Sticky segmented control ── */}
       <div className="sticky top-0 z-30">
-        {/* Blur backdrop */}
-        <div
-          className="absolute inset-0 -mx-4"
-          style={{
-            background: "color-mix(in oklch, var(--background) 85%, transparent)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-          }}
-        />
-        <div className="relative flex justify-center py-2">
+        <div className="absolute inset-0 -mx-4" style={{ background: "color-mix(in oklch, var(--background) 88%, transparent)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }} />
+        <div className="relative flex justify-center py-2.5">
           <div className="flex gap-0.5 p-1 bg-muted/90 rounded-2xl shadow-sm">
-            <button
-              onClick={() => setDashKind("hall")}
-              className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-                dashKind === "hall"
-                  ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              Hall
-              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
-                dashKind === "hall" ? "bg-emerald-100 text-emerald-700" : "bg-muted-foreground/15 text-muted-foreground"
-              }`}>
-                {summary.totalShifts}
-              </span>
-            </button>
-            <button
-              onClick={() => setDashKind("station")}
-              className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
-                dashKind === "station"
-                  ? "bg-white dark:bg-card text-blue-700 shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              Station
-              <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
-                dashKind === "station" ? "bg-blue-100 text-blue-700" : "bg-muted-foreground/15 text-muted-foreground"
-              }`}>
-                {stationCount}
-              </span>
-            </button>
+            {[
+              { key: "hall", label: "Hall", badge: hallShifts.length, dot: "bg-emerald-500", active: "text-emerald-700" },
+              { key: "station", label: "Station", badge: stationCount, dot: null, active: "text-blue-700" },
+            ].map(t => (
+              <button key={t.key} onClick={() => setDashKind(t.key as DashKind)}
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
+                {t.dot ? <span className={`w-2 h-2 rounded-full ${t.dot} shrink-0`} /> : <MapPin className="w-3.5 h-3.5 shrink-0" />}
+                {t.label}
+                <span className={`text-[11px] font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <>
+      {/* ══ HALL ══════════════════════════════════════════════════════════════ */}
+      {dashKind === "hall" && (
+        <div className="space-y-3">
 
-        {/* ── HALL DASHBOARD ─────────────────────────────────── */}
-        {dashKind === "hall" && (
-          <div className="space-y-3">
-
-            {/* ── Unpaid hero — only when unpaid shifts exist ── */}
-            {summary.totalUnpaid > 0 && (
-              <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-primary/60 uppercase tracking-widest mb-1">Unpaid</p>
-                  <AnimatedCurrency value={summary.totalUnpaid} className="text-3xl font-bold text-primary tabular-nums" duration={500} />
-                  <p className="text-[11px] text-primary/50 mt-1">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
+          {/* Hero — unpaid amount */}
+          {summary.totalUnpaid > 0 ? (
+            <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.55 0.17 162), oklch(0.42 0.15 162))" }}>
+              {/* Background decoration */}
+              <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
+              <div className="absolute right-8 bottom-0 w-20 h-20 rounded-full opacity-10 bg-white" style={{ transform: "translate(0%, 40%)" }} />
+              <div className="relative">
+                <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">Unpaid</p>
+                <AnimatedCurrency value={summary.totalUnpaid} className="text-4xl font-black text-white tabular-nums" duration={600} />
+                <p className="text-white/60 text-[12px] mt-1.5">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
+                {/* Progress bar showing paid % */}
+                <div className="mt-4">
+                  <div className="flex justify-between text-[10px] text-white/50 mb-1.5">
+                    <span>{paidPct}% collected</span>
+                    <span>{formatCurrency(summary.totalEarned - summary.totalUnpaid)} paid</span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+                    <motion.div className="h-full rounded-full bg-white" initial={{ width: 0 }} animate={{ width: `${paidPct}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
+                  </div>
                 </div>
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <DollarSign className="w-8 h-8 text-primary" />
-                </div>
-              </div>
-            )}
-
-            {/* ── 2 key stats only ── */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card border border-border/50 rounded-2xl p-4">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Total Earned</p>
-                <p className="text-2xl font-bold tabular-nums">{formatCurrency(summary.totalEarned)}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{summary.totalShifts} shifts</p>
-              </div>
-              <div className="bg-card border border-border/50 rounded-2xl p-4">
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Avg / Shift</p>
-                <p className="text-2xl font-bold tabular-nums">{formatCurrency(summary.averagePerShift)}</p>
-                <p className="text-[11px] text-muted-foreground mt-1">{paidPercent}% collected</p>
               </div>
             </div>
-
-            {/* ── Owe card ── */}
-            <OweCard oweData={oweData} totalOwe={totalOwe} />
-
-            {/* ── Recent shifts — clean 1-line rows ── */}
-            <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
-                <p className="text-sm font-bold">Recent</p>
-                <button onClick={onViewAllShifts} className="text-xs text-primary font-semibold flex items-center gap-0.5">
-                  See all <ChevronRight className="w-3.5 h-3.5" />
-                </button>
+          ) : (
+            <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.55 0.15 162), oklch(0.42 0.13 162))" }}>
+              <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
+              <div className="relative">
+                <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">All Paid 🎉</p>
+                <p className="text-4xl font-black text-white tabular-nums">{formatCurrency(summary.totalEarned)}</p>
+                <p className="text-white/60 text-[12px] mt-1.5">{summary.totalShifts} shifts · fully collected</p>
               </div>
-              {recentShifts.length === 0 ? (
-                <div className="py-10 flex flex-col items-center gap-2">
-                  <span className="text-3xl"></span>
-                  <p className="text-sm text-muted-foreground">No shifts yet</p>
+            </div>
+          )}
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3">
+            <StatCard label="Total Earned" value={formatCurrency(summary.totalEarned)} sub={`${summary.totalShifts} shifts`} />
+            <StatCard label="Avg / Shift"  value={formatCurrency(summary.averagePerShift)} sub={`${paidPct}% collected`} />
+          </div>
+
+          {/* Owe card */}
+          <OweCard oweData={oweData} totalOwe={totalOwe} />
+
+          {/* Recent shifts */}
+          <div className="rounded-2xl overflow-hidden bg-card border border-border/50">
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
+              <p className="text-sm font-bold">Recent</p>
+              <button onClick={onViewAllShifts} className="flex items-center gap-0.5 text-xs text-primary font-semibold active:opacity-70">
+                See all <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {recentShifts.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">No shifts yet</div>
+            ) : (
+              <div className="divide-y divide-border/30">
+                {recentShifts.map(shift => {
+                  const isPaid    = shift.status === "Paid";
+                  const isCovered = Boolean(shift.coveredBy);
+                  const isSelf    = !isCovered && isSelfName(shift.coveringFor ?? "");
+                  const name      = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? `${userName} (You)` : shift.coveringFor;
+                  const stripe    = isCovered ? "bg-amber-400" : isSelf ? "bg-purple-500" : isPaid ? "bg-emerald-500" : "bg-rose-400";
+                  const nameColor = isCovered ? "text-amber-600 dark:text-amber-400" : isSelf ? "text-purple-600 dark:text-purple-400" : "";
+                  return (
+                    <button key={shift.id} onClick={() => onEditShift(shift)}
+                      className="w-full flex items-center gap-3 px-4 py-3 active:bg-muted/40 transition-colors text-left">
+                      <div className={`w-1 h-9 rounded-full shrink-0 ${stripe}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-semibold truncate ${nameColor}`}>{name}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+                        <p className={`text-[10px] font-bold ${isPaid ? "text-emerald-600" : isCovered ? "text-amber-500" : "text-rose-500"}`}>
+                          {isPaid ? "✓ Paid" : isCovered ? "Owed" : "Unpaid"}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Earnings chart */}
+          {hallShifts.length > 2 && (
+            <div className="rounded-2xl bg-card border border-border/50 p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <p className="text-sm font-bold">6-Week Earnings</p>
+              </div>
+              <EarningsChart shifts={hallShifts} weeks={6} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ STATION ═══════════════════════════════════════════════════════════ */}
+      {dashKind === "station" && (
+        <div className="space-y-3">
+          {stationCount === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center">
+                <MapPin className="w-8 h-8 text-blue-400" />
+              </div>
+              <p className="text-base font-bold">No station shifts yet</p>
+              <button onClick={onAddShift} className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-bold active:scale-95 transition-transform">
+                + Add Station Shift
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Station hero */}
+              <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
+                <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
+                <div className="relative">
+                  <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
+                  <AnimatedCurrency value={stationNet} className="text-4xl font-black text-white tabular-nums" duration={600} />
+                  <p className="text-white/60 text-[12px] mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
                 </div>
-              ) : (
-                <div className="divide-y divide-border/30">
-                  {recentShifts.map((shift) => {
-                    const isPaid = shift.status === "Paid";
-                    const isCovered = Boolean(shift.coveredBy);
-                    const isSelf = !isCovered && (isSelfName(shift.coveringFor ?? ""));
-                    const displayName = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? `${userName} (You)` : shift.coveringFor;
-                    const stripeColor = isCovered ? "bg-gradient-to-b from-amber-400 to-amber-500" : isSelf ? "bg-gradient-to-b from-purple-400 to-purple-600" : isPaid ? "bg-gradient-to-b from-emerald-400 to-emerald-600" : "bg-gradient-to-b from-rose-400 to-rose-500";
+              </div>
+
+              {/* Station stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard label="Gross Earned" value={formatCurrency(stationGross)} sub={`${stationCount} shifts`} />
+                <StatCard label="Tax Withheld" value={formatCurrency(stationTax)} sub={`${Math.round((stationTax/stationGross)*100)||0}% rate`} />
+              </div>
+
+              {/* Current fortnight */}
+              {currentFN && (
+                <div className="rounded-2xl border border-blue-200 dark:border-blue-800 overflow-hidden bg-blue-50/50 dark:bg-blue-950/10">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100 dark:border-blue-900">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-blue-500" />
+                      <p className="text-sm font-bold text-blue-700 dark:text-blue-300">Current Fortnight</p>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{fmt(currentFN.start)} – {fmt(currentFN.end)}</p>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    {/* Countdown */}
+                    <div className="flex items-center justify-between bg-white/70 dark:bg-blue-900/20 rounded-xl px-4 py-3">
+                      <div>
+                        <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                          {daysUntil(currentFN.payslipDate) <= 0 ? "Payslip today! 🎉" : `Payslip in ${daysUntil(currentFN.payslipDate)} day${daysUntil(currentFN.payslipDate)!==1?"s":""}`}
+                        </p>
+                        <p className="text-[11px] text-blue-500/70 mt-0.5">
+                          {daysUntil(currentFN.payDate) <= 0 ? "Money in account today! 💰" : `Pay in ${daysUntil(currentFN.payDate)} days (Thu ${fmt(currentFN.payDate)})`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-black text-blue-700 dark:text-blue-300 tabular-nums">{Math.max(0, daysUntil(currentFN.payslipDate))}</p>
+                        <p className="text-[10px] text-muted-foreground">days</p>
+                      </div>
+                    </div>
+
+                    {/* Progress */}
+                    <div>
+                      <div className="flex justify-between text-[10px] text-muted-foreground mb-1.5">
+                        <span>{fmt(currentFN.start)}</span>
+                        <span>{Math.min(14, Math.max(0, Math.ceil((Date.now() - currentFN.start.getTime()) / DAY_MS)))} / 14 days</span>
+                        <span>{fmt(currentFN.end)}</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-blue-100 dark:bg-blue-900 overflow-hidden">
+                        <motion.div className="h-full rounded-full bg-blue-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, Math.max(0, Math.ceil((Date.now() - currentFN.start.getTime()) / DAY_MS) / 14 * 100))}%` }}
+                          transition={{ duration: 0.9, ease: "easeOut" }} />
+                      </div>
+                    </div>
+
+                    {/* Mini stats */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { label: "Shifts", value: String(currentFN.shifts.length) },
+                        { label: "Gross",  value: formatCurrency(currentFN.gross) },
+                        { label: "Net",    value: formatCurrency(currentFN.net) },
+                      ].map(item => (
+                        <div key={item.label} className="bg-white/60 dark:bg-blue-900/20 rounded-xl p-2.5 text-center">
+                          <p className="text-[10px] text-muted-foreground mb-1">{item.label}</p>
+                          <p className="text-sm font-black tabular-nums">{item.value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {currentFN.shifts.some(s => s.status === "Unpaid") && (
+                      <button onClick={() => onBulkMarkPaid(currentFN.shifts.filter(s => s.status === "Unpaid"))}
+                        className="w-full py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm shadow-emerald-500/20">
+                        ✓ Mark {currentFN.shifts.filter(s => s.status === "Unpaid").length} shifts as paid
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Past fortnights */}
+              {pastFNs.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground px-1">Past Fortnights</p>
+                  {pastFNs.map(fn => {
+                    const isExpanded = expandedFortnight === fn.index;
+                    const allPaid = fn.shifts.every(s => s.status === "Paid");
                     return (
-                      <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-2.5 active:bg-muted/40 transition-colors cursor-pointer select-none">
-                        <div className={`w-2 h-8 rounded-full shrink-0 ${stripeColor}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-sm font-semibold truncate ${isCovered ? "text-amber-600 dark:text-amber-400" : isSelf ? "text-purple-600 dark:text-purple-400" : ""}`}>{displayName}</p>
-                          <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
-                          <span className={`text-[10px] font-bold ${isPaid ? "text-emerald-600" : isCovered ? "text-amber-500" : "text-rose-500"}`}>
-                            {isPaid ? "✓ Paid" : isCovered ? "Owed" : "Unpaid"}
-                          </span>
-                        </div>
+                      <div key={fn.index} className="rounded-2xl border border-blue-100 dark:border-blue-900 bg-card overflow-hidden">
+                        <button className="w-full text-left" onClick={() => setExpanded(isExpanded ? null : fn.index)}>
+                          <div className="flex items-center gap-3 px-4 py-3.5">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-semibold">{fmt(fn.start)} – {fmt(fn.end)}</p>
+                                {allPaid
+                                  ? <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>
+                                  : <button onClick={e => { e.stopPropagation(); onBulkMarkPaid(fn.shifts.filter(s => s.status==="Unpaid")); }}
+                                      className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500 text-white active:scale-95">Mark paid</button>
+                                }
+                              </div>
+                              <p className="text-[11px] text-muted-foreground mt-0.5">{fn.shifts.length} shift{fn.shifts.length!==1?"s":""} · Pay {fmt(fn.payDate)}</p>
+                            </div>
+                            <div className="text-right shrink-0 flex items-center gap-3">
+                              <div>
+                                <p className="text-sm font-bold tabular-nums">{formatCurrency(fn.gross)}</p>
+                                <p className="text-[11px] text-muted-foreground">net {formatCurrency(fn.net)}</p>
+                              </div>
+                              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                            </div>
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-blue-100 dark:border-blue-900 divide-y divide-border/40">
+                            {fn.shifts.map(shift => {
+                              const isPaid = shift.status === "Paid";
+                              const tax    = parseStationTax(shift.notes);
+                              const note   = parseStationUserNote(shift.notes);
+                              return (
+                                <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-muted/40 transition-colors">
+                                  <div className={`w-1 h-8 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <p className="text-xs font-bold">{formatShortDate(shift.shiftDate)}</p>
+                                      <p className="text-[11px] text-muted-foreground">{shift.shiftDay}</p>
+                                    </div>
+                                    <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{note ? ` · ${note}` : ""}</p>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+                                    <p className="text-[11px] text-muted-foreground">net {formatCurrency(Math.max(0, parseFloat(shift.amountEarned)-tax))}</p>
+                                  </div>
+                                  <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
+                                    className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
+                                    {shift.status}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
               )}
-            </div>
+            </>
+          )}
+        </div>
+      )}
 
-            {/* ── Earnings chart — collapsible ── */}
-            {hallShifts.length > 1 && (
-              <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-bold">6-Week Earnings</p>
-                  <span className="text-xs text-muted-foreground">Hall</span>
-                </div>
-                <EarningsChart shifts={hallShifts} weeks={6} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── STATION DASHBOARD ──────────────────────────────── */}
-        {dashKind === "station" && (
-          <div className="space-y-4">
-
-            {stationCount === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <MapPin className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-muted-foreground text-sm">No station shifts yet.</p>
-                  <Button className="mt-4 gap-2" onClick={onAddShift}><Plus className="w-4 h-4" /> Add Station Shift</Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                {/* ── Net take-home hero ── */}
-                {stationUnpaid > 0 && (
-                  <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-2xl p-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-semibold text-blue-500 uppercase tracking-widest mb-1">Unpaid</p>
-                      <AnimatedCurrency value={stationUnpaid > 0 ? stationNet * (stationUnpaid / stationCount) : 0} className="text-3xl font-bold text-blue-600 dark:text-blue-400 tabular-nums" duration={500} />
-                      <p className="text-[11px] text-blue-400 mt-1">{stationUnpaid} shift{stationUnpaid !== 1 ? "s" : ""} outstanding</p>
-                    </div>
-                    <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                      <MapPin className="w-8 h-8 text-blue-500" />
-                    </div>
-                  </div>
-                )}
-
-                {/* ── 2 key stats ── */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-card border border-border/50 rounded-2xl p-4">
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Net Take-home</p>
-                    <p className="text-2xl font-bold tabular-nums">{formatCurrency(stationNet)}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{stationCount} shifts</p>
-                  </div>
-                  <div className="bg-card border border-border/50 rounded-2xl p-4">
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Tax Withheld</p>
-                    <p className="text-2xl font-bold tabular-nums text-amber-600">{formatCurrency(stationTax)}</p>
-                    <p className="text-[11px] text-muted-foreground mt-1">{stationPaidPct}% collected</p>
-                  </div>
-                </div>
-
-                {/* ── Current Fortnight card ────────────────────── */}
-                {currentFortnight && (
-                  <Card className="border-blue-200 dark:border-blue-700 py-0 gap-0">
-                    <CardHeader className="px-4 py-3 border-b border-blue-100 dark:border-blue-700">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-blue-500" />
-                          <CardTitle className="text-sm font-semibold text-blue-700 dark:text-blue-300">Current Fortnight</CardTitle>
-                        </div>
-                        <span className="text-xs text-muted-foreground">{formatDateShort(currentFortnight.start)} – {formatDateShort(currentFortnight.end)}</span>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-4 space-y-4">
-
-                      {/* Countdown */}
-                      <div className="flex items-center justify-between rounded-lg bg-blue-50 dark:bg-blue-900/30/30 px-4 py-3">
-                        <div>
-                          <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                            {daysToPayslip <= 0 ? "Payslip today! 🎉" : daysToPayslip === 1 ? "Payslip tomorrow!" : `Payslip in ${daysToPayslip} days`}
-                          </p>
-                          <p className="text-[11px] text-blue-600/70 dark:text-blue-500 mt-0.5">
-                            {daysToPayment <= 0 ? "Money in account today! 💰" : `Money in account ${daysToPayment === 1 ? "tomorrow" : `in ${daysToPayment} days`} (Thu ${formatDateShort(currentFortnight.payDate)})`}
-                          </p>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{Math.max(0, daysToPayslip)}</p>
-                          <p className="text-[10px] text-muted-foreground">days left</p>
-                        </div>
-                      </div>
-
-                      {/* Progress bar */}
-                      <div>
-                        <div className="flex justify-between text-xs text-muted-foreground mb-1.5">
-                          <span>{formatDateShort(currentFortnight.start)}</span>
-                          <span>{cfDaysGone} of {cfDaysTotal} days</span>
-                          <span>{formatDateShort(currentFortnight.end)}</span>
-                        </div>
-                        <div className="h-2 rounded-full bg-muted overflow-hidden">
-                          <motion.div className="h-full rounded-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${cfProgress}%` }} transition={{ duration: 0.9, ease: "easeOut" }} />
-                        </div>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: "Shifts", value: String(currentFortnight.shifts.length) },
-                          { label: "Gross", value: formatCurrency(currentFortnight.gross) },
-                          { label: "Net", value: formatCurrency(currentFortnight.net) },
-                        ].map((item) => (
-                          <div key={item.label} className="rounded-lg bg-muted/50 p-2.5 text-center">
-                            <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">{item.label}</p>
-                            <p className="text-sm font-bold tabular-nums">{item.value}</p>
-                          </div>
-                        ))}
-                      </div>
-
-                      {currentFortnight.shifts.length === 0 && (
-                        <p className="text-xs text-muted-foreground text-center py-2">No station shifts recorded this fortnight yet.</p>
-                      )}
-
-                      {/* ── Bulk mark paid ── */}
-                      {currentFortnight.shifts.some(s => s.status === "Unpaid") && (
-                        <button
-                          onClick={() => onBulkMarkPaid(currentFortnight.shifts.filter(s => s.status === "Unpaid"))}
-                          className="w-full py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold active:scale-95 transition-all shadow-sm shadow-emerald-500/20 flex items-center justify-center gap-2"
-                        >
-                          ✓ Mark all {currentFortnight.shifts.filter(s => s.status === "Unpaid").length} shifts as paid
-                        </button>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* ── Past Fortnights ───────────────────────────── */}
-                {pastFortnights.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground px-1">Past Fortnights</p>
-                    {pastFortnights.map((fn) => {
-                      const isExpanded = expandedFortnight === fn.index;
-                      const allPaid = fn.shifts.length > 0 && fn.shifts.every((s) => s.status === "Paid");
-                      const hasShifts = fn.shifts.length > 0;
-                      return (
-                        <Card key={fn.index} className={`py-0 gap-0 overflow-hidden ${hasShifts ? "border-blue-100 dark:border-blue-900" : "opacity-50"}`}>
-                          <button
-                            className="w-full text-left"
-                            onClick={() => hasShifts && setExpandedFortnight(isExpanded ? null : fn.index)}
-                          >
-                            <div className="flex items-center gap-3 px-4 py-3">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">{formatDateShort(fn.start)} – {formatDateShort(fn.end)}</span>
-                                  {allPaid
-                                    ? <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 bg-emerald-50 text-emerald-700 border-emerald-200">Paid ✓</Badge>
-                                    : fn.shifts.some(s => s.status === "Unpaid") && (
-                                      <button
-                                        onClick={e => { e.stopPropagation(); onBulkMarkPaid(fn.shifts.filter(s => s.status === "Unpaid")); }}
-                                        className="px-2.5 py-0.5 rounded-lg bg-emerald-500 text-white text-[10px] font-bold active:scale-95 transition-all"
-                                      >
-                                        ✓ Mark paid
-                                      </button>
-                                    )
-                                  }
-                                </div>
-                                <p className="text-xs text-muted-foreground mt-0.5">
-                                  {hasShifts
-                                    ? `${fn.shifts.length} shift${fn.shifts.length !== 1 ? "s" : ""} · Payslip ${formatDateShort(fn.payslipDate)} · Pay ${formatDateShort(fn.payDate)}`
-                                    : "No shifts this fortnight"}
-                                </p>
-                              </div>
-                              {hasShifts && (
-                                <div className="text-right shrink-0 flex items-center gap-3">
-                                  <div>
-                                    <p className="text-sm font-bold tabular-nums">{formatCurrency(fn.gross)}</p>
-                                    <p className="text-[11px] text-muted-foreground">net {formatCurrency(fn.net)}</p>
-                                  </div>
-                                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                                </div>
-                              )}
-                            </div>
-                          </button>
-
-                          {/* Expanded shifts */}
-                          {isExpanded && (
-                            <div className="border-t border-blue-100 dark:border-blue-900 divide-y divide-border/50">
-                              {fn.shifts.map((shift) => {
-                                const isPaid = shift.status === "Paid";
-                                const tax = parseStationTax(shift.notes);
-                                const net = Math.max(0, parseFloat(shift.amountEarned) - tax);
-                                const userNote = parseStationUserNote(shift.notes);
-                                return (
-                                  <div key={shift.id} className="flex items-center gap-3 px-4 py-2.5">
-                                    <div className={`w-1 h-8 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs font-medium">{formatShortDate(shift.shiftDate)}</span>
-                                        <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
-                                        <span className="text-[11px] text-blue-600 dark:text-blue-300 font-medium truncate">{shift.coveringFor}</span>
-                                      </div>
-                                      <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{userNote ? ` · ${userNote}` : ""}</p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                      <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
-                                      <p className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</p>
-                                    </div>
-                                    <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 cursor-pointer shrink-0 ${isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"}`} onClick={() => onToggleStatus(shift)}>
-                                      {shift.status}
-                                    </Badge>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Recent station shifts */}
-                <Card className="py-0 gap-0 border-blue-100 dark:border-blue-900">
-                  <CardHeader className="flex flex-row items-center justify-between px-4 py-3 border-b">
-                    <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-blue-500" /> Recent Station Shifts
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs text-muted-foreground -mr-2" onClick={onViewAllShifts}>
-                      View all <ChevronRight className="w-3 h-3" />
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="divide-y divide-border/50">
-                      {recentStation.map((shift) => {
-                        const isPaid = shift.status === "Paid";
-                        const tax = parseStationTax(shift.notes);
-                        const net = Math.max(0, parseFloat(shift.amountEarned) - tax);
-                        const userNote = parseStationUserNote(shift.notes);
-                        return (
-                          <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-3 active:bg-muted/50 transition-colors cursor-pointer select-none">
-                            <div className={`w-1 h-10 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-0.5">
-                                <span className="text-sm font-semibold">{formatShortDate(shift.shiftDate)}</span>
-                                <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3 shrink-0 text-blue-400" />
-                                <span className="truncate font-medium text-blue-600 dark:text-blue-300">{shift.coveringFor}</span>
-                                {userNote && <StickyNote className="w-3 h-3 shrink-0 text-amber-500 ml-0.5" />}
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                                <span>{shift.hoursWorked}h · tax: {formatCurrency(tax)}</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-1.5 shrink-0">
-                              <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
-                              <span className="text-[11px] text-muted-foreground">net: {formatCurrency(net)}</span>
-                              <Badge variant="outline" className={`text-[10px] px-2 py-0 h-5 cursor-pointer ${isPaid ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800" : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950 dark:text-rose-400 dark:border-rose-800"}`} onClick={() => onToggleStatus(shift)}>
-                                {shift.status}
-                              </Badge>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
-        )}
-      </>
+      <div className="h-4" />
     </div>
   );
 }
