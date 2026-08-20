@@ -100,6 +100,7 @@ export async function POST(request: Request) {
         amountEarned: shift.amount_earned,
         hoursWorked: shift.hours_worked ?? 0,
         status: shift.status,
+        coveredBy: shift.covered_by ?? null,
         createdAt: shift.created_at,
       }
     }, { status: 201 })
