@@ -106,6 +106,8 @@ export const useSettingsStore = create<SettingsState>()(
       setSwipeSensitivity: (s) => set({ swipeSensitivity: s }),
       compactDashboard: false,
       setCompactDashboard: (v) => set({ compactDashboard: v }),
+      fortnightAnchor: "2026-06-24",
+      setFortnightAnchor: (date) => set({ fortnightAnchor: date }),
       longPressDelay: 450,
       setLongPressDelay: (ms) => set({ longPressDelay: ms }),
 
