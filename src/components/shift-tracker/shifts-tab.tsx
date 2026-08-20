@@ -558,6 +558,7 @@ function ShiftsTab({
             <ShiftListView monthGroups={stationMonthGroups} onToggleStatus={onToggleStatus} onDelete={onDeleteShift} onEdit={onEditShift} />
           )}
         </div>
+      )
       )}
       <div className="h-20" />{/* FAB clearance */}
       </div>
