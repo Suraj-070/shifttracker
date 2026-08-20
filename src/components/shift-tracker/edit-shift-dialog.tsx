@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import { Loader2, Save, User, MapPin, StickyNote, Check, UserX } from "lucide-react";
+import { Loader2, Save, User, MapPin, StickyNote, Check, UserX, X } from "lucide-react";
 import { ComboInput } from "./combo-input";
 import {
   DEFAULT_LOCATIONS,
