@@ -477,7 +477,7 @@ function ShiftsTab({
 
       </> }
 
-      {/* ── Calendar view — shows ALL shifts across hall+station ── */}
+      {/* ── Calendar view — full screen, no shifts below ── */}
       {calendarView && (
         <div className="mt-2">
           <CalendarTab
@@ -489,7 +489,7 @@ function ShiftsTab({
       )}
 
       {/* ── Content ── */}
-      {!calendarView && shiftKind === "hall" ? (
+      {!calendarView && (shiftKind === "hall" ? (
         <div>
           {filteredHall.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
