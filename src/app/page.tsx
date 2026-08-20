@@ -576,19 +576,20 @@ export default function ShiftTrackerPage() {
     [shifts],
   );
 
-  // ── Computed values (hall shifts only) ─────────────────────
+  // ── Computed values (only YOUR shifts — covered-by-others excluded) ──────
   const summary = useMemo<AnalyticsSummary>(() => {
-    const totalEarned = hallShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
-    const paidShifts   = hallShifts.filter((s) => s.status === "Paid");
-    const unpaidShifts = hallShifts.filter((s) => s.status === "Unpaid");
+    const myShifts    = hallShifts.filter(s => !s.coveredBy);
+    const totalEarned = myShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
+    const paidShifts   = myShifts.filter((s) => s.status === "Paid");
+    const unpaidShifts = myShifts.filter((s) => s.status === "Unpaid");
     return {
       totalEarned,
       totalPaid:    paidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
       totalUnpaid:  unpaidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
-      totalShifts:  hallShifts.length,
+      totalShifts:  myShifts.length,
       paidShifts:   paidShifts.length,
       unpaidShifts: unpaidShifts.length,
-      averagePerShift: hallShifts.length > 0 ? totalEarned / hallShifts.length : 0,
+      averagePerShift: myShifts.length > 0 ? totalEarned / myShifts.length : 0,
     };
   }, [hallShifts]);
 
