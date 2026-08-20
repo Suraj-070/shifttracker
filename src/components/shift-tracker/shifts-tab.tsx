@@ -315,7 +315,7 @@ function ShiftsTab({
               ].map(tab => (
                 <button key={tab.key}
                   onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
-                  className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 ${
                     shiftKind === tab.key && !calendarView
                       ? tab.key === "hall"
                         ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
@@ -323,24 +323,17 @@ function ShiftsTab({
                       : "text-muted-foreground"
                   }`}>
                   {tab.key === "hall"
-                    ? <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                    : <MapPin className="w-3 h-3 shrink-0" />
+                    ? <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                    : <MapPin className="w-3.5 h-3.5 shrink-0" />
                   }
                   {tab.label}
-                  <span className={`text-[10px] font-bold tabular-nums ${
+                  <span className={`text-[11px] font-bold tabular-nums ${
                     shiftKind === tab.key && !calendarView
                       ? tab.key === "hall" ? "text-emerald-600" : "text-blue-600"
                       : "text-muted-foreground/50"
                   }`}>{tab.badge}</span>
                 </button>
               ))}
-              <button
-                onClick={() => setCalendarView(v => !v)}
-                className={`px-3 py-1.5 rounded-xl transition-all active:scale-95 ${
-                  calendarView ? "bg-white dark:bg-card text-primary shadow-sm" : "text-muted-foreground"
-                }`}>
-                <CalendarDays className="w-4 h-4" />
-              </button>
             </div>
           </div>
 
@@ -440,13 +433,27 @@ function ShiftsTab({
       )}
 
       {/* ── Filter toolbar ── */}
-      <FilterToolbar
-        searchQuery={searchQuery} onSearchChange={setSearchQuery}
-        statusFilter={statusFilter} onStatusFilterChange={setStatusFilter}
-        dateFilter={dateFilter} onDateFilterChange={setDateFilter}
-        sortOption={sortOption} onSortOptionChange={setSortOption}
-        totalResults={activeFiltered.length}
-      />
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <FilterToolbar
+            searchQuery={searchQuery} onSearchChange={setSearchQuery}
+            statusFilter={statusFilter} onStatusFilterChange={setStatusFilter}
+            dateFilter={dateFilter} onDateFilterChange={setDateFilter}
+            sortOption={sortOption} onSortOptionChange={setSortOption}
+            totalResults={activeFiltered.length}
+          />
+        </div>
+        {/* Calendar view toggle — next to search */}
+        <button
+          onClick={() => setCalendarView(v => !v)}
+          className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-all active:scale-90 border ${
+            calendarView
+              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+              : "bg-background border-border/60 text-muted-foreground"
+          }`}>
+          <CalendarDays className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* ── Bulk bar ── */}
       <BulkBar
