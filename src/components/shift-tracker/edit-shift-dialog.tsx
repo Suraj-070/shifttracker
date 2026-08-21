@@ -66,6 +66,8 @@ function HallEditForm({
   const [amount, setAmount] = useState(shift.amountEarned);
   const [notes, setNotes] = useState(shift.notes ?? "");
   const [status, setStatus] = useState<ShiftStatus>(shift.status);
+  const [isCovered, setIsCovered] = useState(Boolean(shift.coveredBy));
+  const [coveredBy, setCoveredBy] = useState(shift.coveredBy ?? "");
 
   const hallShifts = useMemo(() => shifts.filter((s) => !isStationShift(s)), [shifts]);
 
@@ -77,6 +79,10 @@ function HallEditForm({
     () => buildSuggestions(hallShifts.map((s) => s.locationName), DEFAULT_LOCATIONS),
     [hallShifts],
   );
+  const coveredBySuggestions = useMemo(() => {
+    const past = [...new Set(hallShifts.filter(s => s.coveredBy).map(s => s.coveredBy!))].sort();
+    return past.length > 0 ? past : ["Suman"];
+  }, [hallShifts]);
   const personPills = useMemo(() => {
     const from = [...new Set(hallShifts.map((s) => s.coveringFor))];
     const extra = DEFAULT_COVER_NAMES.filter((n) => !from.includes(n));
@@ -100,13 +106,32 @@ function HallEditForm({
       shiftDay: getDayFromDate(date),
       amountEarned: parseFloat(amount).toFixed(2),
       status,
+      coveredBy: isCovered && coveredBy.trim() ? coveredBy.trim() : null,
     });
   };
 
   return (
-    <div className="space-y-5 py-2">
+    <div className="space-y-4">
+      {/* Covered by toggle */}
+      <button type="button" onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
+        className={`flex items-center gap-2.5 w-full px-4 py-3 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95 ${
+          isCovered ? "bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/30 dark:border-amber-700" : "bg-muted/40 border-transparent text-muted-foreground"
+        }`}>
+        <UserX className="w-4 h-4 shrink-0" />
+        {isCovered ? "✓ Someone covered this shift" : "Was this covered by someone?"}
+      </button>
+
+      {isCovered && (
+        <div className="bg-muted/40 rounded-2xl p-4 space-y-2">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Covered by</p>
+          <ComboInput value={coveredBy} onChange={setCoveredBy} suggestions={coveredBySuggestions}
+            placeholder="Who covered? e.g. Suman" />
+          <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
+        </div>
+      )}
+
       {/* Covering For */}
-      <div className="space-y-2">
+      <div className={`space-y-2 ${isCovered ? "hidden" : ""}`}>
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> Covering For</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {personPills.map((name) => (
@@ -162,7 +187,7 @@ function HallEditForm({
       {/* Notes */}
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="min-h-20 resize-none" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed min-h-[80px]" />
       </div>
 
       <div className="flex gap-3 pt-1">
@@ -328,7 +353,7 @@ function StationEditForm({
       {/* Notes + Status */}
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="min-h-20 resize-none" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed min-h-[80px]" />
       </div>
 
       <div className="space-y-2">

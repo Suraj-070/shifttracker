@@ -84,7 +84,11 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
     const from = [...new Set(hallShifts.map(s => s.locationName))];
     return [...from, ...DEFAULT_LOCATIONS.filter(l => !from.includes(l))].slice(0, 8);
   }, [hallShifts]);
-  const personSuggestions = useMemo(() => buildSuggestions(hallShifts.map(s => s.coveringFor), DEFAULT_COVER_NAMES), [hallShifts]);
+  const personSuggestions    = useMemo(() => buildSuggestions(hallShifts.map(s => s.coveringFor), DEFAULT_COVER_NAMES), [hallShifts]);
+  const coveredBySuggestions = useMemo(() => {
+    const past = [...new Set(hallShifts.filter(s => s.coveredBy).map(s => s.coveredBy!))].sort();
+    return past.length > 0 ? past : ["Suman"];
+  }, [hallShifts]);
   const locationSuggestions = useMemo(() => buildSuggestions(hallShifts.map(s => s.locationName), DEFAULT_LOCATIONS), [hallShifts]);
 
   const canSubmit = (isCovered || !!coveringFor) && !!formDate && !!location && !!amount;
@@ -116,9 +120,8 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
       {isCovered && (
         <FieldBox>
           <FieldLabel>Covered by</FieldLabel>
-          <input value={coveredBy} onChange={e => setCoveredBy(e.target.value)} autoFocus
-            placeholder="Who covered? e.g. Suman"
-            className="w-full h-10 px-3.5 rounded-xl border border-amber-200 dark:border-amber-800 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" />
+          <ComboInput value={coveredBy} onChange={setCoveredBy} suggestions={coveredBySuggestions}
+            placeholder="Who covered? e.g. Suman" />
           <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
         </FieldBox>
       )}
@@ -164,9 +167,9 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
       {/* Notes */}
       <FieldBox>
         <FieldLabel>Notes <span className="normal-case font-normal text-muted-foreground">(optional)</span></FieldLabel>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
           placeholder="Anything to remember…"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed" />
       </FieldBox>
 
       {/* Actions */}
