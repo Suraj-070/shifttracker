@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import {
   Moon, Sun, ChevronDown, ChevronRight, DollarSign,
