@@ -125,7 +125,7 @@ function Section({
             <div className="px-4 pb-4 pt-1 space-y-3 border-t border-border/40">
               {children}
             </div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
