@@ -64,7 +64,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         if (s.coveredBy) owed += parseFloat(s.amountEarned);
       }
     }
-    return { total, count, paid, owed };
+    return { total, count, paid, owed, unpaid: count - paid };
   }, [shiftMap, year, month]);
 
   const selectedShifts = selectedDay ? (shiftMap.get(selectedDay)??[]) : [];
@@ -90,7 +90,10 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
           {monthStats.count > 0 && (
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {monthStats.count} shifts · {formatCurrency(monthStats.total)}
-              {monthStats.paid > 0 && ` · ${monthStats.paid} paid`}
+              {monthStats.unpaid > 0
+                ? <span className="text-rose-500"> · {monthStats.unpaid} unpaid</span>
+                : <span className="text-emerald-600"> · all paid ✓</span>
+              }
             </p>
           )}
         </div>

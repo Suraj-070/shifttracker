@@ -33,7 +33,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                 <div
                   key={shift.id}
                   onClick={() => onEdit(shift)}
-                  className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/50 transition-colors cursor-pointer select-none"
+                  className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/60 transition-colors cursor-pointer select-none"
                 >
                   {/* Status stripe */}
                   <div className={`w-1 h-9 rounded-full shrink-0 ${isPaid ? "bg-emerald-500" : "bg-rose-400"}`} />

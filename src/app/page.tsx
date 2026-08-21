@@ -928,6 +928,7 @@ export default function ShiftTrackerPage() {
           onEdit={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
           onToggleStatus={toggleStatus}
           onDelete={handleDeleteStart}
+          onViewDetail={openDetailSheet}
         />
         <DeleteShiftDialog
           open={deleteDialogOpen}

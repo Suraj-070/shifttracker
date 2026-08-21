@@ -248,8 +248,8 @@ function DashboardTab({
 
           {/* Stats row */}
           <div className="grid grid-cols-2 gap-3">
-            <StatCard label="Total Earned" value={formatCurrency(summary.totalEarned)} sub={`${summary.totalShifts} shifts`} />
-            <StatCard label="Avg / Shift"  value={formatCurrency(summary.averagePerShift)} sub={`${paidPct}% collected`} />
+<StatCard label="Your Earnings" value={formatCurrency(summary.totalEarned)} sub={`${summary.totalShifts} shifts worked`} />
+<StatCard label="Per Shift" value={formatCurrency(summary.averagePerShift)} sub={`${paidPct}% collected`} />
           </div>
 
           {/* Owe card */}

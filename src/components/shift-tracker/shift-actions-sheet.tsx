@@ -5,7 +5,7 @@
 
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, CheckCircle2, XCircle, Trash2, X } from "lucide-react";
+import { Pencil, CheckCircle2, XCircle, Trash2, X, FileText } from "lucide-react";
 import { formatShortDate, formatCurrency } from "@/lib/utils";
 import { isStationShift } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
@@ -17,6 +17,7 @@ interface ShiftActionsSheetProps {
   onEdit: (shift: Shift) => void;
   onToggleStatus: (shift: Shift) => void;
   onDelete: (shift: Shift) => void;
+  onViewDetail?: (shift: Shift) => void;
 }
 
 export function ShiftActionsSheet({
@@ -26,6 +27,7 @@ export function ShiftActionsSheet({
   onEdit,
   onToggleStatus,
   onDelete,
+  onViewDetail,
 }: ShiftActionsSheetProps) {
   if (!shift) return null;
 
@@ -33,6 +35,14 @@ export function ShiftActionsSheet({
   const isPaid = shift.status === "Paid";
 
   const actions = [
+    ...(onViewDetail ? [{
+      icon: FileText,
+      label: "View detail",
+      description: "See full shift summary",
+      color: "text-foreground",
+      bg: "bg-muted/60",
+      onClick: () => { onClose(); onViewDetail(shift); },
+    }] : []),
     {
       icon: Pencil,
       label: "Edit shift",
@@ -90,7 +100,7 @@ export function ShiftActionsSheet({
             {/* Shift info header */}
             <div className="px-5 pb-3 pt-1 border-b border-border/50">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{station ? "" : ""}</span>
+                <span className="text-2xl">{station ? "🚉" : "🎬"}</span>
                 <div>
                   <p className="text-sm font-semibold">
                     {station ? shift.coveringFor : shift.coveringFor}
