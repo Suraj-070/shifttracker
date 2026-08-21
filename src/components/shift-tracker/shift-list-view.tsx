@@ -33,7 +33,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                 <div
                   key={shift.id}
                   onClick={() => onEdit(shift)}
-                  className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/60 transition-colors cursor-pointer select-none"
+                  className="flex items-center gap-3 px-4 py-4 active:bg-muted/60 transition-all duration-75 cursor-pointer select-none"
                 >
                   {/* Status stripe */}
                   <div className={`w-1 h-9 rounded-full shrink-0 ${isPaid ? "bg-emerald-500" : "bg-rose-400"}`} />
@@ -56,7 +56,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                     <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full active:scale-90 transition-transform ${
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform min-h-[22px] ${
                         isPaid
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                           : "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"

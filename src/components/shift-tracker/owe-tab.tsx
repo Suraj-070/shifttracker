@@ -115,7 +115,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-3">Total to Pay Out</p>
         <div className="flex items-end justify-between mb-4">
           <div>
-            <p className="text-3xl font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(totalOwe)}</p>
+            <p className="text-4xl font-black tabular-nums text-amber-700 dark:text-amber-300 tracking-tight">{formatCurrency(totalOwe)}</p>
             <p className="text-xs text-amber-600/70 dark:text-amber-500 mt-0.5">still owed</p>
           </div>
           {totalPaid > 0 && (
@@ -230,7 +230,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                   const isPaid = shift.status === "Paid";
                   return (
                     <div key={shift.id} onClick={() => onEditShift(shift)}
-                      className="flex items-center gap-3 px-4 py-3.5 active:bg-amber-50/60 dark:active:bg-amber-950/20 transition-colors cursor-pointer">
+                      className="flex items-center gap-3 px-4 py-3.5 active:bg-amber-100/70 dark:active:bg-amber-950/30 transition-all duration-75 cursor-pointer select-none">
                       {/* Stripe */}
                       <div className={`w-1 h-9 rounded-full shrink-0 ${isPaid ? "bg-emerald-500" : "bg-amber-400"}`} />
 

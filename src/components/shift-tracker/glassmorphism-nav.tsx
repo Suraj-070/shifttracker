@@ -123,11 +123,11 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
 
       {/* Label */}
       <span
-        className="text-[10px] z-10"
+        className="text-[11px] z-10 tracking-tight"
         style={{
           color: isActive ? "var(--primary)" : "var(--muted-foreground)",
           fontWeight: isActive ? 700 : 500,
-          opacity: isActive ? 1 : 0.45,
+          opacity: isActive ? 1 : 0.55,
           transition: "all 0.2s ease",
         }}
       >

@@ -221,7 +221,7 @@ function DashboardTab({
               <div className="absolute right-8 bottom-0 w-20 h-20 rounded-full opacity-10 bg-white" style={{ transform: "translate(0%, 40%)" }} />
               <div className="relative">
                 <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">Unpaid</p>
-                <AnimatedCurrency value={summary.totalUnpaid} className="text-4xl font-black text-white tabular-nums" duration={600} />
+                <AnimatedCurrency value={summary.totalUnpaid} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
                 <p className="text-white/60 text-[12px] mt-1.5">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
                 {/* Progress bar showing paid % */}
                 <div className="mt-4">
@@ -331,7 +331,7 @@ function DashboardTab({
                 <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
                 <div className="relative">
                   <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
-                  <AnimatedCurrency value={stationNet} className="text-4xl font-black text-white tabular-nums" duration={600} />
+                  <AnimatedCurrency value={stationNet} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
                   <p className="text-white/60 text-[12px] mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
                 </div>
               </div>

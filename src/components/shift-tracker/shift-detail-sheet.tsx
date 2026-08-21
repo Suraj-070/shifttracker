@@ -83,7 +83,7 @@ export function ShiftDetailSheet({
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Shift Detail</p>
-            <p className="text-lg font-black">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
+            <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
           </div>
           <button onClick={onClose}
             className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
@@ -100,7 +100,7 @@ export function ShiftDetailSheet({
           <div className="flex items-end justify-between">
             <div>
               <p className="text-[11px] text-muted-foreground mb-1">Amount</p>
-              <p className="text-3xl font-black tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+              <p className="text-4xl font-black tabular-nums tracking-tight">{formatCurrency(parseFloat(shift.amountEarned))}</p>
               {station && <p className="text-xs text-muted-foreground mt-1">net {formatCurrency(net)} after ${formatCurrency(tax)} tax</p>}
             </div>
             {/* Status toggle */}

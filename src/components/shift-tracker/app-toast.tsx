@@ -84,12 +84,12 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 60, opacity: 0, scale: 0.96 }}
             transition={{ type: "spring", stiffness: 440, damping: 36, mass: 0.7 }}
-            className="fixed bottom-20 left-4 right-4 z-[60] md:left-auto md:right-6 md:w-80"
+            className="fixed left-4 right-4 z-[60] md:left-auto md:right-6 md:w-80" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 90px)" }}
           >
             <div className="relative flex items-center gap-3 bg-zinc-900 dark:bg-zinc-800 text-white rounded-2xl px-4 py-3 shadow-2xl shadow-black/40 overflow-hidden">
 
               {/* Icon */}
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${colors.bg}`}>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${colors.bg}`}>
                 <Icon className={`w-4 h-4 ${colors.icon}`} />
               </div>
 
