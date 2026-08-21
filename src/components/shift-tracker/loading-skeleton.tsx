@@ -2,20 +2,6 @@
 
 import React, { CSSProperties } from "react";
 
-// Shimmer keyframe injected once at module level
-const SHIMMER_STYLE = `
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(200%); }
-  }
-`;
-
-if (typeof document !== "undefined" && !document.getElementById("shimmer-style")) {
-  const el = document.createElement("style");
-  el.id = "shimmer-style";
-  el.textContent = SHIMMER_STYLE;
-  document.head.appendChild(el);
-}
 
 interface ShimmerBlockProps {
   className?: string;
@@ -43,18 +29,19 @@ function ShimmerBlock({ className = "", style }: ShimmerBlockProps) {
 export function DashboardSkeleton() {
   return (
     <div className="space-y-4">
-      <ShimmerBlock className="h-9 w-48" />
+      {/* Sticky pill */}
+      <ShimmerBlock className="h-11 w-56 mx-auto rounded-2xl" />
+      {/* Hero card */}
+      <ShimmerBlock className="h-44 rounded-3xl" />
+      {/* 2-col stats */}
       <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <ShimmerBlock key={i} className="h-[88px]" />
-        ))}
+        <ShimmerBlock className="h-24 rounded-2xl" />
+        <ShimmerBlock className="h-24 rounded-2xl" />
       </div>
-      <ShimmerBlock className="h-24" />
-      <div className="grid grid-cols-2 gap-3">
-        <ShimmerBlock className="h-12" />
-        <ShimmerBlock className="h-12" />
-      </div>
-      <ShimmerBlock className="h-64" />
+      {/* Owe card */}
+      <ShimmerBlock className="h-28 rounded-2xl" />
+      {/* Recent list */}
+      <ShimmerBlock className="h-48 rounded-2xl" />
     </div>
   );
 }

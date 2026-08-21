@@ -109,7 +109,9 @@ function SwipeWrapper({
     const p = Math.min(1, Math.abs(dx) / SWIPE_THRESHOLD);
     dx < 0 ? (setLeftPct(p), setRightPct(0)) : (setRightPct(p), setLeftPct(0));
     if (!hapticFiredRef.current && Math.abs(dx) >= SWIPE_THRESHOLD) {
-      hapticFiredRef.current = true; haptics(10);
+      hapticFiredRef.current = true;
+      // Different haptic: stronger for delete (left), softer for pay (right)
+      dx < 0 ? haptics(14) : haptics(8);
     }
   }, [onPressEnd, haptics]);
 

@@ -24,7 +24,7 @@ function Chip({ label, active, onClick, activeClass }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`shrink-0 px-3 h-7 rounded-full text-[11px] font-semibold border transition-all active:scale-95 ${
+      className={`shrink-0 px-3.5 h-8 rounded-full text-[11px] font-semibold border transition-all active:scale-95 ${
         active
           ? activeClass ?? "bg-primary text-primary-foreground border-primary"
           : "bg-background border-border/70 text-muted-foreground"

@@ -111,12 +111,12 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
     <div className="space-y-4">
 
       {/* ── Hero summary ── */}
-      <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 p-4">
+      <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.72 0.14 75), oklch(0.58 0.12 65))" }}>
         <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-3">Total to Pay Out</p>
         <div className="flex items-end justify-between mb-4">
           <div>
-            <p className="text-4xl font-black tabular-nums text-amber-700 dark:text-amber-300 tracking-tight">{formatCurrency(totalOwe)}</p>
-            <p className="text-xs text-amber-600/70 dark:text-amber-500 mt-0.5">still owed</p>
+            <p className="text-5xl font-black tabular-nums text-white tracking-tight">{formatCurrency(totalOwe)}</p>
+            <p className="text-white/60 text-[12px] mt-1.5">still owed</p>
           </div>
           {totalPaid > 0 && (
             <div className="text-right">
@@ -131,23 +131,23 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
           {personSummary.map(p => (
             <button key={p.name}
               onClick={() => setPersonFilter(personFilter === p.name ? "__all__" : p.name)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all active:scale-95 ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:scale-95 ${
                 personFilter === p.name
                   ? "bg-amber-200/60 dark:bg-amber-800/40 border-amber-300 dark:border-amber-700"
                   : "bg-white/60 dark:bg-white/5 border-amber-100 dark:border-amber-900"
               }`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-amber-200 dark:bg-amber-800 flex items-center justify-center text-xs font-black text-amber-700 dark:text-amber-300">
+                <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs font-black text-white">
                   {p.name[0].toUpperCase()}
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-semibold text-foreground">{p.name}</p>
-                  <p className="text-[11px] text-muted-foreground">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
+                  <p className="text-sm font-semibold text-white">{p.name}</p>
+                  <p className="text-[11px] text-white/60">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
                 </div>
               </div>
               <div className="text-right">
-                {p.unpaid > 0 && <p className="text-sm font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(p.unpaid)}</p>}
-                {p.unpaid === 0 && <p className="text-xs font-bold text-emerald-600">All paid ✓</p>}
+                {p.unpaid > 0 && <p className="text-sm font-black tabular-nums text-white">{formatCurrency(p.unpaid)}</p>}
+                {p.unpaid === 0 && <p className="text-xs font-bold text-emerald-300">All paid ✓</p>}
               </div>
             </button>
           ))}

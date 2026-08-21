@@ -77,7 +77,7 @@ export function DeleteShiftDialog({
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 60, opacity: 0, scale: 0.97 }}
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
-          className="fixed bottom-20 left-4 right-4 z-50 md:left-auto md:right-6 md:w-80"
+          className="fixed left-4 right-4 z-50 md:left-auto md:right-6 md:w-80" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)" }}
         >
           <div className="relative flex items-center gap-3 bg-zinc-900 dark:bg-zinc-800 text-white rounded-2xl px-4 py-3 shadow-2xl shadow-black/30 overflow-hidden">
             <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center shrink-0">
@@ -85,7 +85,7 @@ export function DeleteShiftDialog({
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-zinc-100">
-                {station ? "" : ""} Shift deleted
+                {station ? "🚉" : "🎬"} Shift deleted
               </p>
               <p className="text-[11px] text-zinc-400 truncate">{label}</p>
             </div>
@@ -99,7 +99,7 @@ export function DeleteShiftDialog({
             </div>
             <button
               onClick={handleUndo}
-              className="flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors shrink-0 px-1"
+              className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 active:opacity-70 transition-opacity shrink-0 bg-emerald-500/15 px-2.5 py-1.5 rounded-lg"
             >
               <Undo2 className="w-3.5 h-3.5" /> Undo
             </button>
