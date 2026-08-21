@@ -316,6 +316,7 @@ export default function ShiftTrackerPage() {
   // Data state
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [userId, setUserId] = useState<string>("");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const userName = profile?.name?.split(" ")[0] || "Suraj";
@@ -328,9 +329,11 @@ export default function ShiftTrackerPage() {
       if (res.ok) {
         setShifts(data.shifts);
         setUserId(data.userId);
+        setFetchError(false);
       }
     } catch (err) {
       console.error("Failed to fetch shifts:", err);
+      setFetchError(true);
     } finally {
       setIsLoading(false);
     }
@@ -769,6 +772,21 @@ export default function ShiftTrackerPage() {
         )}
 
         <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-36 md:py-6 md:pb-6">
+          {/* Error state */}
+          {fetchError && !isLoading && (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-8">
+              <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center text-3xl">⚠️</div>
+              <div>
+                <p className="text-base font-bold mb-1">Couldn't load shifts</p>
+                <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+              </div>
+              <button onClick={() => { setFetchError(false); fetchShifts(); fetchProfile(); }}
+                className="px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform">
+                Try again
+              </button>
+            </div>
+          )}
+
           {/* Tabs stay mounted — CSS display toggle, no remount, no flash */}
           <div className="relative">
 

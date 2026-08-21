@@ -64,10 +64,10 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
 
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-              {/* Amount tooltip on hover */}
+              {/* Amount label — always visible on mobile */}
               {week.earned > 0 && (
-                <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity tabular-nums whitespace-nowrap">
-                  {formatCurrency(week.earned)}
+                <span className="text-[8px] text-muted-foreground tabular-nums whitespace-nowrap font-medium">
+                  {week.earned >= 1000 ? `$${(week.earned/1000).toFixed(1)}k` : formatCurrency(week.earned)}
                 </span>
               )}
 

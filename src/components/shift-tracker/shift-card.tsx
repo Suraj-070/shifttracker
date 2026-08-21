@@ -236,6 +236,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           {station && <span className="text-[10px] text-muted-foreground">net {formatCurrency(net)}</span>}
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}
+            aria-label={isPaid ? "Mark as unpaid" : "Mark as paid"}
             className={`text-[10px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
               isPaid
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"

@@ -277,10 +277,7 @@ function ProfileTab({
       </div>
 
       {/* ── Hero ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+      <div
         className="flex flex-col items-center gap-3 pt-4"
       >
         <div className="relative">

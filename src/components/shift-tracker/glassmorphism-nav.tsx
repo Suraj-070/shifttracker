@@ -55,6 +55,7 @@ export function GlassmorphismNav({ tabs, activeTab, onTabChange, onFabPress }: G
           <div className="flex items-center justify-center shrink-0" style={{ width: 72 }}>
             <button
               onClick={() => { haptics(14); onFabPress(); }}
+              aria-label="Add shift"
               className="absolute flex items-center justify-center active:scale-90 transition-all duration-150"
               style={{
                 width: 56,
@@ -87,6 +88,8 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
   return (
     <button
       onClick={onPress}
+      aria-label={tab.label}
+      aria-current={isActive ? "page" : undefined}
       className="flex-1 flex flex-col items-center justify-center gap-[3px] h-full relative touch-manipulation select-none py-2"
     >
       {/* Pill bg */}

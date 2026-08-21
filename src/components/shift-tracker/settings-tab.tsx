@@ -25,7 +25,6 @@ import {
 } from "@/stores/settings-store";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
-import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 
 // ─── Reusable components ──────────────────────────────────────────────────────
@@ -126,7 +125,7 @@ function Section({
             <div className="px-4 pb-4 pt-1 space-y-3 border-t border-border/40">
               {children}
             </div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
