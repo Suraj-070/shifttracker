@@ -258,8 +258,11 @@ function DashboardTab({
           {/* Recent shifts */}
           <div className="rounded-2xl overflow-hidden bg-card border border-border/50">
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
-              <p className="text-sm font-bold">Recent</p>
-              <button onClick={onViewAllShifts} className="flex items-center gap-0.5 text-xs text-primary font-semibold active:opacity-70">
+              <div>
+                <p className="text-sm font-bold">Recent Shifts</p>
+                <p className="text-[11px] text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
+              </div>
+              <button onClick={onViewAllShifts} className="flex items-center gap-1 text-xs text-primary font-bold px-3 py-1.5 rounded-xl bg-primary/10 active:scale-95 transition-transform">
                 See all <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>

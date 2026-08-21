@@ -184,8 +184,8 @@ function MonthHeader({ group }: { group: MonthGroup }) {
   return (
     <div className="flex items-center justify-between px-1 mb-2">
       <div className="flex items-center gap-2">
-        <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{group.monthLabel}</span>
-        <span className="text-[10px] text-muted-foreground/60">{group.shifts.length}</span>
+        <span className="text-sm font-bold text-foreground">{group.monthLabel}</span>
+        <span className="text-xs text-muted-foreground">{group.shifts.length} shifts</span>
       </div>
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>

@@ -88,5 +88,5 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
     };
   }, []);
 
-  return { isPulling, isRefreshing, pullProgress };
+  return { isPulling, isRefreshing, pullProgress, isReleasing: !isPulling && pullProgress > 0 };
 }

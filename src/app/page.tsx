@@ -818,6 +818,7 @@ export default function ShiftTrackerPage() {
               <OweTab
                   shifts={shifts}
                   onToggleStatus={toggleStatus}
+                  isLoading={isLoading}
                   onEditShift={openDetailSheet}
                   onDeleteShift={handleDeleteStart}
                   onBulkPaid={async (ids: string[]) => { await handleBulkMarkPaid(shifts.filter(s => ids.includes(s.id))); }}

@@ -370,7 +370,16 @@ interface AddShiftDialogProps {
 }
 
 export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, userName }: AddShiftDialogProps) {
-  const [jobKind, setJobKind] = useState<JobKind>("Hall");
+  const [jobKind, setJobKind] = useState<JobKind>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("lastJobKind") as JobKind) ?? "Hall";
+    }
+    return "Hall";
+  });
+  const handleJobKindChange = (k: JobKind) => {
+    setJobKind(k);
+    localStorage.setItem("lastJobKind", k);
+  };
 
   return (
     <>
@@ -400,7 +409,7 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
           {/* Hall / Station toggle */}
           <div className="flex gap-1 p-1 bg-muted/80 rounded-2xl mb-5">
             {(["Hall", "Station"] as JobKind[]).map(k => (
-              <button key={k} type="button" onClick={() => setJobKind(k)}
+              <button key={k} type="button" onClick={() => handleJobKindChange(k)}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
                   jobKind === k
                     ? k === "Hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "bg-white dark:bg-card text-blue-700 shadow-sm"

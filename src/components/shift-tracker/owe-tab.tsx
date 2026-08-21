@@ -7,6 +7,7 @@ import type { Shift } from "@/types/database.types";
 
 interface OweTabProps {
   shifts: Shift[];
+  isLoading?: boolean;
   onToggleStatus: (shift: Shift) => void;
   onEditShift: (shift: Shift) => void;
   onDeleteShift: (shift: Shift) => void;
@@ -16,7 +17,7 @@ interface OweTabProps {
 
 type OweFilter = "all" | "unpaid" | "paid";
 
-function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift, onBulkPaid, userName = "Suraj" }: OweTabProps) {
+function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift, onBulkPaid, userName = "Suraj" }: OweTabProps) {
   const isSelfName = (n: string) => n.toLowerCase() === userName.toLowerCase() || n.toLowerCase() === "myself";
   const [personFilter, setPersonFilter] = useState("__all__");
   const [statusFilter, setStatusFilter] = useState<OweFilter>("all");
@@ -80,16 +81,28 @@ function OweTab({ shifts, onToggleStatus, onEditShift, onDeleteShift, onBulkPaid
   const hasFilters  = personFilter !== "__all__" || statusFilter !== "all";
 
 
+  if (isLoading) {
+    return (
+      <div className="space-y-3 animate-pulse">
+        <div className="h-32 rounded-2xl bg-amber-50 dark:bg-amber-950/20" />
+        <div className="h-10 rounded-2xl bg-muted" />
+        {[1,2,3].map(i => <div key={i} className="h-16 rounded-2xl bg-muted/60" />)}
+      </div>
+    );
+  }
+
   if (oweShifts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center">
-          <span className="text-3xl">💸</span>
+      <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-8">
+        <div className="w-20 h-20 rounded-3xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center shadow-sm">
+          <span className="text-4xl">🤝</span>
         </div>
-        <p className="text-base font-bold">No covered shifts yet</p>
-        <p className="text-sm text-muted-foreground text-center max-w-[240px]">
-          When someone covers your shift, add it with "Covered by" and it'll appear here.
-        </p>
+        <div>
+          <p className="text-xl font-black mb-2">All clear!</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            When someone covers your shift, toggle "Covered by" when adding — it'll appear here so you never forget to pay them.
+          </p>
+        </div>
       </div>
     );
   }
