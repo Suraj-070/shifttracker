@@ -124,8 +124,25 @@ function HallEditForm({
       {isCovered && (
         <div className="bg-muted/40 rounded-2xl p-4 space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Covered by</p>
-          <ComboInput value={coveredBy} onChange={setCoveredBy} suggestions={coveredBySuggestions}
-            placeholder="Who covered? e.g. Suman" />
+          {coveredBySuggestions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {coveredBySuggestions.map(name => (
+                <button key={name} type="button"
+                  onClick={() => setCoveredBy(coveredBy === name ? "" : name)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                    coveredBy === name
+                      ? "bg-amber-500 text-white border-amber-500"
+                      : "bg-muted/60 border-transparent text-foreground"
+                  }`}>
+                  {name}
+                  {coveredBy === name && <Check className="w-3 h-3" />}
+                </button>
+              ))}
+            </div>
+          )}
+          <input value={coveredBy} onChange={e => setCoveredBy(e.target.value)}
+            placeholder="Or type a name…"
+            className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" />
           <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
         </div>
       )}
