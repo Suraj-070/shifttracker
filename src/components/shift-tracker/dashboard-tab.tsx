@@ -100,13 +100,13 @@ function StatCard({ label, value, sub, accent = false }: { label: string; value:
 function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift[]; total: number }[]; totalOwe: number }) {
   if (!oweData.length) return null;
   return (
-    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.98 0.03 85), oklch(0.96 0.04 75))" }}>
+    <div className="rounded-2xl border border-amber-200 dark:border-amber-800 overflow-hidden bg-amber-50/70 dark:bg-amber-950/20">
       <div className="flex items-center justify-between px-4 py-3.5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center "><ArrowLeftRight className="w-5 h-5 text-amber-700 dark:text-amber-400" aria-hidden="true" /></div>
           <div>
             <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">To Pay Out</p>
-            <p className="text-[11px] text-amber-600/70">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
+            <p className="text-[11px] text-amber-700 dark:text-amber-400">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
           </div>
         </div>
         <p className="text-xl font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(totalOwe)}</p>

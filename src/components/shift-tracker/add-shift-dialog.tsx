@@ -316,11 +316,11 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         </FieldBox>
       </div>
 
-      {/* Net take-home hero */}
-      <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
-        <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest mb-1">Net Take-home</p>
-        <p className="text-3xl font-black text-white tabular-nums">{formatCurrency(net)}</p>
-        <p className="text-white/80 text-xs mt-1.5">{formatCurrency(grossNum)} gross · {formatCurrency(taxNum)} tax</p>
+      {/* Net take-home (flat summary — sheets don't get hero cards) */}
+      <div className="rounded-2xl p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
+        <p className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1">Net Take-home</p>
+        <p className="text-3xl font-black text-blue-900 dark:text-blue-100 tabular-nums">{formatCurrency(net)}</p>
+        <p className="text-blue-800/80 dark:text-blue-300 text-xs mt-1.5">{formatCurrency(grossNum)} gross · {formatCurrency(taxNum)} tax</p>
       </div>
 
       {/* Gross + Tax editable */}
