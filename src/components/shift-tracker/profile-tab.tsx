@@ -116,7 +116,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
           <div className="flex justify-center pt-3"><div className="w-10 h-1 rounded-full bg-muted-foreground/25" /></div>
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
             <h2 className="text-lg font-black">Reminders</h2>
-            <button onClick={() => setShowReminders(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
+            <button onClick={() => setShowReminders(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
           </div>
           <div className="p-4"><RemindersTab savedStationNames={[]} /></div>
         </div>
@@ -135,7 +135,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               <div className="flex justify-center pt-3"><div className="w-10 h-1 rounded-full bg-muted-foreground/25" /></div>
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
                 <h2 className="text-lg font-black">Settings</h2>
-                <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
+                <button onClick={() => setShowSettings(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
               </div>
               <div className="px-4 pb-4"><SettingsTab /></div>
             </motion.div>
@@ -152,11 +152,11 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         {/* Top row — action buttons */}
         <div className="flex justify-end gap-2 p-4 relative">
           <button onClick={() => setShowReminders(true)} aria-label="Reminders"
-            className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
             <Bell className="w-4 h-4 text-white" />
           </button>
           <button onClick={() => setShowSettings(true)} aria-label="Settings"
-            className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
             <Settings2 className="w-4 h-4 text-white" />
           </button>
         </div>
@@ -172,16 +172,16 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               }
             </div>
             {records && records.streak > 1 && (
-              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[10px] font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg">🔥</div>
+              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[11px] font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg">🔥</div>
             )}
           </div>
 
           {isEditing ? (
             <div className="w-full max-w-xs space-y-2">
               <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="Full name"
-                className="w-full h-10 px-3.5 rounded-xl bg-white/20 text-white placeholder-white/50 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm" />
+                className="w-full h-11 px-3.5 rounded-xl bg-white/20 text-white placeholder-white/50 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-white backdrop-blur-sm" />
               <input value={editUsername} onChange={e => setEditUsername(e.target.value)} placeholder="Username"
-                className="w-full h-10 px-3.5 rounded-xl bg-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus:ring-2 focus:ring-white/40 backdrop-blur-sm" />
+                className="w-full h-11 px-3.5 rounded-xl bg-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white backdrop-blur-sm" />
               <div className="flex gap-2 pt-1">
                 <button onClick={handleSave} disabled={isSaving}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white text-primary text-sm font-bold active:scale-95 transition-transform disabled:opacity-60">
@@ -196,8 +196,8 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
           ) : (
             <div className="text-center">
               <h1 className="text-2xl font-black text-white tracking-tight">{profile.name||"No name"}</h1>
-              <p className="text-white/60 text-sm mt-0.5">@{profile.username||"unnamed"}</p>
-              <p className="text-white/40 text-xs mt-0.5">Since {joinDate}</p>
+              <p className="text-white/80 text-sm mt-0.5">@{profile.username||"unnamed"}</p>
+              <p className="text-white/70 text-xs mt-0.5">Since {joinDate}</p>
               <button onClick={() => setIsEditing(true)}
                 className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold active:scale-95 transition-transform mx-auto">
                 <Pencil className="w-3 h-3" /> Edit profile
@@ -210,11 +210,11 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         <div className="grid grid-cols-2 border-t border-white/15 divide-x divide-white/15">
           <div className="flex flex-col items-center py-4">
             <p className="text-2xl font-black text-white tabular-nums">{totalShifts}</p>
-            <p className="text-white/50 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Shifts</p>
+            <p className="text-white/75 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Shifts</p>
           </div>
           <div className="flex flex-col items-center py-4">
             <AnimatedCurrency value={totalEarnings} className="text-2xl font-black text-white tabular-nums" duration={800} />
-            <p className="text-white/50 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Earned</p>
+            <p className="text-white/75 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Earned</p>
           </div>
         </div>
       </div>
@@ -312,7 +312,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
                       <Icon className={`w-4 h-4 ${text}`} />
                     </div>
                     <p className={`text-sm font-black tabular-nums ${text}`}>{value}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium text-center leading-tight">{label}</p>
+                    <p className="text-[11px] text-muted-foreground font-medium text-center leading-tight">{label}</p>
                   </div>
                 ))}
               </div>

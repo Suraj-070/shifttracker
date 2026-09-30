@@ -139,7 +139,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
           )}
           <input value={coveredBy} onChange={e => setCoveredBy(e.target.value)}
             placeholder="Or type a name…"
-            className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" />
+            className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500" />
           <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
         </FieldBox>
       )}
@@ -167,12 +167,12 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
         <FieldBox>
           <FieldLabel>Date</FieldLabel>
           <input type="date" value={formDate} onChange={e => setFormDate(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </FieldBox>
         <FieldBox>
           <FieldLabel>Amount ($)</FieldLabel>
           <input type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold tabular-nums" />
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
 
@@ -187,7 +187,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
         <FieldLabel>Notes <span className="normal-case font-normal text-muted-foreground">(optional)</span></FieldLabel>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
           placeholder="Anything to remember…"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed" />
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none leading-relaxed" />
       </FieldBox>
 
       {/* Actions */}
@@ -267,7 +267,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         )}
         <input list="station-name-list" value={stationName} onChange={e => setStationName(e.target.value)}
           placeholder={pastStationNames.length > 0 ? "Or type new station…" : "e.g. Central, Redfern…"}
-          className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/30" />
+          className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" />
         <datalist id="station-name-list">{pastStationNames.map(n => <option key={n} value={n} />)}</datalist>
       </FieldBox>
 
@@ -281,7 +281,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
                 rateKey === k ? "bg-blue-500 text-white border-blue-500" : "bg-muted/40 border-transparent text-foreground"
               }`}>
               <span className="text-xs font-bold">{k}</span>
-              <span className={`text-[10px] mt-0.5 ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>
+              <span className={`text-[11px] mt-0.5 ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>
                 ${dynamicRates[k].toFixed(2)}/hr
               </span>
             </button>
@@ -294,20 +294,20 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         <FieldBox>
           <FieldLabel>Date</FieldLabel>
           <input type="date" value={formDate} onChange={e => setFormDate(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </FieldBox>
         <FieldBox>
           <FieldLabel>Hours</FieldLabel>
           <input type="number" step="0.25" min="0" value={hours} onChange={e => changeHours(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold tabular-nums" />
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
 
       {/* Net take-home hero */}
       <div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
-        <p className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">Net Take-home</p>
+        <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest mb-1">Net Take-home</p>
         <p className="text-3xl font-black text-white tabular-nums">{formatCurrency(net)}</p>
-        <p className="text-white/60 text-xs mt-1.5">{formatCurrency(grossNum)} gross · {formatCurrency(taxNum)} tax</p>
+        <p className="text-white/80 text-xs mt-1.5">{formatCurrency(grossNum)} gross · {formatCurrency(taxNum)} tax</p>
       </div>
 
       {/* Gross + Tax editable */}
@@ -316,15 +316,15 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
           <FieldLabel>Gross ($)</FieldLabel>
           <input type="number" step="0.01" min="0" value={displayGross}
             onChange={e => { setGrossOverride(e.target.value); setTaxOverride(null); }}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold tabular-nums" />
-          <p className="text-[10px] text-muted-foreground">Auto-calc · editable</p>
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
+          <p className="text-[11px] text-muted-foreground">Auto-calc · editable</p>
         </FieldBox>
         <FieldBox>
           <FieldLabel>Tax ($)</FieldLabel>
           <input type="number" step="0.01" min="0" value={displayTax}
             onChange={e => setTaxOverride(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 font-bold tabular-nums" />
-          <p className="text-[10px] text-muted-foreground">{((payRates.taxRate || STATION_TAX_RATE)*100).toFixed(1)}% · editable</p>
+            className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
+          <p className="text-[11px] text-muted-foreground">{((payRates.taxRate || STATION_TAX_RATE)*100).toFixed(1)}% · editable</p>
         </FieldBox>
       </div>
 
@@ -339,7 +339,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         <FieldLabel>Notes <span className="normal-case font-normal text-muted-foreground">(optional)</span></FieldLabel>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
           placeholder="Anything to remember…"
-          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none" />
+          className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none" />
       </FieldBox>
 
       {/* Actions */}
@@ -401,7 +401,7 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-xl font-black">Add Shift</h2>
-            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+            <button onClick={() => onOpenChange(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>

@@ -112,13 +112,13 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
             height: 21,
             color: isActive ? "var(--primary)" : "var(--muted-foreground)",
             strokeWidth: isActive ? 2.4 : 1.7,
-            opacity: isActive ? 1 : 0.45,
+            opacity: isActive ? 1 : 0.75,
             transform: isActive ? "translateY(-1px) scale(1.08)" : "scale(1)",
             transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)",
           }}
         />
         {tab.badge && tab.badge > 0 ? (
-          <span className="absolute -top-1.5 -right-2.5 min-w-[15px] h-[15px] px-1 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[11px] font-black flex items-center justify-center">
             {tab.badge > 99 ? "99+" : tab.badge}
           </span>
         ) : null}
@@ -130,7 +130,7 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
         style={{
           color: isActive ? "var(--primary)" : "var(--muted-foreground)",
           fontWeight: isActive ? 700 : 500,
-          opacity: isActive ? 1 : 0.55,
+          opacity: isActive ? 1 : 0.85,
           transition: "all 0.2s ease",
         }}
       >

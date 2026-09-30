@@ -13,7 +13,7 @@ interface SummaryCardProps {
 }
 
 const accentClasses = {
-  emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+  emerald: "bg-emerald-50 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-950 dark:text-emerald-400",
   rose: "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400",
   amber: "bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400",
 };
@@ -34,11 +34,11 @@ export function SummaryCard({ title, value, icon: Icon, trend, accent }: Summary
         {trend && (
           <div className="flex items-center gap-1 mt-2 text-xs">
             {trend.up ? (
-              <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+              <ArrowUpRight className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
             ) : (
               <ArrowDownRight className="w-3 h-3 text-rose-600" />
             )}
-            <span className={trend.up ? "text-emerald-600" : "text-rose-600"}>{trend.label}</span>
+            <span className={trend.up ? "text-emerald-700 dark:text-emerald-400" : "text-rose-600"}>{trend.label}</span>
           </div>
         )}
       </CardContent>
@@ -55,7 +55,7 @@ interface StatCardProps {
 
 const iconClass = {
   default: "bg-muted text-muted-foreground",
-  emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400",
+  emerald: "bg-emerald-50 text-emerald-700 dark:text-emerald-400 dark:bg-emerald-950 dark:text-emerald-400",
   rose: "bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400",
 };
 

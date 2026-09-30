@@ -217,9 +217,9 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold">{formatShortDate(shift.shiftDate)}</span>
             <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
-            {station && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
-            {covered && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400">💸 by {shift.coveredBy}</span>}
-            {isSelf && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">✦ You</span>}
+            {station && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
+            {covered && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400">💸 by {shift.coveredBy}</span>}
+            {isSelf && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">✦ You</span>}
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />}
           </div>
           <p className={`text-sm font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : isSelf ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
@@ -235,11 +235,11 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <span className="text-[18px] font-black tabular-nums leading-none tracking-tight">
             {formatCurrency(parseFloat(shift.amountEarned))}
           </span>
-          {station && <span className="text-[10px] text-muted-foreground">net {formatCurrency(net)}</span>}
+          {station && <span className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</span>}
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}
             aria-label={isPaid ? "Mark as unpaid" : "Mark as paid"}
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
+            className={`hit text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
               isPaid
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
                 : "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"

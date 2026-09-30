@@ -117,7 +117,7 @@ function AnalyticsTab({ summary, monthlyEarnings, isLoading }: AnalyticsTabProps
                       <td className="py-3 font-medium">{m.monthLabel}</td>
                       <td className="py-3 text-right tabular-nums">{m.shiftCount}</td>
                       <td className="py-3 text-right tabular-nums font-semibold">{formatCurrency(m.earned)}</td>
-                      <td className="py-3 text-right tabular-nums text-emerald-600">{formatCurrency(m.paid)}</td>
+                      <td className="py-3 text-right tabular-nums text-emerald-700 dark:text-emerald-400">{formatCurrency(m.paid)}</td>
                       <td className="py-3 text-right tabular-nums text-rose-600">{formatCurrency(m.unpaid)}</td>
                       <td className="py-3 text-right">
                         <Badge variant="outline" className={

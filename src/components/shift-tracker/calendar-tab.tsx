@@ -91,8 +91,8 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
             <p className="text-[11px] text-muted-foreground mt-0.5">
               {monthStats.count} shifts · {formatCurrency(monthStats.total)}
               {monthStats.unpaid > 0
-                ? <span className="text-rose-500"> · {monthStats.unpaid} unpaid</span>
-                : <span className="text-emerald-600"> · all paid ✓</span>
+                ? <span className="text-rose-600 dark:text-rose-400"> · {monthStats.unpaid} unpaid</span>
+                : <span className="text-emerald-700 dark:text-emerald-400"> · all paid ✓</span>
               }
             </p>
           )}
@@ -130,7 +130,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         {/* Day headers */}
         <div className="grid grid-cols-7 border-b border-border/30">
           {DAYS.map((d,i) => (
-            <div key={i} className="text-center text-[10px] font-bold text-muted-foreground py-2.5 uppercase tracking-wide">{d.slice(0,1)}</div>
+            <div key={i} className="text-center text-[11px] font-bold text-muted-foreground py-2.5 uppercase tracking-wide">{d.slice(0,1)}</div>
           ))}
         </div>
 
@@ -220,7 +220,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                 </button>
               )}
               <button onClick={() => setSelectedDay(null)}
-                className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+                className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
                 <X className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </div>
@@ -252,14 +252,14 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-semibold truncate">{name}</p>
-                        {isCovered && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">by {shift.coveredBy}</span>}
-                        {isStation && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 shrink-0">STN</span>}
+                        {isCovered && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">by {shift.coveredBy}</span>}
+                        {isStation && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 shrink-0">STN</span>}
                       </div>
                       <p className="text-[11px] text-muted-foreground">{shift.locationName}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
-                      <p className={`text-[10px] font-bold ${isPaid?"text-emerald-600":isCovered?"text-amber-500":"text-rose-500"}`}>
+                      <p className={`text-[11px] font-bold ${isPaid?"text-emerald-700 dark:text-emerald-400":isCovered?"text-amber-600 dark:text-amber-400":"text-rose-600 dark:text-rose-400"}`}>
                         {isPaid?"✓ Paid":isCovered?"Owed":"Unpaid"}
                       </p>
                     </div>

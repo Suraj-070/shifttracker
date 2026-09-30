@@ -109,7 +109,7 @@ function Section({
           <Icon className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
         <span className="flex-1 text-sm font-semibold">{title}</span>
-        {badge && <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{badge}</Badge>}
+        {badge && <Badge variant="secondary" className="text-[11px] h-4 px-1.5">{badge}</Badge>}
         {open
           ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
           : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
@@ -333,10 +333,10 @@ export function SettingsTab() {
       )}
       {installed && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
           <div>
             <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">App installed</p>
-            <p className="text-[11px] text-emerald-600/70">ShiftTracker is on your home screen</p>
+            <p className="text-[11px] text-emerald-700 dark:text-emerald-400">ShiftTracker is on your home screen</p>
           </div>
         </div>
       )}
@@ -349,7 +349,7 @@ export function SettingsTab() {
             type="date"
             value={fortnightAnchor}
             onChange={e => setFortnightAnchor(e.target.value)}
-            className="w-full h-9 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full h-9 px-3 rounded-xl border border-border bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
 
@@ -372,7 +372,7 @@ export function SettingsTab() {
                   min="0"
                   value={rates[key]}
                   onChange={e => setRates(r => ({ ...r, [key]: Number(e.target.value) }))}
-                  className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
                 <span className="text-xs text-muted-foreground">/hr</span>
               </div>
@@ -388,7 +388,7 @@ export function SettingsTab() {
                 max="50"
                 value={(rates.taxRate * 100).toFixed(2)}
                 onChange={e => setRates(r => ({ ...r, taxRate: Number(e.target.value) / 100 }))}
-                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
               <span className="text-xs text-muted-foreground">%</span>
             </div>
@@ -403,7 +403,7 @@ export function SettingsTab() {
                 min="0"
                 value={rates.defaultHallAmount}
                 onChange={e => setRates(r => ({ ...r, defaultHallAmount: Number(e.target.value) }))}
-                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className="w-20 h-8 rounded-lg border border-border bg-background text-sm text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
           </div>

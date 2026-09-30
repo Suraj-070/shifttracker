@@ -86,7 +86,7 @@ export function ShiftDetailSheet({
             <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
           </div>
           <button onClick={onClose}
-            className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
@@ -134,7 +134,7 @@ export function ShiftDetailSheet({
             </div>
 
             {isSelf && (
-              <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400">
+              <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400">
                 ✦ You
               </span>
             )}
@@ -150,7 +150,7 @@ export function ShiftDetailSheet({
               <p className="text-sm font-semibold">{shift.locationName}</p>
             </div>
             {station && (
-              <span className="ml-auto text-[10px] font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600">Station</span>
+              <span className="ml-auto text-[11px] font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600">Station</span>
             )}
           </div>
 
@@ -182,7 +182,7 @@ export function ShiftDetailSheet({
           {userNote?.trim() && (
             <div className="flex items-start gap-3 px-4 py-3.5">
               <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center shrink-0 mt-0.5">
-                <StickyNote className="w-4 h-4 text-amber-500" />
+                <StickyNote className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-muted-foreground mb-1">Note</p>

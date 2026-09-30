@@ -55,7 +55,7 @@ export function ShiftActionsSheet({
       icon: isPaid ? XCircle : CheckCircle2,
       label: isPaid ? "Mark as Unpaid" : "Mark as Paid",
       description: isPaid ? "Move back to unpaid" : "Mark this shift as collected",
-      color: isPaid ? "text-rose-600" : "text-emerald-600",
+      color: isPaid ? "text-rose-600" : "text-emerald-700 dark:text-emerald-400",
       bg: isPaid ? "bg-rose-50 dark:bg-rose-950/30" : "bg-emerald-50 dark:bg-emerald-950/30",
       onClick: () => { onClose(); onToggleStatus(shift); },
     },

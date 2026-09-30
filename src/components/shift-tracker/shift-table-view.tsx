@@ -79,7 +79,7 @@ export function ShiftTableView({ shifts, onToggleStatus, onDelete, onEdit }: Shi
                     <button onClick={() => handleSort(c.key)} className="flex items-center gap-1 hover:text-foreground transition-colors">
                       {c.label}
                       <ArrowUpDown className="w-3 h-3" />
-                      {sortCol === c.key && <span className="text-xs text-emerald-600">{sortDir === "asc" ? "↑" : "↓"}</span>}
+                      {sortCol === c.key && <span className="text-xs text-emerald-700 dark:text-emerald-400">{sortDir === "asc" ? "↑" : "↓"}</span>}
                     </button>
                   </th>
                 ))}
@@ -102,7 +102,7 @@ export function ShiftTableView({ shifts, onToggleStatus, onDelete, onEdit }: Shi
                       <div className="flex items-center gap-1.5">
                         <span className="truncate">{shift.locationName}</span>
                         {shift.notes && shift.notes.trim() && (
-                          <StickyNote className="w-3 h-3 text-amber-500 shrink-0" />
+                          <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                         )}
                       </div>
                     </td>

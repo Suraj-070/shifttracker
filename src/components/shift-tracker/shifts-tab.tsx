@@ -190,7 +190,7 @@ function MonthHeader({ group }: { group: MonthGroup }) {
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>
         {group.unpaidCount > 0 && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">{group.unpaidCount} unpaid</span>
+          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">{group.unpaidCount} unpaid</span>
         )}
       </div>
     </div>
@@ -329,8 +329,8 @@ function ShiftsTab({
                   {tab.label}
                   <span className={`text-[11px] font-bold tabular-nums ${
                     shiftKind === tab.key && !calendarView
-                      ? tab.key === "hall" ? "text-emerald-600" : "text-blue-600"
-                      : "text-muted-foreground/50"
+                      ? tab.key === "hall" ? "text-emerald-700 dark:text-emerald-400" : "text-blue-600"
+                      : "text-muted-foreground"
                   }`}>{tab.badge}</span>
                 </button>
               ))}
@@ -420,11 +420,11 @@ function ShiftsTab({
           <div className="grid grid-cols-3 gap-2">
             {[
               { icon: DollarSign, label: "Total", value: formatCurrency(selectedPersonSummary.totalEarned), color: "" },
-              { icon: CheckCircle2, label: "Paid", value: String(selectedPersonSummary.paidShifts), color: "text-emerald-600" },
+              { icon: CheckCircle2, label: "Paid", value: String(selectedPersonSummary.paidShifts), color: "text-emerald-700 dark:text-emerald-400" },
               { icon: Clock, label: "Owing", value: formatCurrency(selectedPersonSummary.unpaidAmount), color: "text-rose-600 dark:text-rose-400" },
             ].map(({ icon: Icon, label, value, color }) => (
               <div key={label} className="bg-background/60 rounded-xl p-2.5 text-center">
-                <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
+                <p className="text-[11px] text-muted-foreground mb-1">{label}</p>
                 <p className={`text-sm font-bold tabular-nums ${color}`}>{value}</p>
               </div>
             ))}

@@ -142,7 +142,7 @@ function HallEditForm({
           )}
           <input value={coveredBy} onChange={e => setCoveredBy(e.target.value)}
             placeholder="Or type a name…"
-            className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30" />
+            className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500" />
           <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
         </div>
       )}
@@ -186,14 +186,14 @@ function HallEditForm({
       {/* Date */}
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Date</p>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
       </div>
 
       {/* Amount + Status */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Amount ($)</p>
-          <input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input type="number" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </div>
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Status</p>
@@ -204,7 +204,7 @@ function HallEditForm({
       {/* Notes */}
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed min-h-[80px]" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything worth remembering..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none leading-relaxed min-h-[80px]" />
       </div>
 
       <div className="flex gap-3 pt-1">
@@ -310,7 +310,7 @@ function StationEditForm({
           value={stationName}
           onChange={(e) => setStationName(e.target.value)}
           placeholder={pastStationNames.length > 0 ? "Or type a new station…" : "e.g. Central, Redfern..."}
-        className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         <datalist id="edit-station-name-list">
           {pastStationNames.map((n) => <option key={n} value={n} />)}
         </datalist>
@@ -327,7 +327,7 @@ function StationEditForm({
               }`}
             >
               <span>{k}</span>
-              <span className={`text-[10px] ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>${STATION_RATES[k].toFixed(2)}/hr</span>
+              <span className={`text-[11px] ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>${STATION_RATES[k].toFixed(2)}/hr</span>
             </button>
           ))}
         </div>
@@ -337,11 +337,11 @@ function StationEditForm({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Date</p>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </div>
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Hours Worked</p>
-          <input type="number" step="0.25" min="0" value={hours} onChange={(e) => setHours(e.target.value)} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input type="number" step="0.25" min="0" value={hours} onChange={(e) => setHours(e.target.value)} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </div>
       </div>
 
@@ -349,11 +349,11 @@ function StationEditForm({
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Gross Amount ($)</p>
-          <input type="number" step="0.01" min="0" value={gross} onChange={(e) => { grossTouched.current = true; setGross(e.target.value); }} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input type="number" step="0.01" min="0" value={gross} onChange={(e) => { grossTouched.current = true; setGross(e.target.value); }} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
         </div>
         <div className="space-y-2">
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Tax Withheld ($)</p>
-          <input type="number" step="0.01" min="0" value={tax} onChange={(e) => { taxTouched.current = true; setTax(e.target.value); }} className="w-full h-10 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
+          <input type="number" step="0.01" min="0" value={tax} onChange={(e) => { taxTouched.current = true; setTax(e.target.value); }} className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
           <p className="text-xs text-muted-foreground">Est. {(STATION_TAX_RATE * 100).toFixed(1)}%</p>
         </div>
       </div>
@@ -370,7 +370,7 @@ function StationEditForm({
       {/* Notes + Status */}
       <div className="space-y-2">
         <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2 flex items-center gap-1.5"><StickyNote className="w-3.5 h-3.5" /> Notes <span className="font-normal text-muted-foreground">(optional)</span></p>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none leading-relaxed min-h-[80px]" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to remember..." className="w-full px-3.5 py-2.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none leading-relaxed min-h-[80px]" />
       </div>
 
       <div className="space-y-2">
@@ -431,7 +431,7 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
               {station && <MapPin className="w-5 h-5 text-blue-500" />}
               Edit {station ? "Station" : "Hall"} Shift
             </h2>
-            <button onClick={() => onOpenChange(false)} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+            <button onClick={() => onOpenChange(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>

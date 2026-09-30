@@ -116,7 +116,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         <div className="flex items-end justify-between mb-4">
           <div>
             <p className="text-5xl font-black tabular-nums text-white tracking-tight">{formatCurrency(totalOwe)}</p>
-            <p className="text-white/60 text-[12px] mt-1.5">still owed</p>
+            <p className="text-white/80 text-[12px] mt-1.5">still owed</p>
           </div>
           {totalPaid > 0 && (
             <div className="text-right">
@@ -142,7 +142,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-semibold text-white">{p.name}</p>
-                  <p className="text-[11px] text-white/60">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
+                  <p className="text-[11px] text-white/80">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -212,12 +212,12 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
               <div className="flex items-center justify-between px-1 mb-2">
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{group.label}</span>
-                  <span className="text-[10px] text-muted-foreground/60">{group.shifts.length} day{group.shifts.length !== 1 ? "s" : ""}</span>
+                  <span className="text-[11px] text-muted-foreground">{group.shifts.length} day{group.shifts.length !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-black tabular-nums text-amber-600 dark:text-amber-400">{formatCurrency(group.total)}</span>
                   {group.unpaid > 0 && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
                       {group.unpaid} unpaid
                     </span>
                   )}
@@ -247,7 +247,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className="text-sm font-black tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
                         <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full active:scale-90 transition-transform ${
+                          className={`hit text-[11px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
                             isPaid
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                               : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"

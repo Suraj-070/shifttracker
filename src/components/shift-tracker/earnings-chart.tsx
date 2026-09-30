@@ -66,7 +66,7 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
             <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
               {/* Amount label — always visible on mobile */}
               {week.earned > 0 && (
-                <span className="text-[8px] text-muted-foreground tabular-nums whitespace-nowrap font-medium">
+                <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap font-medium">
                   {week.earned >= 1000 ? `$${(week.earned/1000).toFixed(1)}k` : formatCurrency(week.earned)}
                 </span>
               )}
@@ -98,7 +98,7 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
       <div className="flex gap-1.5">
         {data.map((week, i) => (
           <div key={i} className="flex-1 text-center">
-            <p className={`text-[9px] ${i === data.length - 1 ? "text-primary font-semibold" : "text-muted-foreground"}`}>
+            <p className={`text-[11px] ${i === data.length - 1 ? "text-primary font-semibold" : "text-muted-foreground"}`}>
               {week.label}
             </p>
           </div>
@@ -106,7 +106,7 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+      <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-primary/60" />
           Paid
@@ -115,7 +115,7 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
           <div className="w-2.5 h-2.5 rounded-sm bg-muted-foreground/20" />
           Unpaid
         </div>
-        <span className="ml-auto text-[10px]">Last {weeks} weeks</span>
+        <span className="ml-auto text-[11px]">Last {weeks} weeks</span>
       </div>
     </div>
   );

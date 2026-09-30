@@ -61,7 +61,7 @@ export function FilterToolbar({
             value={searchQuery}
             onChange={useCallback((e: React.ChangeEvent<HTMLInputElement>) => onSearchChange(e.target.value), [onSearchChange])}
             placeholder="Search shifts…"
-            className="w-full h-11 pl-9 pr-9 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            className="w-full h-11 pl-9 pr-9 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all"
           />
           {searchQuery && (
             <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground active:scale-90">
@@ -85,7 +85,7 @@ export function FilterToolbar({
         {/* Results count + clear */}
         {hasFilters && (
           <button onClick={clearAll}
-            className="h-11 px-3 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-500 bg-rose-50 dark:bg-rose-950/30 text-xs font-semibold flex items-center gap-1 active:scale-90 transition-transform shrink-0">
+            className="h-11 px-3 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 text-xs font-semibold flex items-center gap-1 active:scale-90 transition-transform shrink-0">
             <X className="w-3 h-3" />
           </button>
         )}
@@ -100,7 +100,7 @@ export function FilterToolbar({
         <div className="space-y-2.5 pt-1 pb-0.5">
           {/* Status */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Status</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Status</p>
             <div className="flex gap-1.5">
               <Chip label="All" active={statusFilter === "all"} onClick={() => onStatusFilterChange("all")} />
               <Chip label="✓ Paid" active={statusFilter === "Paid"} onClick={() => onStatusFilterChange("Paid")} activeClass="bg-emerald-500 text-white border-emerald-500" />
@@ -110,7 +110,7 @@ export function FilterToolbar({
 
           {/* Date */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Date</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Date</p>
             <div className="flex gap-1.5 flex-wrap">
               <Chip label="Today" active={dateFilter === "today"} onClick={() => onDateFilterChange(dateFilter === "today" ? "all" : "today")} />
               <Chip label="This week" active={dateFilter === "week"} onClick={() => onDateFilterChange(dateFilter === "week" ? "all" : "week")} />
@@ -120,7 +120,7 @@ export function FilterToolbar({
 
           {/* Sort */}
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Sort</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Sort</p>
             <div className="flex gap-1.5 flex-wrap">
               <Chip label="Newest" active={sortOption === "newest"} onClick={() => onSortOptionChange("newest")} />
               <Chip label="Oldest" active={sortOption === "oldest"} onClick={() => onSortOptionChange("oldest")} />

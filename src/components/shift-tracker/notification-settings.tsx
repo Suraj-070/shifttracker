@@ -86,7 +86,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
           </div>
           <Switch checked={r.enabled} onCheckedChange={v => onChange({ enabled: v })} />
           <button onClick={() => setOpen(v => !v)}
-            className="w-8 h-8 flex items-center justify-center text-muted-foreground">
+            className="hit w-8 h-8 flex items-center justify-center text-muted-foreground">
             {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
@@ -113,39 +113,39 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
                 )}
 
                 <Input value={r.station} onChange={e => onChange({ station: e.target.value })}
-                  placeholder="e.g. Central, Redfern..." className="rounded-xl h-9 text-sm" />
+                  placeholder="e.g. Central, Redfern..." className="rounded-xl h-11 text-sm" />
 
                 {/* Times grid */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock in</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock in</p>
                     <Input type="time" value={r.clockin} onChange={e => onChange({ clockin: e.target.value })}
-                      className="rounded-xl h-9 text-sm text-center" />
+                      className="rounded-xl h-11 text-sm text-center" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock out</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock out</p>
                     <Input type="time" value={r.clockout} onChange={e => onChange({ clockout: e.target.value })}
-                      className="rounded-xl h-9 text-sm text-center" />
+                      className="rounded-xl h-11 text-sm text-center" />
                   </div>
                 </div>
 
                 {/* Offsets */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Remind before</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Remind before</p>
                     <div className="flex items-center gap-1.5">
                       <Input type="number" min={1} max={60} value={r.offset}
                         onChange={e => onChange({ offset: Number(e.target.value) })}
-                        className="rounded-xl h-9 text-center w-16 text-sm" />
+                        className="rounded-xl h-11 text-center w-16 text-sm" />
                       <span className="text-xs text-muted-foreground">min</span>
                     </div>
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Check after</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Check after</p>
                     <div className="flex items-center gap-1.5">
                       <Input type="number" min={1} max={60} value={r.clockout_after_offset}
                         onChange={e => onChange({ clockout_after_offset: Number(e.target.value) })}
-                        className="rounded-xl h-9 text-center w-16 text-sm" />
+                        className="rounded-xl h-11 text-center w-16 text-sm" />
                       <span className="text-xs text-muted-foreground">min</span>
                     </div>
                   </div>
@@ -154,7 +154,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
 
 
                 <button onClick={onDelete}
-                  className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-500 text-xs font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                  className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5">
                   <Trash2 className="w-3.5 h-3.5" /> Remove
                 </button>
               </div>
@@ -267,7 +267,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
         </div>
         {permission === "denied" && (
           <div className="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/30">
-            <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <p className="text-xs text-rose-600 dark:text-rose-400">Blocked — Settings → Apps → Chrome → Notifications → Allow</p>
           </div>
         )}
@@ -279,7 +279,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
         <div className="rounded-2xl border border-border/60 overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3">
             <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-emerald-600" />
+              <Calendar className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold">Hall Shift Reminder</p>
@@ -303,13 +303,13 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input value={settings.hall_reminder_venue}
                       onChange={e => setSettings(s => ({ ...s, hall_reminder_venue: e.target.value }))}
-                      placeholder="Venue e.g. Eastgardens" className="pl-9 rounded-xl h-9 text-sm" />
+                      placeholder="Venue e.g. Eastgardens" className="pl-9 rounded-xl h-11 text-sm" />
                   </div>
                   {/* Day pills */}
                   <div className="flex gap-1.5">
                     {DAYS.map((d, i) => (
                       <button key={i} onClick={() => toggleDay(i)}
-                        className={`flex-1 h-9 rounded-xl text-xs font-bold transition-all ${
+                        className={`flex-1 h-11 rounded-xl text-xs font-bold transition-all ${
                           settings.hall_reminder_days.includes(i) ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
                         }`}>{d}
                       </button>
@@ -320,7 +320,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
                     <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input type="time" value={settings.hall_reminder_time}
                       onChange={e => setSettings(s => ({ ...s, hall_reminder_time: e.target.value }))}
-                      className="pl-9 rounded-xl h-9 text-sm" />
+                      className="pl-9 rounded-xl h-11 text-sm" />
                   </div>
 
                 </div>
