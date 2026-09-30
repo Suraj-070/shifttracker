@@ -4,7 +4,7 @@ import { SheetShell } from "./sheet-shell";
 import React from "react";
 import { X, Pencil, Trash2, CheckCircle2, XCircle, MapPin, Calendar, Clock, StickyNote, DollarSign, User, UserX } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
-import { isStationShift, parseStationTax, parseStationUserNote } from "@/types/database.types";
+import { isStationShift, parseStationTax, effectiveAmount, shiftUserNote, shiftFine } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 
 interface ShiftDetailSheetProps {
@@ -26,8 +26,9 @@ export function ShiftDetailSheet({
   const station  = isStationShift(shift);
   const isPaid   = shift.status === "Paid";
   const tax      = station ? parseStationTax(shift.notes) : 0;
-  const net      = station ? Math.max(0, parseFloat(shift.amountEarned) - tax) : 0;
-  const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
+  const net      = station ? Math.max(0, effectiveAmount(shift) - tax) : 0;
+  const userNote = shiftUserNote(shift);
+  const fine     = shiftFine(shift);
   const covered  = Boolean(shift.coveredBy);
   const isSelf   = !covered && (isSelfName(shift.coveringFor ?? ""));
 
@@ -65,8 +66,15 @@ export function ShiftDetailSheet({
           <div className="flex items-end justify-between">
             <div>
               <p className="text-[11px] text-muted-foreground mb-1">Amount</p>
-              <p className="text-4xl font-black tabular-nums tracking-tight">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+              <p className="text-4xl font-black tabular-nums tracking-tight">{formatCurrency(effectiveAmount(shift))}</p>
               {station && <p className="text-xs text-muted-foreground mt-1">net {formatCurrency(net)} after ${formatCurrency(tax)} tax</p>}
+              {fine.amount > 0 && (
+                <p className={`text-xs mt-1 ${fine.included ? "font-semibold text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>
+                  {fine.included
+                    ? `${formatCurrency(parseFloat(shift.amountEarned))} earned − ${formatCurrency(fine.amount)} fine`
+                    : `Fine ${formatCurrency(fine.amount)} recorded · not counted`}
+                </p>
+              )}
             </div>
             {/* Status toggle */}
             <button

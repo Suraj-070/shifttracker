@@ -5,6 +5,7 @@ import { UserX, Calendar, SlidersHorizontal, X, ChevronDown, ChevronRight, Check
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import type { Shift } from "@/types/database.types";
 import { rowButtonProps } from "@/lib/a11y";
+import { effectiveAmount } from "@/types/database.types";
 
 interface OweTabProps {
   shifts: Shift[];
@@ -57,7 +58,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
       .map(([key, monthShifts]) => {
         const [yr, mo] = key.split("-");
         const label = new Date(+yr, +mo - 1).toLocaleDateString("en-AU", { year: "numeric", month: "long" });
-        const total   = monthShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
+        const total   = monthShifts.reduce((s, sh) => s + effectiveAmount(sh), 0);
         const unpaid  = monthShifts.filter(s => s.status === "Unpaid").length;
         return { key, label, shifts: monthShifts, total, unpaid };
       });
@@ -69,16 +70,16 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
     for (const s of oweShifts) {
       const name = s.coveredBy!;
       const ex = map.get(name) ?? { total: 0, unpaid: 0, count: 0 };
-      ex.total += parseFloat(s.amountEarned);
-      if (s.status === "Unpaid") ex.unpaid += parseFloat(s.amountEarned);
+      ex.total += effectiveAmount(s);
+      if (s.status === "Unpaid") ex.unpaid += effectiveAmount(s);
       ex.count++;
       map.set(name, ex);
     }
     return Array.from(map.entries()).map(([name, d]) => ({ name, ...d }));
   }, [oweShifts]);
 
-  const totalOwe    = useMemo(() => oweShifts.filter(s => s.status === "Unpaid").reduce((s, sh) => s + parseFloat(sh.amountEarned), 0), [oweShifts]);
-  const totalPaid   = useMemo(() => oweShifts.filter(s => s.status === "Paid").reduce((s, sh) => s + parseFloat(sh.amountEarned), 0), [oweShifts]);
+  const totalOwe    = useMemo(() => oweShifts.filter(s => s.status === "Unpaid").reduce((s, sh) => s + effectiveAmount(sh), 0), [oweShifts]);
+  const totalPaid   = useMemo(() => oweShifts.filter(s => s.status === "Paid").reduce((s, sh) => s + effectiveAmount(sh), 0), [oweShifts]);
   const hasFilters  = personFilter !== "__all__" || statusFilter !== "all";
 
 
@@ -246,7 +247,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
 
                       {/* Amount + status */}
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className="text-sm font-black tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
+                        <span className="text-sm font-black tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                         <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
                           className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
                             isPaid

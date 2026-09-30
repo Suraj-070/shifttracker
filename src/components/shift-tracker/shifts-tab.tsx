@@ -18,7 +18,7 @@ import { ShiftsSkeleton } from "./loading-skeleton";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatCurrency, isToday, isThisWeek, isThisMonth } from "@/lib/utils";
-import { isStationShift, parseStationTax } from "@/types/database.types";
+import { isStationShift, parseStationTax, effectiveAmount, shiftUserNote } from "@/types/database.types";
 import type { Shift, MonthGroup } from "@/types/database.types";
 
 function groupShiftsByMonth(shifts: Shift[]): MonthGroup[] {
@@ -35,7 +35,7 @@ function groupShiftsByMonth(shifts: Shift[]): MonthGroup[] {
     .map(([monthKey, monthShifts]) => {
       const [year, month] = monthKey.split("-");
       const monthLabel = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString("en-US", { year: "numeric", month: "long" });
-      const totalEarned = monthShifts.reduce((sum, s) => sum + parseFloat(s.amountEarned), 0);
+      const totalEarned = monthShifts.reduce((sum, s) => sum + effectiveAmount(s), 0);
       const paidCount = monthShifts.filter((s) => s.status === "Paid").length;
       const unpaidCount = monthShifts.filter((s) => s.status === "Unpaid").length;
       monthShifts.sort((a, b) => b.shiftDate.localeCompare(a.shiftDate));
@@ -226,9 +226,9 @@ function ShiftsTab({
     for (const s of hallShifts) {
       const existing = map.get(s.coveringFor) ?? { name: s.coveringFor, totalShifts: 0, totalEarned: 0, paidShifts: 0, unpaidShifts: 0, unpaidAmount: 0 };
       existing.totalShifts++;
-      existing.totalEarned += parseFloat(s.amountEarned);
+      existing.totalEarned += effectiveAmount(s);
       if (s.status === "Paid") existing.paidShifts++;
-      else { existing.unpaidShifts++; existing.unpaidAmount += parseFloat(s.amountEarned); }
+      else { existing.unpaidShifts++; existing.unpaidAmount += effectiveAmount(s); }
       map.set(s.coveringFor, existing);
     }
     return Array.from(map.values()).sort((a, b) => b.totalShifts - a.totalShifts);
@@ -244,7 +244,7 @@ function ShiftsTab({
       const q = searchQuery.toLowerCase();
       result = result.filter((s) =>
         s.locationName.toLowerCase().includes(q) || s.coveringFor.toLowerCase().includes(q) ||
-        (s.notes ?? "").toLowerCase().includes(q) || s.status.toLowerCase().includes(q),
+        shiftUserNote(s).toLowerCase().includes(q) || s.status.toLowerCase().includes(q),
       );
     }
     if (statusFilter !== "all") result = result.filter((s) => s.status === statusFilter);
@@ -260,8 +260,8 @@ function ShiftsTab({
       switch (sortOption) {
         case "newest": return b.shiftDate.localeCompare(a.shiftDate);
         case "oldest": return a.shiftDate.localeCompare(b.shiftDate);
-        case "highest": return parseFloat(b.amountEarned) - parseFloat(a.amountEarned);
-        case "lowest": return parseFloat(a.amountEarned) - parseFloat(b.amountEarned);
+        case "highest": return effectiveAmount(b) - effectiveAmount(a);
+        case "lowest": return effectiveAmount(a) - effectiveAmount(b);
         default: return 0;
       }
     });
@@ -272,7 +272,7 @@ function ShiftsTab({
   const filteredStation = useMemo(() => applyFilters(stationShifts), [applyFilters, stationShifts]);
   const hallMonthGroups = useMemo(() => groupShiftsByMonth(filteredHall), [filteredHall]);
   const stationMonthGroups = useMemo(() => groupShiftsByMonth(filteredStation), [filteredStation]);
-  const stationNet = Math.max(0, stationShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned) - parseStationTax(sh.notes), 0));
+  const stationNet = Math.max(0, stationShifts.reduce((s, sh) => s + effectiveAmount(sh) - parseStationTax(sh.notes), 0));
   const activeFiltered = shiftKind === "hall" ? filteredHall : filteredStation;
 
   const toggleHallSelect = (id: string) => setHallSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });

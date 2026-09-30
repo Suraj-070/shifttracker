@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import type { Shift } from "@/types/database.types";
+import { effectiveAmount, shiftUserNote } from "@/types/database.types";
 
 type SortCol = "date" | "day" | "location" | "amount" | "status";
 type SortDir = "asc" | "desc";
@@ -32,7 +33,7 @@ export function ShiftTableView({ shifts, onToggleStatus, onDelete, onEdit }: Shi
         case "date": cmp = a.shiftDate.localeCompare(b.shiftDate); break;
         case "day": cmp = a.shiftDay.localeCompare(b.shiftDay); break;
         case "location": cmp = a.locationName.localeCompare(b.locationName); break;
-        case "amount": cmp = parseFloat(a.amountEarned) - parseFloat(b.amountEarned); break;
+        case "amount": cmp = effectiveAmount(a) - effectiveAmount(b); break;
         case "status": cmp = a.status.localeCompare(b.status); break;
       }
       return sortDir === "asc" ? cmp : -cmp;
@@ -101,12 +102,12 @@ export function ShiftTableView({ shifts, onToggleStatus, onDelete, onEdit }: Shi
                     <td className="py-3 px-4 truncate">
                       <div className="flex items-center gap-1.5">
                         <span className="truncate">{shift.locationName}</span>
-                        {shift.notes && shift.notes.trim() && (
+                        {shiftUserNote(shift).trim() && (
                           <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 tabular-nums font-semibold">{formatCurrency(parseFloat(shift.amountEarned))}</td>
+                    <td className="py-3 px-4 tabular-nums font-semibold">{formatCurrency(effectiveAmount(shift))}</td>
                     <td className="py-3 px-4">
                       <Badge variant="outline" className={badgeClass(isPaid)} onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}>
                         {shift.status}

@@ -3,7 +3,7 @@
 import React from "react";
 import { User, MapPin, StickyNote, ChevronRight, Check, Clock } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
-import { isStationShift } from "@/types/database.types";
+import { isStationShift, effectiveAmount, shiftUserNote } from "@/types/database.types";
 import type { Shift, MonthGroup } from "@/types/database.types";
 
 interface ShiftListViewProps {
@@ -46,14 +46,14 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                       {station && (
                         <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">STN</span>
                       )}
-                      {shift.notes?.trim() && <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
+                      {shiftUserNote(shift).trim() && <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{shift.coveringFor}</p>
                   </div>
 
                   {/* Amount + status */}
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
+                    <span className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}
                       className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${

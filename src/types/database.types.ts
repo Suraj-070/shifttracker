@@ -150,3 +150,57 @@ export function parseStationUserNote(notes: string): string {
   const idx = notes.indexOf('||')
   return idx >= 0 ? notes.slice(idx + 2).trim() : ''
 }
+
+// ============================================
+// Hall shift fines
+// Stored inside the notes field (no schema change), like station tax:
+//   __fine__|amt:20.00|inc:1||user note
+// `inc` = 1 means the fine is deducted from the shift total.
+// ============================================
+
+const FINE_TAG = '__fine__|'
+
+export interface HallFine {
+  amount: number
+  included: boolean
+}
+
+export function parseHallFine(notes: string | null | undefined): HallFine {
+  if (!notes || !notes.startsWith(FINE_TAG)) return { amount: 0, included: false }
+  const head = notes.split('||')[0]
+  const a = head.match(/amt:([\d.]+)/)
+  const i = head.match(/inc:([01])/)
+  const amount = a ? Number(a[1]) : 0
+  return { amount: Number.isNaN(amount) ? 0 : amount, included: i ? i[1] === '1' : false }
+}
+
+/** User-visible note of a hall shift, with any fine metadata stripped. */
+export function parseHallUserNote(notes: string | null | undefined): string {
+  if (!notes) return ''
+  if (!notes.startsWith(FINE_TAG)) return notes
+  const idx = notes.indexOf('||')
+  return idx >= 0 ? notes.slice(idx + 2).trim() : ''
+}
+
+export function buildHallNotes(fineAmount: number, included: boolean, userNote: string): string {
+  const note = (userNote ?? '').trim()
+  if (!(fineAmount > 0)) return note
+  return `${FINE_TAG}amt:${fineAmount.toFixed(2)}|inc:${included ? 1 : 0}||${note}`
+}
+
+/** User-visible note for any shift (hall or station). */
+export function shiftUserNote(shift: Pick<Shift, 'locationName' | 'notes'>): string {
+  return isStationShift(shift) ? parseStationUserNote(shift.notes ?? '') : parseHallUserNote(shift.notes)
+}
+
+/** Fine info for a shift (always zero for station shifts). */
+export function shiftFine(shift: Pick<Shift, 'locationName' | 'notes'>): HallFine {
+  return isStationShift(shift) ? { amount: 0, included: false } : parseHallFine(shift.notes)
+}
+
+/** Amount that counts toward totals: earned minus the fine when it is included. */
+export function effectiveAmount(shift: Pick<Shift, 'locationName' | 'notes' | 'amountEarned'>): number {
+  const gross = parseFloat(shift.amountEarned) || 0
+  const fine = shiftFine(shift)
+  return fine.included ? Math.max(0, gross - fine.amount) : gross
+}

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { getOrCreateUserByEmail } from '@/lib/get-or-create-user'
+import { isStationShift, parseHallFine, parseHallUserNote } from '@/types/database.types'
 
 export async function GET() {
   try {
@@ -26,10 +27,13 @@ export async function GET() {
 
     if (error) throw error
 
-    const headers = ['Date', 'Day', 'Location', 'Covering For', 'Amount', 'Status', 'Notes']
+    const headers = ['Date', 'Day', 'Location', 'Covering For', 'Amount', 'Status', 'Notes', 'Fine', 'Fine Deducted']
     const csvRows = [headers.join(',')]
 
     for (const s of shifts ?? []) {
+      const station = isStationShift({ locationName: s.location_name ?? '' })
+      const fine = station ? { amount: 0, included: false } : parseHallFine(s.notes)
+      const exportNotes = station ? (s.notes ?? '') : parseHallUserNote(s.notes)
       const row = [
         s.shift_date,
         s.shift_day,
@@ -37,7 +41,9 @@ export async function GET() {
         `"${(s.covering_for ?? '').replace(/"/g, '""')}"`,
         s.amount_earned,
         s.status,
-        `"${(s.notes ?? '').replace(/"/g, '""')}"`,
+        `"${exportNotes.replace(/"/g, '""')}"`,
+        fine.amount > 0 ? fine.amount.toFixed(2) : '',
+        fine.amount > 0 ? (fine.included ? 'Yes' : 'No') : '',
       ]
       csvRows.push(row.join(','))
     }

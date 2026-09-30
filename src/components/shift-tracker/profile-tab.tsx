@@ -10,7 +10,7 @@ import { ProfileSkeleton } from "./loading-skeleton";
 import { signOut } from "next-auth/react";
 import { SettingsTab } from "./settings-tab";
 import { RemindersTab } from "./reminders-tab";
-import { isStationShift } from "@/types/database.types";
+import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type { Shift, UserProfile } from "@/types/database.types";
 
 interface ProfileTabProps {
@@ -41,14 +41,14 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
     if (!shifts.length) return null;
     const hall    = shifts.filter(s => !isStationShift(s));
     const station = shifts.filter(s => isStationShift(s));
-    const amounts = hall.map(s => parseFloat(s.amountEarned));
+    const amounts = hall.map(s => effectiveAmount(s));
     const bestShift = Math.max(...amounts, 0);
     const weeks: Record<string, number> = {};
     for (const s of hall) {
       const d = new Date(s.shiftDate + "T00:00:00");
       const mon = new Date(d); mon.setDate(d.getDate() - d.getDay() + 1);
       const wk = mon.toISOString().slice(0,10);
-      weeks[wk] = (weeks[wk]||0) + parseFloat(s.amountEarned);
+      weeks[wk] = (weeks[wk]||0) + effectiveAmount(s);
     }
     const bestWeek = Math.max(...Object.values(weeks), 0);
     const days: Record<string,number> = {};
@@ -57,7 +57,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
       days[dy] = (days[dy]||0) + 1;
     }
     const busiestDay = Object.entries(days).sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
-    const avgPerShift = hall.length ? (hall.reduce((s,sh)=>s+parseFloat(sh.amountEarned),0)/hall.length) : 0;
+    const avgPerShift = hall.length ? (hall.reduce((s,sh)=>s+effectiveAmount(sh),0)/hall.length) : 0;
     const sortedWeeks = Object.entries(weeks).sort(([a],[b])=>a.localeCompare(b));
     let streak = 0, maxStreak = 0, cur = 0;
     for (let i=0;i<sortedWeeks.length;i++) {

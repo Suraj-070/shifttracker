@@ -5,7 +5,7 @@ import { MapPin, StickyNote, CheckCircle2, Trash2, ChevronDown, Check, Clock, Mo
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { isStationShift, parseStationTax, parseStationUserNote } from "@/types/database.types";
+import { isStationShift, parseStationTax, effectiveAmount, shiftUserNote, shiftFine } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import type { CardDensity } from "@/stores/settings-store";
 
@@ -193,8 +193,9 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
   const covered  = Boolean(shift.coveredBy);
   const isSelf   = !covered && (isSelfName(shift.coveringFor));
   const tax      = station ? parseStationTax(shift.notes) : 0;
-  const net      = station ? Math.max(0, parseFloat(shift.amountEarned) - tax) : 0;
-  const userNote = station ? parseStationUserNote(shift.notes) : shift.notes;
+  const net      = station ? Math.max(0, effectiveAmount(shift) - tax) : 0;
+  const userNote = shiftUserNote(shift);
+  const fine     = shiftFine(shift);
   const hasNote  = Boolean(userNote?.trim());
   const [noteOpen, setNoteOpen] = useState(false);
   const [pressed,  setPressed]  = useState(false);
@@ -250,8 +251,13 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
         {/* Right: amount + status */}
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <span className="text-[18px] font-black tabular-nums leading-none tracking-tight">
-            {formatCurrency(parseFloat(shift.amountEarned))}
+            {formatCurrency(effectiveAmount(shift))}
           </span>
+          {fine.amount > 0 && (
+            <span className={`text-[11px] ${fine.included ? "font-semibold text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>
+              {fine.included ? `−${formatCurrency(fine.amount)} fine` : `${formatCurrency(fine.amount)} fine · not counted`}
+            </span>
+          )}
           {station && <span className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</span>}
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}

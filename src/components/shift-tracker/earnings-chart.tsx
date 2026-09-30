@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { formatCurrency } from "@/lib/utils";
+import { effectiveAmount } from "@/types/database.types";
 
 interface WeekData {
   label: string;   // "Mon 23"
@@ -32,10 +33,10 @@ export function EarningsChart({ shifts, weeks = 6 }: EarningsChartProps) {
         return d >= weekStart && d <= weekEnd;
       });
 
-      const earned = weekShifts.reduce((sum, s) => sum + parseFloat(s.amountEarned), 0);
+      const earned = weekShifts.reduce((sum, s) => sum + effectiveAmount(s), 0);
       const paid = weekShifts
         .filter(s => s.status === "Paid")
-        .reduce((sum, s) => sum + parseFloat(s.amountEarned), 0);
+        .reduce((sum, s) => sum + effectiveAmount(s), 0);
 
       const label = weekStart.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
       result.push({ label, earned, paid });

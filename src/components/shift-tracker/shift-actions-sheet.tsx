@@ -8,7 +8,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Pencil, CheckCircle2, XCircle, Trash2, X, FileText, TrainFront, Clapperboard } from "lucide-react";
 import { formatShortDate, formatCurrency } from "@/lib/utils";
-import { isStationShift } from "@/types/database.types";
+import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 
 interface ShiftActionsSheetProps {
@@ -81,7 +81,7 @@ export function ShiftActionsSheet({
               {station ? shift.coveringFor : shift.coveringFor}
             </p>
             <p className="text-xs text-muted-foreground">
-              {formatShortDate(shift.shiftDate)} · {shift.shiftDay} · {formatCurrency(parseFloat(shift.amountEarned))}
+              {formatShortDate(shift.shiftDate)} · {shift.shiftDay} · {formatCurrency(effectiveAmount(shift))}
             </p>
           </div>
           <button

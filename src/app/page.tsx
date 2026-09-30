@@ -27,9 +27,7 @@ import { EditShiftDialog } from "@/components/shift-tracker/edit-shift-dialog";
 import { useHaptics } from "@/hooks/use-haptics";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { useTabSwipe } from "@/hooks/use-tab-swipe";
-import {
-  isStationShift,
-} from "@/types/database.types";
+import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type {
   Shift,
   ShiftStatus,
@@ -571,13 +569,13 @@ export default function ShiftTrackerPage() {
   // ── Computed values (only YOUR shifts — covered-by-others excluded) ──────
   const summary = useMemo<AnalyticsSummary>(() => {
     const myShifts    = hallShifts.filter(s => !s.coveredBy);
-    const totalEarned = myShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0);
+    const totalEarned = myShifts.reduce((s, sh) => s + effectiveAmount(sh), 0);
     const paidShifts   = myShifts.filter((s) => s.status === "Paid");
     const unpaidShifts = myShifts.filter((s) => s.status === "Unpaid");
     return {
       totalEarned,
-      totalPaid:    paidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
-      totalUnpaid:  unpaidShifts.reduce((s, sh) => s + parseFloat(sh.amountEarned), 0),
+      totalPaid:    paidShifts.reduce((s, sh) => s + effectiveAmount(sh), 0),
+      totalUnpaid:  unpaidShifts.reduce((s, sh) => s + effectiveAmount(sh), 0),
       totalShifts:  myShifts.length,
       paidShifts:   paidShifts.length,
       unpaidShifts: unpaidShifts.length,
@@ -600,7 +598,7 @@ export default function ShiftTrackerPage() {
         unpaid: 0,
         shiftCount: 0,
       };
-      const amount = parseFloat(s.amountEarned);
+      const amount = effectiveAmount(s);
       existing.earned += amount;
       existing.shiftCount++;
       if (s.status === "Paid") existing.paid += amount;

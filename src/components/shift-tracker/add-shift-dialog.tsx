@@ -3,9 +3,10 @@
 import React, { useMemo, useState, useEffect, useId, useRef } from "react";
 import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown } from "lucide-react";
 import { SheetShell } from "./sheet-shell";
+import { FineField } from "./fine-field";
 import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions, formatCurrency } from "@/lib/utils";
-import { STATION_LOCATION, buildStationNotes, isStationShift } from "@/types/database.types";
+import { STATION_LOCATION, buildStationNotes, isStationShift, buildHallNotes } from "@/types/database.types";
 import { DEFAULT_LOCATIONS, DEFAULT_COVER_NAMES, STATION_RATES, STATION_TAX_RATE, type StationRateKey } from "@/lib/constants";
 import type { ShiftStatus, ShiftCreateInput, Shift } from "@/types/database.types";
 import { ComboInput } from "./combo-input";
@@ -81,6 +82,8 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
   const [location,    setLocation]    = useState(defaultLocation ?? "");
   const [amount,      setAmount]      = useState(String(payRates.defaultHallAmount || 110));
   const [notes,       setNotes]       = useState("");
+  const [fine,        setFine]        = useState("");
+  const [fineIncluded, setFineIncluded] = useState(false);
   const [status,      setStatus]      = useState<ShiftStatus>("Unpaid");
   const [isCovered,   setIsCovered]   = useState(false);
   const [coveredBy,   setCoveredBy]   = useState("");
@@ -111,7 +114,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
     onSubmit({
       coveringFor: isCovered ? (userName ?? "Myself") : coveringFor,
       shiftDate: formDate, locationName: location,
-      notes: notes.trim(), shiftDay: getDayFromDate(formDate),
+      notes: buildHallNotes(parseFloat(fine) || 0, fineIncluded, notes), shiftDay: getDayFromDate(formDate),
       coveredBy: isCovered && coveredBy.trim() ? coveredBy.trim() : null,
       amountEarned: parseFloat(amount).toFixed(2),
       hoursWorked: 0, status,
@@ -188,6 +191,10 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
+
+      {/* Fine */}
+      <FineField amount={fine} included={fineIncluded} gross={parseFloat(amount) || 0}
+        onAmountChange={setFine} onIncludedChange={setFineIncluded} />
 
       {/* Status */}
       <FieldBox>

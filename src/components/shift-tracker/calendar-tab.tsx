@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
-import { isStationShift } from "@/types/database.types";
+import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import { rowButtonProps } from "@/lib/a11y";
 
@@ -59,10 +59,10 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
     for (const [k, dayShifts] of shiftMap) {
       if (!k.startsWith(prefix)) continue;
       for (const s of dayShifts) {
-        total += parseFloat(s.amountEarned);
+        total += effectiveAmount(s);
         count++;
         if (s.status==="Paid") paid++;
-        if (s.coveredBy) owed += parseFloat(s.amountEarned);
+        if (s.coveredBy) owed += effectiveAmount(s);
       }
     }
     return { total, count, paid, owed, unpaid: count - paid };
@@ -259,7 +259,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                       <p className="text-[11px] text-muted-foreground">{shift.locationName}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+                      <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
                       <p className={`text-[11px] font-bold ${isPaid?"text-emerald-700 dark:text-emerald-400":isCovered?"text-amber-600 dark:text-amber-400":"text-rose-600 dark:text-rose-400"}`}>
                         {isPaid?"✓ Paid":isCovered?"Owed":"Unpaid"}
                       </p>

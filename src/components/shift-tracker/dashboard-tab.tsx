@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
-import { parseStationTax, parseStationUserNote } from "@/types/database.types";
+import { parseStationTax, parseStationUserNote, effectiveAmount } from "@/types/database.types";
 import { AnimatedCurrency } from "./animated-number";
 import { EarningsChart } from "./earnings-chart";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
@@ -60,7 +60,7 @@ function buildFortnightData(stationShifts: Shift[], anchorStr: string): Fortnigh
   return Array.from(indices).sort((a,b) => b-a).map(idx => {
     const { start, end, payslipDate, payDate } = fortnightBounds(idx, anchor);
     const shifts = stationShifts.filter(s => isInFortnight(s.shiftDate, idx, anchor));
-    const gross  = shifts.reduce((s,sh) => s + parseFloat(sh.amountEarned), 0);
+    const gross  = shifts.reduce((s,sh) => s + effectiveAmount(sh), 0);
     const tax    = shifts.reduce((s,sh) => s + parseStationTax(sh.notes), 0);
     return { index: idx, start, end, payslipDate, payDate, shifts, gross, tax, net: Math.max(0, gross-tax), isPast: idx < currentIdx, isCurrent: idx === currentIdx };
   });
@@ -148,7 +148,7 @@ function DashboardTab({
     for (const s of allShifts) {
       if (!s.coveredBy) continue;
       const ex = map.get(s.coveredBy) ?? { shifts: [], total: 0 };
-      ex.shifts.push(s); ex.total += parseFloat(s.amountEarned);
+      ex.shifts.push(s); ex.total += effectiveAmount(s);
       map.set(s.coveredBy, ex);
     }
     return Array.from(map.entries()).map(([name, d]) => ({ name, ...d }));
@@ -159,7 +159,7 @@ function DashboardTab({
   const currentFN     = fortnights.find(f => f.isCurrent);
   const pastFNs       = fortnights.filter(f => f.isPast && f.shifts.length > 0);
   const stationCount  = stationShifts.length;
-  const stationGross  = stationShifts.reduce((s,sh) => s + parseFloat(sh.amountEarned), 0);
+  const stationGross  = stationShifts.reduce((s,sh) => s + effectiveAmount(sh), 0);
   const stationTax    = stationShifts.reduce((s,sh) => s + parseStationTax(sh.notes), 0);
   const stationNet    = Math.max(0, stationGross - stationTax);
   const stationUnpaid = stationShifts.filter(s => s.status === "Unpaid").length;
@@ -284,7 +284,7 @@ function DashboardTab({
                         <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
+                        <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
                         <p className={`text-[11px] font-bold ${isPaid ? "text-emerald-700 dark:text-emerald-400" : isCovered ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}>
                           {isPaid ? "✓ Paid" : isCovered ? "Owed" : "Unpaid"}
                         </p>
@@ -454,8 +454,8 @@ function DashboardTab({
                                     <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{note ? ` · ${note}` : ""}</p>
                                   </div>
                                   <div className="text-right shrink-0">
-                                    <p className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</p>
-                                    <p className="text-[11px] text-muted-foreground">net {formatCurrency(Math.max(0, parseFloat(shift.amountEarned)-tax))}</p>
+                                    <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
+                                    <p className="text-[11px] text-muted-foreground">net {formatCurrency(Math.max(0, effectiveAmount(shift)-tax))}</p>
                                   </div>
                                   <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
                                     className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>

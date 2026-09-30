@@ -3,6 +3,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Loader2, Save, User, MapPin, StickyNote, Check, UserX, X } from "lucide-react";
 import { SheetShell } from "./sheet-shell";
+import { FineField } from "./fine-field";
 import { ComboInput } from "./combo-input";
 import {
   DEFAULT_LOCATIONS,
@@ -17,6 +18,9 @@ import {
   buildStationNotes,
   parseStationTax,
   parseStationUserNote,
+  parseHallFine,
+  parseHallUserNote,
+  buildHallNotes,
   STATION_LOCATION,
 } from "@/types/database.types";
 import type { Shift, ShiftStatus, ShiftCreateInput } from "@/types/database.types";
@@ -65,7 +69,9 @@ function HallEditForm({
   const [date, setDate] = useState(shift.shiftDate);
   const [location, setLocation] = useState(shift.locationName);
   const [amount, setAmount] = useState(shift.amountEarned);
-  const [notes, setNotes] = useState(shift.notes ?? "");
+  const [notes, setNotes] = useState(parseHallUserNote(shift.notes));
+  const [fine, setFine] = useState(() => { const f = parseHallFine(shift.notes); return f.amount > 0 ? f.amount.toFixed(2) : ""; });
+  const [fineIncluded, setFineIncluded] = useState(() => parseHallFine(shift.notes).included);
   const [status, setStatus] = useState<ShiftStatus>(shift.status);
   const [isCovered, setIsCovered] = useState(Boolean(shift.coveredBy));
   const [coveredBy, setCoveredBy] = useState(shift.coveredBy ?? "");
@@ -103,7 +109,7 @@ function HallEditForm({
       coveringFor,
       shiftDate: date,
       locationName: location,
-      notes: notes.trim(),
+      notes: buildHallNotes(parseFloat(fine) || 0, fineIncluded, notes),
       shiftDay: getDayFromDate(date),
       amountEarned: parseFloat(amount).toFixed(2),
       status,
@@ -201,6 +207,10 @@ function HallEditForm({
           <StatusToggle value={status} onChange={setStatus} />
         </div>
       </div>
+
+      {/* Fine */}
+      <FineField amount={fine} included={fineIncluded} gross={parseFloat(amount) || 0}
+        onAmountChange={setFine} onIncludedChange={setFineIncluded} />
 
       {/* Notes */}
       <div className="space-y-2">
