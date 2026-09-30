@@ -206,7 +206,6 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
       onClick={() => { if (isMobile) onTap?.(shift); else onEdit(shift); }}
       className={`select-none rounded-2xl border overflow-hidden transition-all duration-75 ${pressed ? "scale-[0.983] brightness-95" : ""} ${
         covered ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900"
-        : isSelf  ? "bg-purple-50/60 dark:bg-purple-950/20 border-purple-100 dark:border-purple-900"
         : station ? "bg-blue-50/60 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900"
                   : "bg-white dark:bg-card border-border/50 shadow-sm shadow-black/[0.04]"
       }`}
@@ -214,7 +213,6 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
       {/* Top status stripe */}
       <div className={`h-[2.5px] ${
         covered   ? "bg-gradient-to-r from-amber-400 to-orange-400"
-        : isSelf  ? "bg-gradient-to-r from-purple-400 to-violet-500"
         : station ? "bg-gradient-to-r from-blue-400 to-blue-500"
         : isPaid  ? "bg-gradient-to-r from-emerald-400 to-emerald-500"
                   : "bg-gradient-to-r from-rose-400 to-rose-500"
@@ -229,7 +227,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
             {station && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
             {covered && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400"><ArrowLeftRight className="w-3 h-3" aria-hidden="true" />by {shift.coveredBy}</span>}
-            {isSelf && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300"><User className="w-3 h-3" aria-hidden="true" />You</span>}
+            {isSelf && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-foreground"><User className="w-3 h-3" aria-hidden="true" />You</span>}
             <FineBadge shift={shift} />
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" aria-label="Has note" />}
             {onLongPress && (
@@ -242,7 +240,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
               </button>
             )}
           </div>
-          <p className={`text-sm font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : isSelf ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
+          <p className={`text-sm font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
             {covered ? "Your shift" : isSelf ? `${userName} (You)` : shift.coveringFor}
           </p>
           <p className="text-[11px] text-muted-foreground truncate">

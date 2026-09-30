@@ -33,11 +33,10 @@ export function ShiftDetailSheet({
   const covered  = Boolean(shift.coveredBy);
   const isSelf   = !covered && (isSelfName(shift.coveringFor ?? ""));
 
-  const accentColor = covered ? "amber" : isSelf ? "purple" : station ? "blue" : isPaid ? "emerald" : "rose";
+  const accentColor = covered ? "amber" : station ? "blue" : isPaid ? "emerald" : "rose";
 
   const stripeClass: Record<string, string> = {
     amber:   "from-amber-400 to-orange-400",
-    purple:  "from-purple-400 to-violet-500",
     blue:    "from-blue-400 to-blue-500",
     emerald: "from-emerald-400 to-emerald-500",
     rose:    "from-rose-400 to-rose-500",
@@ -64,7 +63,6 @@ export function ShiftDetailSheet({
         {/* Amount hero */}
         <div className={`mx-4 rounded-2xl p-4 mb-4 ${
           covered ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900"
-          : isSelf ? "bg-purple-50 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900"
           : "bg-muted/50 border border-border/50"
         }`}>
           <div className="flex items-end justify-between">
@@ -111,7 +109,7 @@ export function ShiftDetailSheet({
             </div>
 
             {isSelf && (
-              <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400">
+              <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-muted text-foreground">
                 <User className="w-3 h-3 inline -mt-0.5 mr-1" aria-hidden="true" />You
               </span>
             )}

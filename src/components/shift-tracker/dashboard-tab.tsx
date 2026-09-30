@@ -273,8 +273,8 @@ function DashboardTab({
                   const isCovered = Boolean(shift.coveredBy);
                   const isSelf    = !isCovered && isSelfName(shift.coveringFor ?? "");
                   const name      = isCovered ? `Your shift · by ${shift.coveredBy}` : isSelf ? `${userName} (You)` : shift.coveringFor;
-                  const stripe    = isCovered ? "bg-amber-400" : isSelf ? "bg-purple-500" : isPaid ? "bg-emerald-500" : "bg-rose-400";
-                  const nameColor = isCovered ? "text-amber-600 dark:text-amber-400" : isSelf ? "text-purple-600 dark:text-purple-400" : "";
+                  const stripe    = isCovered ? "bg-amber-400" : isPaid ? "bg-emerald-500" : "bg-rose-400";
+                  const nameColor = isCovered ? "text-amber-700 dark:text-amber-400" : "";
                   return (
                     <button key={shift.id} onClick={() => onEditShift(shift)}
                       className="w-full flex items-center gap-3 px-4 py-3 active:bg-muted/40 transition-colors text-left">

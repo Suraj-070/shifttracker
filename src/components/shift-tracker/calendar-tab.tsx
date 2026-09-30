@@ -74,7 +74,6 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
 
   const getDotColor = (s: Shift) => {
     if (s.coveredBy) return "bg-amber-400";
-    if (isSelfName(s.coveringFor ?? "")) return "bg-purple-500";
     if (isStationShift(s)) return "bg-blue-400";
     return s.status==="Paid" ? "bg-emerald-400" : "bg-rose-400";
   };
@@ -119,7 +118,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                 ? f.key === "covered"
                   ? "bg-amber-500 text-white shadow-sm"
                   : f.key === "mine"
-                  ? "bg-purple-500 text-white shadow-sm"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-white dark:bg-card text-foreground shadow-sm"
                 : "text-muted-foreground"
             }`}>
@@ -194,7 +193,6 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         {[
           { color: "bg-emerald-400", label: "Paid" },
           { color: "bg-rose-400",    label: "Unpaid" },
-          { color: "bg-purple-500",  label: "You" },
           { color: "bg-amber-400",   label: "Covered" },
           { color: "bg-blue-400",    label: "Station" },
         ].map(l => (
