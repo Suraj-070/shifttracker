@@ -6,7 +6,7 @@
 import { SheetShell } from "./sheet-shell";
 import React from "react";
 import { motion } from "framer-motion";
-import { Pencil, CheckCircle2, XCircle, Trash2, X, FileText } from "lucide-react";
+import { Pencil, CheckCircle2, XCircle, Trash2, X, FileText, TrainFront, Clapperboard } from "lucide-react";
 import { formatShortDate, formatCurrency } from "@/lib/utils";
 import { isStationShift } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
@@ -75,7 +75,7 @@ export function ShiftActionsSheet({
       {/* Shift info header */}
       <div className="px-5 pb-3 pt-1 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">{station ? "🚉" : "🎬"}</span>
+          <span className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">{station ? <TrainFront className="w-5 h-5" aria-hidden="true" /> : <Clapperboard className="w-5 h-5" aria-hidden="true" />}</span>
           <div>
             <p className="text-sm font-semibold">
               {station ? shift.coveringFor : shift.coveringFor}

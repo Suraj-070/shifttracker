@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useId, useRef } from "react";
 import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown } from "lucide-react";
 import { SheetShell } from "./sheet-shell";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -15,7 +15,7 @@ type JobKind = "Hall" | "Station";
 // ── Shared field components ──────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{children}</p>;
+  return <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{children}</label>;
 }
 
 function PillGroup({ options, value, onChange, color = "emerald" }: {
@@ -36,7 +36,19 @@ function PillGroup({ options, value, onChange, color = "emerald" }: {
 }
 
 function FieldBox({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`bg-muted/40 rounded-2xl p-4 space-y-3 ${className}`}>{children}</div>;
+  // Bind the label to the box's first form control so taps on the label focus it
+  // and screen readers announce the field name.
+  const ref = useRef<HTMLDivElement>(null);
+  const id = useId();
+  useEffect(() => {
+    const el = ref.current?.querySelector<HTMLElement>("input,textarea,select");
+    const label = ref.current?.querySelector("label");
+    if (el && label) {
+      if (!el.id) el.id = id;
+      label.htmlFor = el.id;
+    }
+  }, [id]);
+  return <div ref={ref} className={`bg-muted/40 rounded-2xl p-4 space-y-3 ${className}`}>{children}</div>;
 }
 
 function StatusToggle({ value, onChange }: { value: ShiftStatus; onChange: (v: ShiftStatus) => void }) {
@@ -172,7 +184,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
         </FieldBox>
         <FieldBox>
           <FieldLabel>Amount ($)</FieldLabel>
-          <input type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)}
+          <input type="number" inputMode="decimal" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
@@ -299,7 +311,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         </FieldBox>
         <FieldBox>
           <FieldLabel>Hours</FieldLabel>
-          <input type="number" step="0.25" min="0" value={hours} onChange={e => changeHours(e.target.value)}
+          <input type="number" inputMode="decimal" step="0.25" min="0" value={hours} onChange={e => changeHours(e.target.value)}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
@@ -315,14 +327,14 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
       <div className="grid grid-cols-2 gap-3">
         <FieldBox>
           <FieldLabel>Gross ($)</FieldLabel>
-          <input type="number" step="0.01" min="0" value={displayGross}
+          <input type="number" inputMode="decimal" step="0.01" min="0" value={displayGross}
             onChange={e => { setGrossOverride(e.target.value); setTaxOverride(null); }}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
           <p className="text-[11px] text-muted-foreground">Auto-calc · editable</p>
         </FieldBox>
         <FieldBox>
           <FieldLabel>Tax ($)</FieldLabel>
-          <input type="number" step="0.01" min="0" value={displayTax}
+          <input type="number" inputMode="decimal" step="0.01" min="0" value={displayTax}
             onChange={e => setTaxOverride(e.target.value)}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
           <p className="text-[11px] text-muted-foreground">{((payRates.taxRate || STATION_TAX_RATE)*100).toFixed(1)}% · editable</p>

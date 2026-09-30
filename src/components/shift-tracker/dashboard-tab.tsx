@@ -2,16 +2,14 @@
 import { useSettingsStore } from "@/stores/settings-store";
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import {
-  DollarSign, ChevronRight, MapPin,
-  StickyNote, Clock, ChevronDown, TrendingUp,
-} from "lucide-react";
+import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote } from "@/types/database.types";
 import { AnimatedCurrency } from "./animated-number";
 import { EarningsChart } from "./earnings-chart";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
+import { rowButtonProps } from "@/lib/a11y";
 
 // ─── Fortnight logic ──────────────────────────────────────────────────────────
 const DAY_MS       = 86400000;
@@ -105,7 +103,7 @@ function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift
     <div className="rounded-2xl border border-amber-200 dark:border-amber-800 overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.98 0.03 85), oklch(0.96 0.04 75))" }}>
       <div className="flex items-center justify-between px-4 py-3.5">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center text-lg">💸</div>
+          <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center "><ArrowLeftRight className="w-5 h-5 text-amber-700 dark:text-amber-400" aria-hidden="true" /></div>
           <div>
             <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">To Pay Out</p>
             <p className="text-[11px] text-amber-600/70">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
@@ -173,7 +171,7 @@ function DashboardTab({
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-8">
         <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/40 dark:to-emerald-800/40 flex items-center justify-center">
-          <span className="text-4xl">📋</span>
+          <ClipboardList className="w-10 h-10 text-muted-foreground" aria-hidden="true" />
         </div>
         <div>
           <p className="text-xl font-black mb-1">No shifts yet</p>
@@ -446,7 +444,7 @@ function DashboardTab({
                               const tax    = parseStationTax(shift.notes);
                               const note   = parseStationUserNote(shift.notes);
                               return (
-                                <div key={shift.id} onClick={() => onEditShift(shift)} className="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-muted/40 transition-colors">
+                                <div key={shift.id} {...rowButtonProps(() => onEditShift(shift))} className="flex items-center gap-3 px-4 py-3 cursor-pointer active:bg-muted/40 transition-colors">
                                   <div className={`w-1 h-8 rounded-full shrink-0 ${isPaid ? "bg-blue-500" : "bg-rose-400"}`} />
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
@@ -460,8 +458,8 @@ function DashboardTab({
                                     <p className="text-[11px] text-muted-foreground">net {formatCurrency(Math.max(0, parseFloat(shift.amountEarned)-tax))}</p>
                                   </div>
                                   <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                                    className={`hit text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
-                                    {shift.status}
+                                    className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
+                                    {isPaid ? <Check className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}{shift.status}
                                   </button>
                                 </div>
                               );

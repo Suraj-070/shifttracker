@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { User, MapPin, StickyNote, ChevronRight } from "lucide-react";
+import { User, MapPin, StickyNote, ChevronRight, Check, Clock } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift } from "@/types/database.types";
 import type { Shift, MonthGroup } from "@/types/database.types";
@@ -56,13 +56,13 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                     <span className="text-sm font-bold tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}
-                      className={`hit text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+                      className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
                         isPaid
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                           : "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
                       }`}
                     >
-                      {isPaid ? "✓ Paid" : "Unpaid"}
+                      {isPaid ? <Check className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}{isPaid ? "Paid" : "Unpaid"}
                     </button>
                   </div>
 

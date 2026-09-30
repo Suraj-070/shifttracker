@@ -2,10 +2,7 @@
 
 import { SheetShell } from "./sheet-shell";
 import React from "react";
-import {
-  X, Pencil, Trash2, CheckCircle2, XCircle,
-  MapPin, Calendar, Clock, StickyNote, DollarSign, User, UserX,
-} from "lucide-react";
+import { X, Pencil, Trash2, CheckCircle2, XCircle, MapPin, Calendar, Clock, StickyNote, DollarSign, User, UserX } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift, parseStationTax, parseStationUserNote } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
@@ -103,7 +100,7 @@ export function ShiftDetailSheet({
 
             {isSelf && (
               <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400">
-                ✦ You
+                <User className="w-3 h-3 inline -mt-0.5 mr-1" aria-hidden="true" />You
               </span>
             )}
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useState, useCallback } from "react";
-import { MapPin, StickyNote, CheckCircle2, Trash2, ChevronDown } from "lucide-react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
+import { MapPin, StickyNote, CheckCircle2, Trash2, ChevronDown, Check, Clock, MoreHorizontal, ArrowLeftRight, User } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +24,7 @@ interface ShiftCardProps {
 
 const SWIPE_THRESHOLD = 80;
 const LONG_PRESS_MS   = 460;
+let swipeHintShown = false; // one-time swipe affordance per session
 
 // ── Swipe wrapper ─────────────────────────────────────────────────────────────
 function SwipeWrapper({
@@ -43,6 +44,21 @@ function SwipeWrapper({
   const [leftPct,  setLeftPct]          = useState(0);
   const [rightPct, setRightPct]         = useState(0);
   const hapticFiredRef = useRef(false);
+
+  // One-time nudge so swipe actions are discoverable
+  useEffect(() => {
+    if (swipeHintShown) return;
+    try { if (localStorage.getItem("swipeHintSeen")) { swipeHintShown = true; return; } } catch { /* ignore */ }
+    swipeHintShown = true;
+    const el = cardRef.current;
+    if (!el) return;
+    const t1 = setTimeout(() => {
+      el.style.animation = "swipeHint 0.9s ease 1";
+      try { localStorage.setItem("swipeHintSeen", "1"); } catch { /* ignore */ }
+    }, 700);
+    const t2 = setTimeout(() => { el.style.animation = ""; }, 1800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
   const timerRef    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const startX      = useRef(0);
   const startY      = useRef(0);
@@ -183,16 +199,8 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
   const [noteOpen, setNoteOpen] = useState(false);
   const [pressed,  setPressed]  = useState(false);
 
-  const deskTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const deskEvents = isMobile ? {} : {
-    onMouseDown: () => { deskTimer.current = setTimeout(() => { haptics(20); onLongPress?.(shift); }, 500); },
-    onMouseUp:   () => clearTimeout(deskTimer.current),
-    onMouseLeave:() => clearTimeout(deskTimer.current),
-  };
-
   const card = (
     <div
-      {...deskEvents}
       onClick={() => { if (isMobile) onTap?.(shift); else onEdit(shift); }}
       className={`select-none rounded-2xl border overflow-hidden transition-all duration-75 ${pressed ? "scale-[0.983] brightness-95" : ""} ${
         covered ? "bg-amber-50/60 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900"
@@ -218,9 +226,18 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             <span className="text-sm font-bold">{formatShortDate(shift.shiftDate)}</span>
             <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
             {station && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
-            {covered && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400">💸 by {shift.coveredBy}</span>}
-            {isSelf && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400">✦ You</span>}
-            {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" />}
+            {covered && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400"><ArrowLeftRight className="w-3 h-3" aria-hidden="true" />by {shift.coveredBy}</span>}
+            {isSelf && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300"><User className="w-3 h-3" aria-hidden="true" />You</span>}
+            {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" aria-label="Has note" />}
+            {onLongPress && (
+              <button
+                onClick={e => { e.stopPropagation(); haptics(8); onLongPress(shift); }}
+                aria-label="Shift actions"
+                className="hit ml-auto w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground active:bg-muted"
+              >
+                <MoreHorizontal className="w-4 h-4" aria-hidden="true" />
+              </button>
+            )}
           </div>
           <p className={`text-sm font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : isSelf ? "text-purple-700 dark:text-purple-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
             {covered ? "Your shift" : isSelf ? `${userName} (You)` : shift.coveringFor}
@@ -239,13 +256,13 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}
             aria-label={isPaid ? "Mark as unpaid" : "Mark as paid"}
-            className={`hit text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+            className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
               isPaid
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
                 : "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
             }`}
           >
-            {isPaid ? "✓ Paid" : "Unpaid"}
+            {isPaid ? <Check className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}{isPaid ? "Paid" : "Unpaid"}
           </button>
         </div>
       </div>

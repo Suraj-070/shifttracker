@@ -2,12 +2,7 @@
 
 import { SheetShell } from "./sheet-shell";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import {
-  Mail, Calendar, DollarSign, Download,
-  LogOut, RefreshCw, Pencil, Save, X,
-  TrendingUp, Award, Flame, Star, Settings2, Bell,
-  ChevronRight, Hash,
-} from "lucide-react";
+import { Mail, Calendar, DollarSign, Download, LogOut, RefreshCw, Pencil, Save, X, TrendingUp, Award, Flame, Star, Settings2, Bell, ChevronRight, Hash, BarChart3 } from "lucide-react";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { formatCurrency } from "@/lib/utils";
 import { AnimatedCurrency } from "./animated-number";
@@ -154,7 +149,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               }
             </div>
             {records && records.streak > 1 && (
-              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[11px] font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg">🔥</div>
+              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[11px] font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg"><Flame className="w-3.5 h-3.5" aria-hidden="true" /></div>
             )}
           </div>
 
@@ -277,7 +272,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         <div className="space-y-3">
           {!records ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-              <span className="text-4xl">📊</span>
+              <BarChart3 className="w-10 h-10 text-muted-foreground" aria-hidden="true" />
               <p className="text-sm text-muted-foreground">Add some shifts to see your records</p>
             </div>
           ) : (

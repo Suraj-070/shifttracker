@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
+import { rowButtonProps } from "@/lib/a11y";
 
 interface CalendarTabProps {
   shifts: Shift[];
@@ -246,7 +247,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                 const stripe    = getDotColor(shift);
                 const name      = isCovered ? `Your shift` : isSelf ? `${userName} (You)` : shift.coveringFor;
                 return (
-                  <div key={shift.id} onClick={()=>onShiftClick(shift)}
+                  <div key={shift.id} {...rowButtonProps(() => onShiftClick(shift))}
                     className="flex items-center gap-3 px-4 py-3.5 active:bg-muted/40 cursor-pointer transition-colors">
                     <div className={`w-1 h-9 rounded-full shrink-0 ${stripe}`} />
                     <div className="flex-1 min-w-0">

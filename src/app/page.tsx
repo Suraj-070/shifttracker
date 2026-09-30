@@ -1,18 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  LayoutDashboard,
-  CalendarDays,
-  Calendar,
-  Bell,
-  BarChart3,
-  User,
-  Settings,
-  Plus,
-  Clock,
-  HandCoins,
-} from "lucide-react";
+import { LayoutDashboard, CalendarDays, Calendar, Bell, BarChart3, User, Settings, Plus, Clock, HandCoins, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { useSession } from "next-auth/react";
@@ -775,7 +764,7 @@ export default function ShiftTrackerPage() {
           {/* Error state */}
           {fetchError && !isLoading && (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-center px-8">
-              <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center text-3xl">⚠️</div>
+              <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center"><AlertCircle className="w-8 h-8 text-rose-600 dark:text-rose-400" aria-hidden="true" /></div>
               <div>
                 <p className="text-base font-bold mb-1">Couldn't load shifts</p>
                 <p className="text-sm text-muted-foreground">Check your connection and try again.</p>

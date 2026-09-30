@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useMemo, useCallback } from "react";
-import { UserX, Calendar, SlidersHorizontal, X, ChevronDown, ChevronRight } from "lucide-react";
+import { UserX, Calendar, SlidersHorizontal, X, ChevronDown, ChevronRight, Check, Clock, Handshake } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import type { Shift } from "@/types/database.types";
+import { rowButtonProps } from "@/lib/a11y";
 
 interface OweTabProps {
   shifts: Shift[];
@@ -95,7 +96,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-5 text-center px-8">
         <div className="w-20 h-20 rounded-3xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center shadow-sm">
-          <span className="text-4xl">🤝</span>
+          <Handshake className="w-10 h-10 text-muted-foreground" aria-hidden="true" />
         </div>
         <div>
           <p className="text-xl font-black mb-2">All clear!</p>
@@ -229,7 +230,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                 {group.shifts.map(shift => {
                   const isPaid = shift.status === "Paid";
                   return (
-                    <div key={shift.id} onClick={() => onEditShift(shift)}
+                    <div key={shift.id} {...rowButtonProps(() => onEditShift(shift))}
                       className="flex items-center gap-3 px-4 py-3.5 active:bg-amber-100/70 dark:active:bg-amber-950/30 transition-all duration-75 cursor-pointer select-none">
                       {/* Stripe */}
                       <div className={`w-1 h-9 rounded-full shrink-0 ${isPaid ? "bg-emerald-500" : "bg-amber-400"}`} />
@@ -247,12 +248,12 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className="text-sm font-black tabular-nums">{formatCurrency(parseFloat(shift.amountEarned))}</span>
                         <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                          className={`hit text-[11px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
+                          className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
                             isPaid
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                               : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"
                           }`}>
-                          {isPaid ? "✓ Paid" : "Owed"}
+                          {isPaid ? <Check className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}{isPaid ? "Paid" : "Owed"}
                         </button>
                       </div>
 

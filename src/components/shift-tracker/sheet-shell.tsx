@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useRef, useState } from "react";
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -36,19 +36,29 @@ export function SheetShell({
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
   const [dragY, setDragY] = useState(0);
+  const [prevOpen, setPrevOpen] = useState(open);
   const panelRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const dragStart = useRef<number | null>(null);
+  const uid = useId().replace(/:/g, "");
 
-  // Mount on open, unmount after the exit transition
-  useEffect(() => {
+  // Adjust state during render when `open` flips (avoids setState-in-effect)
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setMounted(true);
+    } else {
+      setVisible(false);
+      setDragY(0);
+    }
+  }
+
+  // Async transitions: slide in after mount, unmount after the exit animation
+  useEffect(() => {
+    if (open) {
       const id = requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
       return () => cancelAnimationFrame(id);
     }
-    setVisible(false);
-    setDragY(0);
     const t = setTimeout(() => setMounted(false), EXIT_MS);
     return () => clearTimeout(t);
   }, [open]);
@@ -66,6 +76,27 @@ export function SheetShell({
       returnFocusRef.current?.focus?.({ preventScroll: true });
     };
   }, [open, mounted]);
+
+  // Bind <label>s to the first form control in their container (once per render pass)
+  useEffect(() => {
+    const root = panelRef.current;
+    if (!open || !mounted || !root) return;
+    let n = 0;
+    const bind = () => {
+      root.querySelectorAll<HTMLLabelElement>("label:not([for])").forEach((label) => {
+        const el = label.parentElement?.querySelector<HTMLElement>(
+          "input:not([type=hidden]),textarea,select"
+        );
+        if (!el) return;
+        if (!el.id) el.id = `sheet-field-${uid}-${n++}`;
+        label.htmlFor = el.id;
+      });
+    };
+    bind();
+    const mo = new MutationObserver(bind);
+    mo.observe(root, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, [open, mounted, uid]);
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -134,7 +165,6 @@ export function SheetShell({
         aria-label={label}
         tabIndex={-1}
         onKeyDown={onKeyDown}
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         {...({ inert: !open } as any)}
         className="fixed bottom-0 left-0 right-0 z-[55] bg-background rounded-t-3xl shadow-2xl outline-none"
         style={{
