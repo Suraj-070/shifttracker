@@ -275,8 +275,8 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         </div>
       )}
 
-      {/* Month-to-date pay (Hall + Station) */}
-      <MonthPaySummary shifts={shifts} year={year} month={month} />
+      {/* Month-to-date pay (Hall + Station) — only on the "My shifts" filter */}
+      {filter === "mine" && <MonthPaySummary shifts={shifts} year={year} month={month} />}
 
       <div className="h-4" />
     </div>
