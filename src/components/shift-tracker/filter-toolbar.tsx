@@ -24,7 +24,7 @@ function Chip({ label, active, onClick, activeClass }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`shrink-0 px-3.5 h-8 rounded-full text-[11px] font-semibold border transition-all active:scale-95 ${
+      className={`shrink-0 px-3.5 h-8 rounded-full text-caption font-semibold border transition-all active:scale-95 ${
         active
           ? activeClass ?? "bg-primary text-primary-foreground border-primary"
           : "bg-background border-border/70 text-muted-foreground"
@@ -100,7 +100,7 @@ export function FilterToolbar({
         <div className="space-y-2.5 pt-1 pb-0.5">
           {/* Status */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Status</p>
+            <p className="text-label text-muted-foreground mb-1.5 px-0.5">Status</p>
             <div className="flex gap-1.5">
               <Chip label="All" active={statusFilter === "all"} onClick={() => onStatusFilterChange("all")} />
               <Chip label="✓ Paid" active={statusFilter === "Paid"} onClick={() => onStatusFilterChange("Paid")} activeClass="bg-emerald-500 text-white border-emerald-500" />
@@ -110,7 +110,7 @@ export function FilterToolbar({
 
           {/* Date */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Date</p>
+            <p className="text-label text-muted-foreground mb-1.5 px-0.5">Date</p>
             <div className="flex gap-1.5 flex-wrap">
               <Chip label="Today" active={dateFilter === "today"} onClick={() => onDateFilterChange(dateFilter === "today" ? "all" : "today")} />
               <Chip label="This week" active={dateFilter === "week"} onClick={() => onDateFilterChange(dateFilter === "week" ? "all" : "week")} />
@@ -120,7 +120,7 @@ export function FilterToolbar({
 
           {/* Sort */}
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 px-0.5">Sort</p>
+            <p className="text-label text-muted-foreground mb-1.5 px-0.5">Sort</p>
             <div className="flex gap-1.5 flex-wrap">
               <Chip label="Newest" active={sortOption === "newest"} onClick={() => onSortOptionChange("newest")} />
               <Chip label="Oldest" active={sortOption === "oldest"} onClick={() => onSortOptionChange("oldest")} />
@@ -133,7 +133,7 @@ export function FilterToolbar({
 
       {/* Results count */}
       {hasFilters && (
-        <p className="text-[11px] text-muted-foreground px-0.5">
+        <p className="text-caption text-muted-foreground px-0.5">
           {totalResults} result{totalResults !== 1 ? "s" : ""}
         </p>
       )}

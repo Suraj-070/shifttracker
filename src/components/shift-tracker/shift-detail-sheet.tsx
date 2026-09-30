@@ -49,7 +49,7 @@ export function ShiftDetailSheet({
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <div>
             <div className="flex items-center gap-1.5 mb-0.5">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Shift Detail</p>
+              <p className="text-label text-muted-foreground">Shift Detail</p>
               <FineBadge shift={shift} />
             </div>
             <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
@@ -67,7 +67,7 @@ export function ShiftDetailSheet({
         }`}>
           <div className="flex items-end justify-between">
             <div>
-              <p className="text-[11px] text-muted-foreground mb-1">Amount</p>
+              <p className="text-caption text-muted-foreground mb-1">Amount</p>
               <p className="text-4xl font-black tabular-nums tracking-tight">{formatCurrency(effectiveAmount(shift))}</p>
               {station && <p className="text-xs text-muted-foreground mt-1">net {formatCurrency(net)} after ${formatCurrency(tax)} tax</p>}
               {fine.amount > 0 && (
@@ -102,14 +102,14 @@ export function ShiftDetailSheet({
               <User className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] text-muted-foreground">{covered ? "Covered by" : "Covering for"}</p>
+              <p className="text-caption text-muted-foreground">{covered ? "Covered by" : "Covering for"}</p>
               <p className="text-sm font-semibold">
                 {covered ? shift.coveredBy : isSelf ? `${userName} (You)` : shift.coveringFor}
               </p>
             </div>
 
             {isSelf && (
-              <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-muted text-foreground">
+              <span className="text-caption font-bold px-2 py-1 rounded-full bg-muted text-foreground">
                 <User className="w-3 h-3 inline -mt-0.5 mr-1" aria-hidden="true" />You
               </span>
             )}
@@ -121,11 +121,11 @@ export function ShiftDetailSheet({
               <MapPin className="w-4 h-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">Location</p>
+              <p className="text-caption text-muted-foreground">Location</p>
               <p className="text-sm font-semibold">{shift.locationName}</p>
             </div>
             {station && (
-              <span className="ml-auto text-[11px] font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600">Station</span>
+              <span className="ml-auto text-caption font-bold px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600">Station</span>
             )}
           </div>
 
@@ -135,7 +135,7 @@ export function ShiftDetailSheet({
               <Calendar className="w-4 h-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-muted-foreground">Date</p>
+              <p className="text-caption text-muted-foreground">Date</p>
               <p className="text-sm font-semibold">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
             </div>
           </div>
@@ -147,7 +147,7 @@ export function ShiftDetailSheet({
                 <Clock className="w-4 h-4 text-muted-foreground" />
               </div>
               <div>
-                <p className="text-[11px] text-muted-foreground">Hours worked</p>
+                <p className="text-caption text-muted-foreground">Hours worked</p>
                 <p className="text-sm font-semibold">{shift.hoursWorked}h</p>
               </div>
             </div>
@@ -160,7 +160,7 @@ export function ShiftDetailSheet({
                 <StickyNote className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-muted-foreground mb-1">Note</p>
+                <p className="text-caption text-muted-foreground mb-1">Note</p>
                 <p className="text-sm text-foreground leading-relaxed">{userNote}</p>
               </div>
             </div>

@@ -190,7 +190,7 @@ function MonthHeader({ group }: { group: MonthGroup }) {
       <div className="flex items-center gap-1.5">
         <span className="text-xs font-bold tabular-nums text-primary">{formatCurrency(group.totalEarned)}</span>
         {group.unpaidCount > 0 && (
-          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">{group.unpaidCount} unpaid</span>
+          <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400">{group.unpaidCount} unpaid</span>
         )}
       </div>
     </div>
@@ -315,7 +315,7 @@ function ShiftsTab({
               ].map(tab => (
                 <button key={tab.key}
                   onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
-                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-[13px] font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${
                     shiftKind === tab.key && !calendarView
                       ? tab.key === "hall"
                         ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
@@ -327,7 +327,7 @@ function ShiftsTab({
                     : <MapPin className="w-3.5 h-3.5 shrink-0" />
                   }
                   {tab.label}
-                  <span className={`text-[11px] font-bold tabular-nums ${
+                  <span className={`text-caption font-bold tabular-nums ${
                     shiftKind === tab.key && !calendarView
                       ? tab.key === "hall" ? "text-emerald-700 dark:text-emerald-400" : "text-blue-600"
                       : "text-muted-foreground"
@@ -356,7 +356,7 @@ function ShiftsTab({
                     if (shiftKind === "hall") { setHallSelecting(v => !v); setHallSelected(new Set()); }
                     else { setStationSelecting(v => !v); setStationSelected(new Set()); }
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all active:scale-90 ${
+                  className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all active:scale-90 ${
                     isSelecting ? "text-primary bg-primary/10" : "text-muted-foreground"
                   }`}>
                   {isSelecting ? "Done" : "Select"}
@@ -424,7 +424,7 @@ function ShiftsTab({
               { icon: Clock, label: "Owing", value: formatCurrency(selectedPersonSummary.unpaidAmount), color: "text-rose-600 dark:text-rose-400" },
             ].map(({ icon: Icon, label, value, color }) => (
               <div key={label} className="bg-background/60 rounded-xl p-2.5 text-center">
-                <p className="text-[11px] text-muted-foreground mb-1">{label}</p>
+                <p className="text-caption text-muted-foreground mb-1">{label}</p>
                 <p className={`text-sm font-bold tabular-nums ${color}`}>{value}</p>
               </div>
             ))}

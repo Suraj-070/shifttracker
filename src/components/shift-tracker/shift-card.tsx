@@ -225,9 +225,9 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold">{formatShortDate(shift.shiftDate)}</span>
             <span className="text-xs text-muted-foreground">{shift.shiftDay}</span>
-            {station && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
-            {covered && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400"><ArrowLeftRight className="w-3 h-3" aria-hidden="true" />by {shift.coveredBy}</span>}
-            {isSelf && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-muted text-foreground"><User className="w-3 h-3" aria-hidden="true" />You</span>}
+            {station && <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
+            {covered && <span className="inline-flex items-center gap-1 text-caption font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400"><ArrowLeftRight className="w-3 h-3" aria-hidden="true" />by {shift.coveredBy}</span>}
+            {isSelf && <span className="inline-flex items-center gap-1 text-caption font-bold px-1.5 py-0.5 rounded-full bg-muted text-foreground"><User className="w-3 h-3" aria-hidden="true" />You</span>}
             <FineBadge shift={shift} />
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" aria-label="Has note" />}
             {onLongPress && (
@@ -243,26 +243,26 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <p className={`text-sm font-semibold truncate ${covered ? "text-amber-700 dark:text-amber-300" : station ? "text-blue-700 dark:text-blue-300" : "text-foreground"}`}>
             {covered ? "Your shift" : isSelf ? `${userName} (You)` : shift.coveringFor}
           </p>
-          <p className="text-[11px] text-muted-foreground truncate">
+          <p className="text-caption text-muted-foreground truncate">
             {station ? `${shift.hoursWorked}h · tax ${formatCurrency(tax)}` : shift.locationName}
           </p>
         </div>
 
         {/* Right: amount + status */}
         <div className="flex flex-col items-end gap-1.5 shrink-0">
-          <span className="text-[18px] font-black tabular-nums leading-none tracking-tight">
+          <span className="text-lg font-black tabular-nums leading-none tracking-tight">
             {formatCurrency(effectiveAmount(shift))}
           </span>
           {fine.amount > 0 && (
-            <span className={`text-[11px] ${fine.included ? "font-semibold text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>
+            <span className={`text-caption ${fine.included ? "font-semibold text-rose-700 dark:text-rose-400" : "text-muted-foreground"}`}>
               {fine.included ? `−${formatCurrency(fine.amount)} fine` : `${formatCurrency(fine.amount)} fine · not counted`}
             </span>
           )}
-          {station && <span className="text-[11px] text-muted-foreground">net {formatCurrency(net)}</span>}
+          {station && <span className="text-caption text-muted-foreground">net {formatCurrency(net)}</span>}
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}
             aria-label={isPaid ? "Mark as unpaid" : "Mark as paid"}
-            className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+            className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
               isPaid
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
                 : "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"
@@ -278,13 +278,13 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
         <>
           <button
             onClick={e => { e.stopPropagation(); setNoteOpen(v => !v); }}
-            className="flex items-center gap-1 px-4 pb-2.5 text-[11px] text-amber-600 dark:text-amber-400 active:opacity-70"
+            className="flex items-center gap-1 px-4 pb-2.5 text-caption text-amber-600 dark:text-amber-400 active:opacity-70"
           >
             <ChevronDown className={`w-3 h-3 transition-transform ${noteOpen ? "rotate-180" : ""}`} />
             {noteOpen ? "Hide note" : "Show note"}
           </button>
           {noteOpen && (
-            <p className="mx-3 mb-3 text-[11px] text-muted-foreground bg-amber-50/80 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-xl px-3 py-2 leading-relaxed">
+            <p className="mx-3 mb-3 text-caption text-muted-foreground bg-amber-50/80 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/30 rounded-xl px-3 py-2 leading-relaxed">
               {userNote}
             </p>
           )}

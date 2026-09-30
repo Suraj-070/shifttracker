@@ -19,7 +19,7 @@ export function FineField({ amount, included, gross, onAmountChange, onIncludedC
 
   return (
     <div className="bg-muted/40 rounded-2xl p-4 space-y-3">
-      <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+      <label className="block text-label text-muted-foreground mb-2">
         Fine ($) <span className="normal-case font-normal">(optional)</span>
       </label>
       <input
@@ -52,7 +52,7 @@ export function FineField({ amount, included, gross, onAmountChange, onIncludedC
               />
             </span>
           </button>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-caption text-muted-foreground">
             {included
               ? `Counts in totals: ${formatCurrency(gross)} − ${formatCurrency(fine)} = ${formatCurrency(net)}`
               : "Recorded only — not deducted from totals."}

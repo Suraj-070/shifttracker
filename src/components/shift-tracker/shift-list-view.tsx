@@ -43,9 +43,9 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
                       <span className="text-sm font-semibold">{formatShortDate(shift.shiftDate)}</span>
-                      <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
+                      <span className="text-caption text-muted-foreground">{shift.shiftDay}</span>
                       {station && (
-                        <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">STN</span>
+                        <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">STN</span>
                       )}
                       <FineBadge shift={shift} />
                       {shiftUserNote(shift).trim() && <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
@@ -58,7 +58,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                     <span className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}
-                      className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+                      className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
                         isPaid
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                           : "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"

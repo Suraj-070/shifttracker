@@ -149,7 +149,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               }
             </div>
             {records && records.streak > 1 && (
-              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-[11px] font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg"><Flame className="w-3.5 h-3.5" aria-hidden="true" /></div>
+              <div className="absolute -bottom-1 -right-1 bg-orange-500 text-white text-caption font-black rounded-full w-6 h-6 flex items-center justify-center shadow-lg"><Flame className="w-3.5 h-3.5" aria-hidden="true" /></div>
             )}
           </div>
 
@@ -187,11 +187,11 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         <div className="grid grid-cols-2 border-t border-white/15 divide-x divide-white/15">
           <div className="flex flex-col items-center py-4">
             <p className="text-2xl font-black text-white tabular-nums">{totalShifts}</p>
-            <p className="text-white/75 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Shifts</p>
+            <p className="text-white/75 text-label mt-0.5">Shifts</p>
           </div>
           <div className="flex flex-col items-center py-4">
             <AnimatedCurrency value={totalEarnings} className="text-2xl font-black text-white tabular-nums" duration={800} />
-            <p className="text-white/75 text-[11px] font-semibold uppercase tracking-wide mt-0.5">Earned</p>
+            <p className="text-white/75 text-label mt-0.5">Earned</p>
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-semibold ${color}`}>{label}</p>
-                  <p className="text-[11px] text-muted-foreground">{desc}</p>
+                  <p className="text-caption text-muted-foreground">{desc}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" />
               </button>
@@ -289,7 +289,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
                       <Icon className={`w-4 h-4 ${text}`} />
                     </div>
                     <p className={`text-sm font-black tabular-nums ${text}`}>{value}</p>
-                    <p className="text-[11px] text-muted-foreground font-medium text-center leading-tight">{label}</p>
+                    <p className="text-caption text-muted-foreground font-medium text-center leading-tight">{label}</p>
                   </div>
                 ))}
               </div>

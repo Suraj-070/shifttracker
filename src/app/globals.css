@@ -202,13 +202,15 @@ button, a, [role="button"] {
   }
 }
 
-/* ── Typography scale ── */
-.text-display  { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
-.text-heading  { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
-.text-subhead  { font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.01em; }
-.text-body     { font-size: 0.875rem; font-weight: 400; line-height: 1.5; }
-.text-caption  { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.02em; }
-.text-label    { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+/* ── Typography scale ── (in a layer so utilities like font-bold still win) */
+@layer components {
+  .text-display  { font-size: clamp(2rem, 8vw, 3rem); font-weight: 900; letter-spacing: -0.03em; line-height: 1; }
+  .text-heading  { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .text-subhead  { font-size: 0.9375rem; font-weight: 600; letter-spacing: -0.01em; }
+  .text-body     { font-size: 0.875rem; font-weight: 400; line-height: 1.5; }
+  .text-caption  { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.02em; }
+  .text-label    { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+}
 
 /* ── Card elevation system ── */
 .card-0 { background: var(--background); }

@@ -76,7 +76,7 @@ function Row({ label, description, children, compact }: {
     <div className={`flex items-center justify-between gap-3 ${compact ? "py-2" : "py-2.5"}`}>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium leading-tight">{label}</p>
-        {description && <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{description}</p>}
+        {description && <p className="text-caption text-muted-foreground mt-0.5 leading-tight">{description}</p>}
       </div>
       <div className="shrink-0">{children}</div>
     </div>
@@ -109,7 +109,7 @@ function Section({
           <Icon className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
         <span className="flex-1 text-sm font-semibold">{title}</span>
-        {badge && <Badge variant="secondary" className="text-[11px] h-4 px-1.5">{badge}</Badge>}
+        {badge && <Badge variant="secondary" className="text-caption h-4 px-1.5">{badge}</Badge>}
         {open
           ? <ChevronDown className="w-4 h-4 text-muted-foreground" />
           : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
@@ -321,7 +321,7 @@ export function SettingsTab() {
               <p className="font-medium text-foreground">Install on iPhone:</p>
               {["Tap the Share button in Safari", 'Tap "Add to Home Screen"', 'Tap "Add"'].map((s, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-muted text-[11px] font-bold flex items-center justify-center shrink-0">{i+1}</span>
+                  <span className="w-5 h-5 rounded-full bg-muted text-caption font-bold flex items-center justify-center shrink-0">{i+1}</span>
                   <span className="text-xs">{s}</span>
                 </div>
               ))}
@@ -336,7 +336,7 @@ export function SettingsTab() {
           <CheckCircle2 className="w-4 h-4 text-emerald-700 dark:text-emerald-400 shrink-0" />
           <div>
             <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">App installed</p>
-            <p className="text-[11px] text-emerald-700 dark:text-emerald-400">ShiftTracker is on your home screen</p>
+            <p className="text-caption text-emerald-700 dark:text-emerald-400">ShiftTracker is on your home screen</p>
           </div>
         </div>
       )}
@@ -344,7 +344,7 @@ export function SettingsTab() {
       {/* ── Fortnight Anchor ── */}
         <div className="space-y-2">
           <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pay Cycle Start</Label>
-          <p className="text-[11px] text-muted-foreground">The Wednesday your pay fortnight anchors to</p>
+          <p className="text-caption text-muted-foreground">The Wednesday your pay fortnight anchors to</p>
           <input
             type="date"
             value={fortnightAnchor}
@@ -472,7 +472,7 @@ export function SettingsTab() {
             <RefreshCw className="w-4 h-4" /> Sync
           </button>
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-caption text-muted-foreground">
           Your data is stored privately in your own Supabase instance.
         </p>
       </Section>
@@ -485,7 +485,7 @@ export function SettingsTab() {
         >
           <LogOut className="w-4 h-4" /> Sign Out
         </button>
-        <p className="text-center text-[11px] text-muted-foreground pt-1">
+        <p className="text-center text-caption text-muted-foreground pt-1">
           ShiftTracker v2.0.0
         </p>
       </div>

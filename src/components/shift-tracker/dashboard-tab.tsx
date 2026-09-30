@@ -90,9 +90,9 @@ interface DashboardTabProps {
 function StatCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
     <div className={`rounded-2xl p-4 ${accent ? "bg-primary text-primary-foreground" : "bg-card border border-border/50"}`}>
-      <p className={`text-[11px] font-bold uppercase tracking-widest mb-2 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{label}</p>
+      <p className={`text-caption font-bold uppercase tracking-widest mb-2 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{label}</p>
       <p className={`text-xl font-black tabular-nums ${accent ? "text-primary-foreground" : ""}`}>{value}</p>
-      {sub && <p className={`text-[11px] mt-1 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{sub}</p>}
+      {sub && <p className={`text-caption mt-1 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{sub}</p>}
     </div>
   );
 }
@@ -106,7 +106,7 @@ function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift
           <div className="w-9 h-9 rounded-xl bg-amber-100 dark:bg-amber-900/60 flex items-center justify-center "><ArrowLeftRight className="w-5 h-5 text-amber-700 dark:text-amber-400" aria-hidden="true" /></div>
           <div>
             <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">To Pay Out</p>
-            <p className="text-[11px] text-amber-700 dark:text-amber-400">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
+            <p className="text-caption text-amber-700 dark:text-amber-400">{oweData.reduce((s,d) => s+d.shifts.length,0)} covered shifts</p>
           </div>
         </div>
         <p className="text-xl font-black tabular-nums text-amber-700 dark:text-amber-300">{formatCurrency(totalOwe)}</p>
@@ -120,7 +120,7 @@ function OweCard({ oweData, totalOwe }: { oweData: { name: string; shifts: Shift
               </div>
               <div>
                 <p className="text-sm font-semibold">{d.name}</p>
-                <p className="text-[11px] text-muted-foreground">{d.shifts.length} shift{d.shifts.length!==1?"s":""}</p>
+                <p className="text-caption text-muted-foreground">{d.shifts.length} shift{d.shifts.length!==1?"s":""}</p>
               </div>
             </div>
             <p className="text-sm font-black tabular-nums text-amber-700 dark:text-amber-400">{formatCurrency(d.total)}</p>
@@ -200,7 +200,7 @@ function DashboardTab({
                 className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
                 {t.dot ? <span className={`w-2 h-2 rounded-full ${t.dot} shrink-0`} /> : <MapPin className="w-3.5 h-3.5 shrink-0" />}
                 {t.label}
-                <span className={`text-[11px] font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>
+                <span className={`text-caption font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>
               </button>
             ))}
           </div>
@@ -218,12 +218,12 @@ function DashboardTab({
               <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
               <div className="absolute right-8 bottom-0 w-20 h-20 rounded-full opacity-10 bg-white" style={{ transform: "translate(0%, 40%)" }} />
               <div className="relative">
-                <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest mb-1">Unpaid</p>
+                <p className="text-label text-white/80 mb-1">Unpaid</p>
                 <AnimatedCurrency value={summary.totalUnpaid} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
-                <p className="text-white/80 text-[12px] mt-1.5">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
+                <p className="text-white/80 text-xs mt-1.5">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
                 {/* Progress bar showing paid % */}
                 <div className="mt-4">
-                  <div className="flex justify-between text-[11px] text-white/75 mb-1.5">
+                  <div className="flex justify-between text-caption text-white/75 mb-1.5">
                     <span>{paidPct}% collected</span>
                     <span>{formatCurrency(summary.totalEarned - summary.totalUnpaid)} paid</span>
                   </div>
@@ -237,9 +237,9 @@ function DashboardTab({
             <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.55 0.15 162), oklch(0.42 0.13 162))" }}>
               <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
               <div className="relative">
-                <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest mb-1">All Paid 🎉</p>
+                <p className="text-label text-white/80 mb-1">All Paid 🎉</p>
                 <p className="text-4xl font-black text-white tabular-nums">{formatCurrency(summary.totalEarned)}</p>
-                <p className="text-white/80 text-[12px] mt-1.5">{summary.totalShifts} shifts · fully collected</p>
+                <p className="text-white/80 text-xs mt-1.5">{summary.totalShifts} shifts · fully collected</p>
               </div>
             </div>
           )}
@@ -258,7 +258,7 @@ function DashboardTab({
             <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
               <div>
                 <p className="text-sm font-bold">Recent Shifts</p>
-                <p className="text-[11px] text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
+                <p className="text-caption text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
               </div>
               <button onClick={onViewAllShifts} className="flex items-center gap-1 text-xs text-primary font-bold px-3 py-1.5 rounded-xl bg-primary/10 active:scale-95 transition-transform">
                 See all <ChevronRight className="w-3.5 h-3.5" />
@@ -281,11 +281,11 @@ function DashboardTab({
                       <div className={`w-1 h-9 rounded-full shrink-0 ${stripe}`} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-semibold truncate ${nameColor}`}>{name}</p>
-                        <p className="text-[11px] text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
+                        <p className="text-caption text-muted-foreground">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
-                        <p className={`text-[11px] font-bold ${isPaid ? "text-emerald-700 dark:text-emerald-400" : isCovered ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}>
+                        <p className={`text-caption font-bold ${isPaid ? "text-emerald-700 dark:text-emerald-400" : isCovered ? "text-amber-600 dark:text-amber-400" : "text-rose-600 dark:text-rose-400"}`}>
                           {isPaid ? "✓ Paid" : isCovered ? "Owed" : "Unpaid"}
                         </p>
                       </div>
@@ -328,9 +328,9 @@ function DashboardTab({
               <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
                 <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
                 <div className="relative">
-                  <p className="text-[11px] font-bold text-white/80 uppercase tracking-widest mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
+                  <p className="text-label text-white/80 mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
                   <AnimatedCurrency value={stationNet} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
-                  <p className="text-white/80 text-[12px] mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
+                  <p className="text-white/80 text-xs mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
                 </div>
               </div>
 
@@ -348,7 +348,7 @@ function DashboardTab({
                       <Clock className="w-4 h-4 text-blue-500" />
                       <p className="text-sm font-bold text-blue-700 dark:text-blue-300">Current Fortnight</p>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">{fmt(currentFN.start)} – {fmt(currentFN.end)}</p>
+                    <p className="text-caption text-muted-foreground">{fmt(currentFN.start)} – {fmt(currentFN.end)}</p>
                   </div>
                   <div className="p-4 space-y-3">
                     {/* Countdown */}
@@ -357,19 +357,19 @@ function DashboardTab({
                         <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
                           {daysUntil(currentFN.payslipDate) <= 0 ? "Payslip today! 🎉" : `Payslip in ${daysUntil(currentFN.payslipDate)} day${daysUntil(currentFN.payslipDate)!==1?"s":""}`}
                         </p>
-                        <p className="text-[11px] text-blue-500/70 mt-0.5">
+                        <p className="text-caption text-blue-500/70 mt-0.5">
                           {daysUntil(currentFN.payDate) <= 0 ? "Money in account today! 💰" : `Pay in ${daysUntil(currentFN.payDate)} days (Thu ${fmt(currentFN.payDate)})`}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-black text-blue-700 dark:text-blue-300 tabular-nums">{Math.max(0, daysUntil(currentFN.payslipDate))}</p>
-                        <p className="text-[11px] text-muted-foreground">days</p>
+                        <p className="text-caption text-muted-foreground">days</p>
                       </div>
                     </div>
 
                     {/* Progress */}
                     <div>
-                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1.5">
+                      <div className="flex justify-between text-caption text-muted-foreground mb-1.5">
                         <span>{fmt(currentFN.start)}</span>
                         <span>{Math.min(14, Math.max(0, Math.ceil((Date.now() - currentFN.start.getTime()) / DAY_MS)))} / 14 days</span>
                         <span>{fmt(currentFN.end)}</span>
@@ -390,7 +390,7 @@ function DashboardTab({
                         { label: "Net",    value: formatCurrency(currentFN.net) },
                       ].map(item => (
                         <div key={item.label} className="bg-white/60 dark:bg-blue-900/20 rounded-xl p-2.5 text-center">
-                          <p className="text-[11px] text-muted-foreground mb-1">{item.label}</p>
+                          <p className="text-caption text-muted-foreground mb-1">{item.label}</p>
                           <p className="text-sm font-black tabular-nums">{item.value}</p>
                         </div>
                       ))}
@@ -409,7 +409,7 @@ function DashboardTab({
               {/* Past fortnights */}
               {pastFNs.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground px-1">Past Fortnights</p>
+                  <p className="text-label text-muted-foreground px-1">Past Fortnights</p>
                   {pastFNs.map(fn => {
                     const isExpanded = expandedFortnight === fn.index;
                     const allPaid = fn.shifts.every(s => s.status === "Paid");
@@ -421,17 +421,17 @@ function DashboardTab({
                               <div className="flex items-center gap-2 flex-wrap">
                                 <p className="text-sm font-semibold">{fmt(fn.start)} – {fmt(fn.end)}</p>
                                 {allPaid
-                                  ? <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>
+                                  ? <span className="text-caption font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>
                                   : <button onClick={e => { e.stopPropagation(); onBulkMarkPaid(fn.shifts.filter(s => s.status==="Unpaid")); }}
-                                      className="hit text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-500 text-white active:scale-95">Mark paid</button>
+                                      className="hit text-caption font-bold px-2.5 py-1 rounded-full bg-emerald-500 text-white active:scale-95">Mark paid</button>
                                 }
                               </div>
-                              <p className="text-[11px] text-muted-foreground mt-0.5">{fn.shifts.length} shift{fn.shifts.length!==1?"s":""} · Pay {fmt(fn.payDate)}</p>
+                              <p className="text-caption text-muted-foreground mt-0.5">{fn.shifts.length} shift{fn.shifts.length!==1?"s":""} · Pay {fmt(fn.payDate)}</p>
                             </div>
                             <div className="text-right shrink-0 flex items-center gap-3">
                               <div>
                                 <p className="text-sm font-bold tabular-nums">{formatCurrency(fn.gross)}</p>
-                                <p className="text-[11px] text-muted-foreground">net {formatCurrency(fn.net)}</p>
+                                <p className="text-caption text-muted-foreground">net {formatCurrency(fn.net)}</p>
                               </div>
                               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                             </div>
@@ -449,16 +449,16 @@ function DashboardTab({
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
                                       <p className="text-xs font-bold">{formatShortDate(shift.shiftDate)}</p>
-                                      <p className="text-[11px] text-muted-foreground">{shift.shiftDay}</p>
+                                      <p className="text-caption text-muted-foreground">{shift.shiftDay}</p>
                                     </div>
-                                    <p className="text-[11px] text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{note ? ` · ${note}` : ""}</p>
+                                    <p className="text-caption text-muted-foreground">{shift.hoursWorked}h · tax {formatCurrency(tax)}{note ? ` · ${note}` : ""}</p>
                                   </div>
                                   <div className="text-right shrink-0">
                                     <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
-                                    <p className="text-[11px] text-muted-foreground">net {formatCurrency(Math.max(0, effectiveAmount(shift)-tax))}</p>
+                                    <p className="text-caption text-muted-foreground">net {formatCurrency(Math.max(0, effectiveAmount(shift)-tax))}</p>
                                   </div>
                                   <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                                    className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
+                                    className={`hit inline-flex items-center gap-1 text-caption font-bold px-2.5 py-1 rounded-full shrink-0 ${isPaid ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
                                     {isPaid ? <Check className="w-3 h-3" aria-hidden="true" /> : <Clock className="w-3 h-3" aria-hidden="true" />}{shift.status}
                                   </button>
                                 </div>

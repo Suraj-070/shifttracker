@@ -90,7 +90,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         <div className="text-center">
           <h2 className="text-base font-black">{MONTHS[month]} {year}</h2>
           {monthStats.count > 0 && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-caption text-muted-foreground mt-0.5">
               {monthStats.count} shifts · {formatCurrency(monthStats.total)}
               {monthStats.unpaid > 0
                 ? <span className="text-rose-600 dark:text-rose-400"> · {monthStats.unpaid} unpaid</span>
@@ -113,7 +113,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
           { key: "covered", label: "Covered" },
         ] as { key: ShiftFilter; label: string }[]).map(f => (
           <button key={f.key} onClick={() => { setFilter(f.key); setSelectedDay(null); }}
-            className={`flex-1 py-2 rounded-xl text-[12px] font-bold transition-all active:scale-95 ${
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
               filter === f.key
                 ? f.key === "covered"
                   ? "bg-amber-500 text-white shadow-sm"
@@ -132,7 +132,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         {/* Day headers */}
         <div className="grid grid-cols-7 border-b border-border/30">
           {DAYS.map((d,i) => (
-            <div key={i} className="text-center text-[11px] font-bold text-muted-foreground py-2.5 uppercase tracking-wide">{d.slice(0,1)}</div>
+            <div key={i} className="text-center text-label text-muted-foreground py-2.5">{d.slice(0,1)}</div>
           ))}
         </div>
 
@@ -163,7 +163,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                 `}
               >
                 {/* Today ring */}
-                <span className={`text-[13px] font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 transition-all ${
+                <span className={`text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mb-1 transition-all ${
                   isSelected ? "bg-primary text-primary-foreground"
                   : isToday_  ? "bg-primary/15 text-primary ring-1.5 ring-primary/40"
                   : "text-foreground"
@@ -178,7 +178,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                       <span key={idx} className={`w-[5px] h-[5px] rounded-full ${getDotColor(s)} ${isSelected ? "opacity-60" : ""}`} />
                     ))}
                     {dayShifts.length > 3 && (
-                      <span className="text-[7px] font-black text-muted-foreground">+{dayShifts.length-3}</span>
+                      <span className="text-caption font-black text-muted-foreground">+{dayShifts.length-3}</span>
                     )}
                   </div>
                 )}
@@ -198,7 +198,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1.5">
             <span className={`w-2.5 h-2.5 rounded-full ${l.color}`} />
-            <span className="text-[11px] text-muted-foreground font-medium">{l.label}</span>
+            <span className="text-caption text-muted-foreground font-medium">{l.label}</span>
           </div>
         ))}
       </div>
@@ -211,7 +211,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
               <p className="text-sm font-bold">
                 {new Date(selectedDay+"T00:00:00").toLocaleDateString("en-AU",{weekday:"long",day:"numeric",month:"long"})}
               </p>
-              <p className="text-[11px] text-muted-foreground">{selectedShifts.length} shift{selectedShifts.length!==1?"s":""}</p>
+              <p className="text-caption text-muted-foreground">{selectedShifts.length} shift{selectedShifts.length!==1?"s":""}</p>
             </div>
             <div className="flex items-center gap-2">
               {onAddShift && (
@@ -253,15 +253,15 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
                         <p className="text-sm font-semibold truncate">{name}</p>
-                        {isCovered && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">by {shift.coveredBy}</span>}
-                        {isStation && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 shrink-0">STN</span>}
+                        {isCovered && <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">by {shift.coveredBy}</span>}
+                        {isStation && <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 shrink-0">STN</span>}
                         <FineBadge shift={shift} />
                       </div>
-                      <p className="text-[11px] text-muted-foreground">{shift.locationName}</p>
+                      <p className="text-caption text-muted-foreground">{shift.locationName}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</p>
-                      <p className={`text-[11px] font-bold ${isPaid?"text-emerald-700 dark:text-emerald-400":isCovered?"text-amber-600 dark:text-amber-400":"text-rose-600 dark:text-rose-400"}`}>
+                      <p className={`text-caption font-bold ${isPaid?"text-emerald-700 dark:text-emerald-400":isCovered?"text-amber-600 dark:text-amber-400":"text-rose-600 dark:text-rose-400"}`}>
                         {isPaid?"✓ Paid":isCovered?"Owed":"Unpaid"}
                       </p>
                     </div>

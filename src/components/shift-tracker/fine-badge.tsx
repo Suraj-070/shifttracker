@@ -9,7 +9,7 @@ export function FineBadge({ shift }: { shift: Pick<Shift, "locationName" | "note
   if (fine.amount <= 0) return null;
   return (
     <span
-      className={`inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+      className={`inline-flex items-center gap-1 text-caption font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
         fine.included
           ? "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
           : "border border-rose-300 text-rose-700 dark:border-rose-800 dark:text-rose-300"

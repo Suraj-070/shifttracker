@@ -98,11 +98,11 @@ export function MonthPaySummary({ shifts, year, month }: MonthPaySummaryProps) {
               <TrendingUp className="w-4 h-4" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-white/85">{label}</p>
-              <p className="text-[11px] text-white/75">{range}</p>
+              <p className="text-label text-white/85">{label}</p>
+              <p className="text-caption text-white/75">{range}</p>
             </div>
           </div>
-          <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/15">
+          <span className="text-caption font-bold px-2.5 py-1 rounded-full bg-white/15">
             {count} shift{count !== 1 ? "s" : ""}
           </span>
         </div>
@@ -134,26 +134,26 @@ export function MonthPaySummary({ shifts, year, month }: MonthPaySummaryProps) {
         {/* Hall + Station tiles */}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-2xl bg-white/12 backdrop-blur-sm border border-white/15 p-3">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-white/85">
+            <div className="flex items-center gap-1.5 text-label text-white/85">
               <span className="w-2 h-2 rounded-full bg-emerald-300" aria-hidden="true" />
               <Briefcase className="w-3 h-3" aria-hidden="true" />
               Hall
             </div>
             <p className="text-xl font-black tabular-nums mt-1.5 leading-none">{formatCurrency(s.hall)}</p>
-            <p className="text-[11px] text-white/80 mt-1.5">
+            <p className="text-caption text-white/80 mt-1.5">
               {s.hallCount} shift{s.hallCount !== 1 ? "s" : ""}
               {s.fines > 0 && <> · <span className="font-semibold text-rose-200">−{formatCurrency(s.fines)} fines</span></>}
             </p>
           </div>
 
           <div className="rounded-2xl bg-white/12 backdrop-blur-sm border border-white/15 p-3">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-white/85">
+            <div className="flex items-center gap-1.5 text-label text-white/85">
               <span className="w-2 h-2 rounded-full bg-sky-300" aria-hidden="true" />
               <MapPin className="w-3 h-3" aria-hidden="true" />
               Station
             </div>
             <p className="text-xl font-black tabular-nums mt-1.5 leading-none">{formatCurrency(s.stationNet)}</p>
-            <p className="text-[11px] text-white/80 mt-1.5">
+            <p className="text-caption text-white/80 mt-1.5">
               {s.stationCount} shift{s.stationCount !== 1 ? "s" : ""}
               {s.stationTax > 0 && <> · net of {formatCurrency(s.stationTax)} tax</>}
             </p>
@@ -163,7 +163,7 @@ export function MonthPaySummary({ shifts, year, month }: MonthPaySummaryProps) {
         {/* Received vs pending */}
         {total > 0 && (
           <div className="rounded-2xl bg-black/15 p-3">
-            <div className="flex items-center justify-between text-[11px] font-semibold">
+            <div className="flex items-center justify-between text-caption font-semibold">
               <span className="text-white/90">Received <span className="tabular-nums font-black">{formatCurrency(received)}</span></span>
               <span className="text-white/80">Pending <span className="tabular-nums font-black text-amber-200">{formatCurrency(pending)}</span></span>
             </div>
@@ -174,7 +174,7 @@ export function MonthPaySummary({ shifts, year, month }: MonthPaySummaryProps) {
         )}
 
         {s.excluded > 0 && (
-          <p className="text-[11px] text-white/75">
+          <p className="text-caption text-white/75">
             {s.excluded} covered shift{s.excluded !== 1 ? "s" : ""} not included — see the Owe tab.
           </p>
         )}

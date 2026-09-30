@@ -118,7 +118,7 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
           }}
         />
         {tab.badge && tab.badge > 0 ? (
-          <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[11px] font-black flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-2.5 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-caption font-black flex items-center justify-center">
             {tab.badge > 99 ? "99+" : tab.badge}
           </span>
         ) : null}
@@ -126,7 +126,7 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
 
       {/* Label */}
       <span
-        className="text-[11px] z-10 tracking-tight"
+        className="text-caption z-10 tracking-tight"
         style={{
           color: isActive ? "var(--primary)" : "var(--muted-foreground)",
           fontWeight: isActive ? 700 : 500,

@@ -114,11 +114,11 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
 
       {/* ── Hero summary ── */}
       <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.72 0.14 75), oklch(0.58 0.12 65))" }}>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mb-3">Total to Pay Out</p>
+        <p className="text-label text-amber-600 dark:text-amber-400 mb-3">Total to Pay Out</p>
         <div className="flex items-end justify-between mb-4">
           <div>
             <p className="text-5xl font-black tabular-nums text-white tracking-tight">{formatCurrency(totalOwe)}</p>
-            <p className="text-white/80 text-[12px] mt-1.5">still owed</p>
+            <p className="text-white/80 text-xs mt-1.5">still owed</p>
           </div>
           {totalPaid > 0 && (
             <div className="text-right">
@@ -144,7 +144,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-semibold text-white">{p.name}</p>
-                  <p className="text-[11px] text-white/80">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
+                  <p className="text-caption text-white/80">{p.count} shift{p.count !== 1 ? "s" : ""}</p>
                 </div>
               </div>
               <div className="text-right">
@@ -161,7 +161,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         <div className="flex gap-1.5 flex-1">
           {(["all", "unpaid", "paid"] as OweFilter[]).map(f => (
             <button key={f} onClick={() => setStatusFilter(f)}
-              className={`flex-1 h-8 rounded-xl text-[11px] font-bold border transition-all active:scale-95 ${
+              className={`flex-1 h-8 rounded-xl text-caption font-bold border transition-all active:scale-95 ${
                 statusFilter === f
                   ? f === "unpaid" ? "bg-amber-500 text-white border-amber-500"
                     : f === "paid" ? "bg-emerald-500 text-white border-emerald-500"
@@ -174,7 +174,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         </div>
         {filtered.length > 0 && (
           <button onClick={() => { setSelecting(v => !v); setSelected(new Set()); }}
-            className={`px-3 h-8 rounded-xl text-[11px] font-bold transition-all active:scale-90 shrink-0 ${selecting ? "text-primary bg-primary/10" : "text-muted-foreground"}`}>
+            className={`px-3 h-8 rounded-xl text-caption font-bold transition-all active:scale-90 shrink-0 ${selecting ? "text-primary bg-primary/10" : "text-muted-foreground"}`}>
             {selecting ? "Done" : "Select"}
           </button>
         )}
@@ -213,13 +213,13 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
               {/* Month header */}
               <div className="flex items-center justify-between px-1 mb-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{group.label}</span>
-                  <span className="text-[11px] text-muted-foreground">{group.shifts.length} day{group.shifts.length !== 1 ? "s" : ""}</span>
+                  <span className="text-label text-muted-foreground">{group.label}</span>
+                  <span className="text-caption text-muted-foreground">{group.shifts.length} day{group.shifts.length !== 1 ? "s" : ""}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-black tabular-nums text-amber-600 dark:text-amber-400">{formatCurrency(group.total)}</span>
                   {group.unpaid > 0 && (
-                    <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                    <span className="text-caption font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
                       {group.unpaid} unpaid
                     </span>
                   )}
@@ -240,7 +240,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="text-sm font-bold">{formatShortDate(shift.shiftDate)}</span>
-                          <span className="text-[11px] text-muted-foreground">{shift.shiftDay}</span>
+                          <span className="text-caption text-muted-foreground">{shift.shiftDay}</span>
                         </div>
                         <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold">by {shift.coveredBy}</p>
                       </div>
@@ -249,7 +249,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className="text-sm font-black tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                         <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                          className={`hit inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
+                          className={`hit inline-flex items-center gap-1 text-caption font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
                             isPaid
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                               : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"

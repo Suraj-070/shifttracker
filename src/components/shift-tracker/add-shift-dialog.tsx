@@ -15,7 +15,7 @@ type JobKind = "Hall" | "Station";
 // ── Shared field components ──────────────────────────────────────────────────
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{children}</label>;
+  return <label className="block text-label text-muted-foreground mb-2">{children}</label>;
 }
 
 function PillGroup({ options, value, onChange, color = "emerald" }: {
@@ -153,7 +153,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
           <input value={coveredBy} onChange={e => setCoveredBy(e.target.value)}
             placeholder="Or type a name…"
             className="w-full h-11 px-3.5 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500" />
-          <p className="text-[11px] text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
+          <p className="text-caption text-muted-foreground">Tracked in Owe tab — separate from your earnings.</p>
         </FieldBox>
       )}
 
@@ -294,7 +294,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
                 rateKey === k ? "bg-blue-500 text-white border-blue-500" : "bg-muted/40 border-transparent text-foreground"
               }`}>
               <span className="text-xs font-bold">{k}</span>
-              <span className={`text-[11px] mt-0.5 ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>
+              <span className={`text-caption mt-0.5 ${rateKey === k ? "text-blue-100" : "text-muted-foreground"}`}>
                 ${dynamicRates[k].toFixed(2)}/hr
               </span>
             </button>
@@ -318,7 +318,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
 
       {/* Net take-home (flat summary — sheets don't get hero cards) */}
       <div className="rounded-2xl p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
-        <p className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase tracking-widest mb-1">Net Take-home</p>
+        <p className="text-label text-blue-700 dark:text-blue-300 mb-1">Net Take-home</p>
         <p className="text-3xl font-black text-blue-900 dark:text-blue-100 tabular-nums">{formatCurrency(net)}</p>
         <p className="text-blue-800/80 dark:text-blue-300 text-xs mt-1.5">{formatCurrency(grossNum)} gross · {formatCurrency(taxNum)} tax</p>
       </div>
@@ -330,14 +330,14 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
           <input type="number" inputMode="decimal" step="0.01" min="0" value={displayGross}
             onChange={e => { setGrossOverride(e.target.value); setTaxOverride(null); }}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
-          <p className="text-[11px] text-muted-foreground">Auto-calc · editable</p>
+          <p className="text-caption text-muted-foreground">Auto-calc · editable</p>
         </FieldBox>
         <FieldBox>
           <FieldLabel>Tax ($)</FieldLabel>
           <input type="number" inputMode="decimal" step="0.01" min="0" value={displayTax}
             onChange={e => setTaxOverride(e.target.value)}
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
-          <p className="text-[11px] text-muted-foreground">{((payRates.taxRate || STATION_TAX_RATE)*100).toFixed(1)}% · editable</p>
+          <p className="text-caption text-muted-foreground">{((payRates.taxRate || STATION_TAX_RATE)*100).toFixed(1)}% · editable</p>
         </FieldBox>
       </div>
 

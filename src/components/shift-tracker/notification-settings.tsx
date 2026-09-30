@@ -81,7 +81,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold truncate">{r.station || `Station ${idx+1}`}</p>
             {r.station && (
-              <p className="text-[11px] text-muted-foreground">{to12(r.clockin)} → {to12(r.clockout)}</p>
+              <p className="text-caption text-muted-foreground">{to12(r.clockin)} → {to12(r.clockout)}</p>
             )}
           </div>
           <Switch checked={r.enabled} onCheckedChange={v => onChange({ enabled: v })} />
@@ -118,12 +118,12 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
                 {/* Times grid */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock in</p>
+                    <p className="text-label text-muted-foreground mb-1">Clock in</p>
                     <Input type="time" value={r.clockin} onChange={e => onChange({ clockin: e.target.value })}
                       className="rounded-xl h-11 text-sm text-center" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Clock out</p>
+                    <p className="text-label text-muted-foreground mb-1">Clock out</p>
                     <Input type="time" value={r.clockout} onChange={e => onChange({ clockout: e.target.value })}
                       className="rounded-xl h-11 text-sm text-center" />
                   </div>
@@ -132,7 +132,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
                 {/* Offsets */}
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Remind before</p>
+                    <p className="text-label text-muted-foreground mb-1">Remind before</p>
                     <div className="flex items-center gap-1.5">
                       <Input type="number" min={1} max={60} value={r.offset}
                         onChange={e => onChange({ offset: Number(e.target.value) })}
@@ -141,7 +141,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
                     </div>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Check after</p>
+                    <p className="text-label text-muted-foreground mb-1">Check after</p>
                     <div className="flex items-center gap-1.5">
                       <Input type="number" min={1} max={60} value={r.clockout_after_offset}
                         onChange={e => onChange({ clockout_after_offset: Number(e.target.value) })}
@@ -284,7 +284,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
             <div className="flex-1">
               <p className="text-sm font-bold">Hall Shift Reminder</p>
               {settings.hall_reminder_enabled && settings.hall_reminder_days.length > 0 && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-caption text-muted-foreground">
                   {settings.hall_reminder_days.map(d => DAYS[d]).join(" · ")} at {to12(settings.hall_reminder_time)}
                 </p>
               )}
@@ -336,7 +336,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
               <MapPin className="w-4 h-4 text-blue-600" />
             </div>
             <p className="text-sm font-bold">Station Reminders</p>
-            <span className="ml-auto text-[11px] font-semibold bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
+            <span className="ml-auto text-caption font-semibold bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
               {settings.station_reminders.length}
             </span>
           </div>

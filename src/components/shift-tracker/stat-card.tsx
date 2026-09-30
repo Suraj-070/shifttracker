@@ -35,7 +35,7 @@ export function StatCard({ title, value, icon: Icon, accent }: StatCardProps) {
           <Icon className={cn('size-4', styles.iconText)} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider truncate">{title}</p>
+          <p className="text-label text-muted-foreground truncate">{title}</p>
           <p className="text-base font-bold tracking-tight truncate">{value}</p>
         </div>
       </div>

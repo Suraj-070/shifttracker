@@ -95,9 +95,9 @@ export function AppToastProvider({ children }: { children: React.ReactNode }) {
 
               {/* Text */}
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-zinc-100 leading-tight">{toast.title}</p>
+                <p className="text-sm font-semibold text-zinc-100 leading-tight">{toast.title}</p>
                 {toast.description && (
-                  <p className="text-[11px] text-zinc-400 truncate mt-0.5">{toast.description}</p>
+                  <p className="text-caption text-zinc-400 truncate mt-0.5">{toast.description}</p>
                 )}
               </div>
 

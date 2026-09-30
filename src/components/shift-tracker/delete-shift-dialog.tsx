@@ -87,7 +87,7 @@ export function DeleteShiftDialog({
               <p className="text-xs font-semibold text-zinc-100">
                 {station ? "🚉" : "🎬"} Shift deleted
               </p>
-              <p className="text-[11px] text-zinc-400 truncate">{label}</p>
+              <p className="text-caption text-zinc-400 truncate">{label}</p>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-0.5">
               <motion.div
