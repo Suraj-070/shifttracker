@@ -7,6 +7,7 @@ import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import { rowButtonProps } from "@/lib/a11y";
 import { FineBadge } from "./fine-badge";
+import { MonthPaySummary } from "./month-pay-summary";
 
 interface CalendarTabProps {
   shifts: Shift[];
@@ -273,6 +274,9 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
           )}
         </div>
       )}
+
+      {/* Month-to-date pay (Hall + Station) */}
+      <MonthPaySummary shifts={shifts} year={year} month={month} />
 
       <div className="h-4" />
     </div>
