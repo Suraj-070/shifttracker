@@ -1,5 +1,6 @@
 "use client";
 
+import { SheetShell } from "./sheet-shell";
 import React from "react";
 import {
   X, Pencil, Trash2, CheckCircle2, XCircle,
@@ -44,48 +45,15 @@ export function ShiftDetailSheet({
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 transition-all"
-        style={{
-          background: "rgba(0,0,0,0.55)",
-          backdropFilter: open ? "blur(4px)" : "none",
-          WebkitBackdropFilter: open ? "blur(4px)" : "none",
-          opacity: open ? 1 : 0,
-          pointerEvents: open ? "auto" : "none",
-          transition: "opacity 0.22s ease",
-        }}
-        onClick={onClose}
-      />
-
-      {/* Sheet */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-2xl"
-        style={{
-          transform: open ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)",
-          paddingBottom: "env(safe-area-inset-bottom, 20px)",
-          maxHeight: "88dvh",
-          overflowY: "auto",
-          overscrollBehavior: "contain",
-        }}
-      >
-        {/* Color stripe */}
-        <div className={`h-1 w-full rounded-t-3xl bg-gradient-to-r ${stripeClass[accentColor]}`} />
-
-        {/* Handle */}
-        <div className="flex justify-center pt-2.5 pb-1">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
-        </div>
-
+    <SheetShell open={open} onClose={onClose} label="Shift detail" maxHeight="88dvh" backdropOpacity={0.55}
+      topSlot={<div className={`h-1 w-full rounded-t-3xl bg-gradient-to-r ${stripeClass[accentColor]}`} />}>
         {/* Header row */}
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Shift Detail</p>
             <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
           </div>
-          <button onClick={onClose}
+          <button onClick={onClose} aria-label="Close"
             className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -216,7 +184,6 @@ export function ShiftDetailSheet({
             Close
           </button>
         </div>
-      </div>
-    </>
+    </SheetShell>
   );
 }

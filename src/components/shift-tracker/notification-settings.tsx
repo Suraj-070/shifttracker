@@ -85,7 +85,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
             )}
           </div>
           <Switch checked={r.enabled} onCheckedChange={v => onChange({ enabled: v })} />
-          <button onClick={() => setOpen(v => !v)}
+          <button onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label={open ? "Collapse reminder" : "Expand reminder"}
             className="hit w-8 h-8 flex items-center justify-center text-muted-foreground">
             {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>

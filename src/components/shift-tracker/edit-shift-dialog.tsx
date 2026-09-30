@@ -2,6 +2,7 @@
 
 import React, { useMemo, useRef, useState } from "react";
 import { Loader2, Save, User, MapPin, StickyNote, Check, UserX, X } from "lucide-react";
+import { SheetShell } from "./sheet-shell";
 import { ComboInput } from "./combo-input";
 import {
   DEFAULT_LOCATIONS,
@@ -409,42 +410,27 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 transition-all"
-        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: open ? "blur(4px)" : "none", WebkitBackdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.22s ease" }}
-        onClick={() => onOpenChange(false)} />
-
-      {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-2xl"
-        style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)", maxHeight: "94dvh", overflowY: "auto", overscrollBehavior: "contain", paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
-
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
-        </div>
-
-        <div className="px-4 pb-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-black flex items-center gap-2">
-              {station && <MapPin className="w-5 h-5 text-blue-500" />}
-              Edit {station ? "Station" : "Hall"} Shift
-            </h2>
-            <button onClick={() => onOpenChange(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-
-          {shift && (
-            station ? (
-              <StationEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
-            ) : (
-              <HallEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
-            )
-          )}
-        </div>
+    <SheetShell open={open} onClose={() => onOpenChange(false)} label="Edit shift">
+    <div className="px-4 pb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl font-black flex items-center gap-2">
+          {station && <MapPin className="w-5 h-5 text-blue-500" />}
+          Edit {station ? "Station" : "Hall"} Shift
+        </h2>
+        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
       </div>
-    </>
+
+      {shift && (
+        station ? (
+          <StationEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
+        ) : (
+          <HallEditForm shift={shift} shifts={shifts} isSubmitting={isSubmitting} onSave={handleSave} onCancel={() => onOpenChange(false)} />
+        )
+      )}
+    </div>
+    </SheetShell>
   );
 }

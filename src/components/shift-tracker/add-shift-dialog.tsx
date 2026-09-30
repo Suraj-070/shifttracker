@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown } from "lucide-react";
+import { SheetShell } from "./sheet-shell";
 import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions, formatCurrency } from "@/lib/utils";
 import { STATION_LOCATION, buildStationNotes, isStationShift } from "@/types/database.types";
@@ -382,51 +383,36 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
   };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-40 transition-all"
-        style={{ background: "rgba(0,0,0,0.5)", backdropFilter: open ? "blur(4px)" : "none", WebkitBackdropFilter: open ? "blur(4px)" : "none", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none", transition: "opacity 0.22s ease" }}
-        onClick={() => onOpenChange(false)} />
-
-      {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-3xl shadow-2xl"
-        style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.32s cubic-bezier(0.32,0.72,0,1)", maxHeight: "94dvh", overflowY: "auto", overscrollBehavior: "contain", paddingBottom: "env(safe-area-inset-bottom, 20px)" }}>
-
-        {/* Handle */}
-        <div className="flex justify-center pt-3 pb-1 sticky top-0 bg-background/95 backdrop-blur-sm z-10">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/25" />
-        </div>
-
-        <div className="px-4 pb-4">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-xl font-black">Add Shift</h2>
-            <button onClick={() => onOpenChange(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          </div>
-
-          {/* Hall / Station toggle */}
-          <div className="flex gap-1 p-1 bg-muted/80 rounded-2xl mb-5">
-            {(["Hall", "Station"] as JobKind[]).map(k => (
-              <button key={k} type="button" onClick={() => handleJobKindChange(k)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
-                  jobKind === k
-                    ? k === "Hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "bg-white dark:bg-card text-blue-700 shadow-sm"
-                    : "text-muted-foreground"
-                }`}>
-                {k === "Hall" ? <span className="w-2 h-2 rounded-full bg-emerald-500" /> : <MapPin className="w-3.5 h-3.5" />}
-                {k}
-              </button>
-            ))}
-          </div>
-
-          {jobKind === "Hall"
-            ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
-            : <StationForm shifts={shifts} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
-          }
-        </div>
+    <SheetShell open={open} onClose={() => onOpenChange(false)} label="Add shift">
+    <div className="px-4 pb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-xl font-black">Add Shift</h2>
+        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
       </div>
-    </>
+
+      {/* Hall / Station toggle */}
+      <div className="flex gap-1 p-1 bg-muted/80 rounded-2xl mb-5">
+        {(["Hall", "Station"] as JobKind[]).map(k => (
+          <button key={k} type="button" onClick={() => handleJobKindChange(k)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+              jobKind === k
+                ? k === "Hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "bg-white dark:bg-card text-blue-700 shadow-sm"
+                : "text-muted-foreground"
+            }`}>
+            {k === "Hall" ? <span className="w-2 h-2 rounded-full bg-emerald-500" /> : <MapPin className="w-3.5 h-3.5" />}
+            {k}
+          </button>
+        ))}
+      </div>
+
+      {jobKind === "Hall"
+        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+        : <StationForm shifts={shifts} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+      }
+    </div>
+    </SheetShell>
   );
 }

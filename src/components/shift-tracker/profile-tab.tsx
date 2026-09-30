@@ -1,7 +1,7 @@
 "use client";
 
+import { SheetShell } from "./sheet-shell";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail, Calendar, DollarSign, Download,
   LogOut, RefreshCw, Pencil, Save, X,
@@ -108,40 +108,22 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
     <div className="space-y-5 pb-8">
 
       {/* ── Reminders sheet ── */}
-      <div className={`fixed inset-0 z-50 ${showReminders ? "" : "pointer-events-none"}`}>
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-          style={{ opacity: showReminders ? 1 : 0 }} onClick={() => setShowReminders(false)} />
-        <div className="absolute bottom-0 left-0 right-0 bg-background rounded-t-3xl shadow-2xl overflow-y-auto max-h-[90dvh]"
-          style={{ transform: showReminders ? "translateY(0)" : "translateY(100%)", transition: "transform 0.3s cubic-bezier(0.32,0.72,0,1)", paddingBottom: "env(safe-area-inset-bottom)" }}>
-          <div className="flex justify-center pt-3"><div className="w-10 h-1 rounded-full bg-muted-foreground/25" /></div>
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
-            <h2 className="text-lg font-black">Reminders</h2>
-            <button onClick={() => setShowReminders(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
-          </div>
-          <div className="p-4"><RemindersTab savedStationNames={[]} /></div>
+      <SheetShell open={showReminders} onClose={() => setShowReminders(false)} label="Reminders" maxHeight="90dvh">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
+          <h2 className="text-lg font-black">Reminders</h2>
+          <button onClick={() => setShowReminders(false)} aria-label="Close reminders" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
         </div>
-      </div>
+        <div className="p-4"><RemindersTab savedStationNames={[]} /></div>
+      </SheetShell>
 
       {/* ── Settings sheet ── */}
-      <AnimatePresence>
-        {showSettings && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setShowSettings(false)} />
-            <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 400, damping: 36 }}
-              className="fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-3xl shadow-2xl max-h-[90dvh] overflow-y-auto"
-              style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-              <div className="flex justify-center pt-3"><div className="w-10 h-1 rounded-full bg-muted-foreground/25" /></div>
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
-                <h2 className="text-lg font-black">Settings</h2>
-                <button onClick={() => setShowSettings(false)} className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
-              </div>
-              <div className="px-4 pb-4"><SettingsTab /></div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <SheetShell open={showSettings} onClose={() => setShowSettings(false)} label="Settings" maxHeight="90dvh">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
+          <h2 className="text-lg font-black">Settings</h2>
+          <button onClick={() => setShowSettings(false)} aria-label="Close settings" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="px-4 pb-4"><SettingsTab /></div>
+      </SheetShell>
 
       {/* ── Profile hero ── */}
       <div className="relative rounded-3xl overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.55 0.15 162), oklch(0.42 0.13 162))" }}>
