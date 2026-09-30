@@ -6,6 +6,7 @@ import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift, effectiveAmount } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import { rowButtonProps } from "@/lib/a11y";
+import { FineBadge } from "./fine-badge";
 
 interface CalendarTabProps {
   shifts: Shift[];
@@ -255,6 +256,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
                         <p className="text-sm font-semibold truncate">{name}</p>
                         {isCovered && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shrink-0">by {shift.coveredBy}</span>}
                         {isStation && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 shrink-0">STN</span>}
+                        <FineBadge shift={shift} />
                       </div>
                       <p className="text-[11px] text-muted-foreground">{shift.locationName}</p>
                     </div>

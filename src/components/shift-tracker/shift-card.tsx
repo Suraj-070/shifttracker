@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { isStationShift, parseStationTax, effectiveAmount, shiftUserNote, shiftFine } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
 import type { CardDensity } from "@/stores/settings-store";
+import { FineBadge } from "./fine-badge";
 
 interface ShiftCardProps {
   shift: Shift;
@@ -229,6 +230,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
             {station && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center gap-0.5"><MapPin className="w-2 h-2" />STN</span>}
             {covered && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-400"><ArrowLeftRight className="w-3 h-3" aria-hidden="true" />by {shift.coveredBy}</span>}
             {isSelf && <span className="inline-flex items-center gap-1 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300"><User className="w-3 h-3" aria-hidden="true" />You</span>}
+            <FineBadge shift={shift} />
             {hasNote && <StickyNote className="w-3 h-3 text-amber-400 shrink-0" aria-label="Has note" />}
             {onLongPress && (
               <button

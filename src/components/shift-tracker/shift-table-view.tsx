@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import type { Shift } from "@/types/database.types";
 import { effectiveAmount, shiftUserNote } from "@/types/database.types";
+import { FineBadge } from "./fine-badge";
 
 type SortCol = "date" | "day" | "location" | "amount" | "status";
 type SortDir = "asc" | "desc";
@@ -102,6 +103,7 @@ export function ShiftTableView({ shifts, onToggleStatus, onDelete, onEdit }: Shi
                     <td className="py-3 px-4 truncate">
                       <div className="flex items-center gap-1.5">
                         <span className="truncate">{shift.locationName}</span>
+                        <FineBadge shift={shift} />
                         {shiftUserNote(shift).trim() && (
                           <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
                         )}

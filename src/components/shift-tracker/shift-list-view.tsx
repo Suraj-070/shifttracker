@@ -5,6 +5,7 @@ import { User, MapPin, StickyNote, ChevronRight, Check, Clock } from "lucide-rea
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift, effectiveAmount, shiftUserNote } from "@/types/database.types";
 import type { Shift, MonthGroup } from "@/types/database.types";
+import { FineBadge } from "./fine-badge";
 
 interface ShiftListViewProps {
   monthGroups: MonthGroup[];
@@ -46,6 +47,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                       {station && (
                         <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400">STN</span>
                       )}
+                      <FineBadge shift={shift} />
                       {shiftUserNote(shift).trim() && <StickyNote className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
                     </div>
                     <p className="text-xs text-muted-foreground truncate">{shift.coveringFor}</p>

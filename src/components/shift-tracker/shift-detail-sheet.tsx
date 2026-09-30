@@ -6,6 +6,7 @@ import { X, Pencil, Trash2, CheckCircle2, XCircle, MapPin, Calendar, Clock, Stic
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { isStationShift, parseStationTax, effectiveAmount, shiftUserNote, shiftFine } from "@/types/database.types";
 import type { Shift } from "@/types/database.types";
+import { FineBadge } from "./fine-badge";
 
 interface ShiftDetailSheetProps {
   userName?: string;
@@ -48,7 +49,10 @@ export function ShiftDetailSheet({
         {/* Header row */}
         <div className="flex items-center justify-between px-5 pt-2 pb-4">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-0.5">Shift Detail</p>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Shift Detail</p>
+              <FineBadge shift={shift} />
+            </div>
             <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
           </div>
           <button onClick={onClose} aria-label="Close"
