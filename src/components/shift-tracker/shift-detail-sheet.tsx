@@ -55,7 +55,7 @@ export function ShiftDetailSheet({
             <p className="text-xl font-black tracking-tight">{formatShortDate(shift.shiftDate)} · {shift.shiftDay}</p>
           </div>
           <button onClick={onClose} aria-label="Close"
-            className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
@@ -81,7 +81,7 @@ export function ShiftDetailSheet({
             {/* Status toggle */}
             <button
               onClick={() => onToggleStatus(shift)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold active:scale-95 transition-transform ${
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold active:opacity-80 transition-opacity ${
                 isPaid
                   ? "bg-emerald-500 text-white"
                   : covered ? "bg-amber-500 text-white" : "bg-rose-500 text-white"
@@ -179,7 +179,7 @@ export function ShiftDetailSheet({
           </button>
           <button
             onClick={() => { onDelete(shift); onClose(); }}
-            className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-sm font-bold active:scale-95 transition-transform border border-rose-100 dark:border-rose-900"
+            className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-sm font-bold active:opacity-80 transition-opacity border border-rose-100 dark:border-rose-900"
           >
             <Trash2 className="w-4 h-4" />
           </button>

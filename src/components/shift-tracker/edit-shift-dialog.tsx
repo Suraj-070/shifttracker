@@ -121,7 +121,7 @@ function HallEditForm({
     <div className="space-y-4">
       {/* Covered by toggle */}
       <button type="button" onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
-        className={`flex items-center gap-2.5 w-full px-4 py-3 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95 ${
+        className={`flex items-center gap-2.5 w-full px-4 py-3 rounded-2xl border-2 text-sm font-semibold transition-all active:opacity-80 ${
           isCovered ? "bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/30 dark:border-amber-700" : "bg-muted/40 border-transparent text-muted-foreground"
         }`}>
         <UserX className="w-4 h-4 shrink-0" />
@@ -136,7 +136,7 @@ function HallEditForm({
               {coveredBySuggestions.map(name => (
                 <button key={name} type="button"
                   onClick={() => setCoveredBy(coveredBy === name ? "" : name)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:opacity-80 ${
                     coveredBy === name
                       ? "bg-amber-500 text-white border-amber-500"
                       : "bg-muted/60 border-transparent text-foreground"
@@ -428,7 +428,7 @@ export function EditShiftDialog({ open, onOpenChange, shift, shifts, onSave, isS
           {station && <MapPin className="w-5 h-5 text-blue-500" />}
           Edit {station ? "Station" : "Hall"} Shift
         </h2>
-        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>

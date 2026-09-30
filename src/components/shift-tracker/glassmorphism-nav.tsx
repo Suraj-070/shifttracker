@@ -98,9 +98,9 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
         style={{
           inset: "6px 8px",
           background: isActive ? "color-mix(in oklch, var(--primary) 12%, transparent)" : "transparent",
-          transform: isActive ? "scale(1)" : "scale(0.75)",
+          transform: "none",
           opacity: isActive ? 1 : 0,
-          transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+          transition: "all 0.25s cubic-bezier(0.2,0,0,1)",
         }}
       />
 
@@ -113,8 +113,7 @@ function TabBtn({ tab, isActive, onPress }: { tab: NavTab; isActive: boolean; on
             color: isActive ? "var(--primary)" : "var(--muted-foreground)",
             strokeWidth: isActive ? 2.4 : 1.7,
             opacity: isActive ? 1 : 0.75,
-            transform: isActive ? "translateY(-1px) scale(1.08)" : "scale(1)",
-            transition: "all 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+            transition: "color 0.2s ease, opacity 0.2s ease, stroke-width 0.2s ease",
           }}
         />
         {tab.badge && tab.badge > 0 ? (

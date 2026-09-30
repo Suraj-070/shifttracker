@@ -90,7 +90,7 @@ function BulkBar({
       maxHeight: visible ? "80px" : "0px",
       opacity: visible ? 1 : 0,
       transform: visible ? "translateY(0)" : "translateY(-8px)",
-      transition: "max-height 0.28s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.34,1.56,0.64,1)",
+      transition: "max-height 0.28s cubic-bezier(0.2,0,0,1), opacity 0.2s ease, transform 0.28s cubic-bezier(0.2,0,0,1)",
       pointerEvents: visible ? "auto" : "none",
     }}>
       <div className={`flex items-center gap-2 px-4 py-3 rounded-2xl ring-1 ${isEmerald ? "ring-emerald-200 bg-emerald-50 dark:bg-emerald-950/30" : "ring-blue-200 bg-blue-50 dark:bg-blue-950/30"}`}>
@@ -102,7 +102,7 @@ function BulkBar({
           {isLoading ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
           {isLoading ? "Saving…" : "Mark Paid"}
         </button>
-        <button onClick={onClear} className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground active:scale-90 transition-transform shrink-0">
+        <button onClick={onClear} className="w-7 h-7 rounded-xl bg-muted/60 flex items-center justify-center text-muted-foreground active:opacity-70 transition-opacity shrink-0">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -128,13 +128,13 @@ function SelectableCard({
           width: selecting ? 28 : 0,
           opacity: selecting ? 1 : 0,
           overflow: "hidden",
-          transition: "width 0.22s cubic-bezier(0.34,1.56,0.64,1), opacity 0.15s ease",
+          transition: "width 0.22s cubic-bezier(0.2,0,0,1), opacity 0.15s ease",
           flexShrink: 0,
         }}
       >
         <button
           onClick={onToggle}
-          className="w-7 h-7 flex items-center justify-center active:scale-90 transition-transform"
+          className="w-7 h-7 flex items-center justify-center active:opacity-70 transition-opacity"
         >
           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
             selected
@@ -315,7 +315,7 @@ function ShiftsTab({
               ].map(tab => (
                 <button key={tab.key}
                   onClick={() => { setShiftKind(tab.key as "hall"|"station"); setCalendarView(false); }}
-                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+                  className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all active:opacity-80 ${
                     shiftKind === tab.key && !calendarView
                       ? tab.key === "hall"
                         ? "bg-white dark:bg-card text-emerald-700 shadow-sm"
@@ -342,11 +342,11 @@ function ShiftsTab({
             <div className="flex items-center gap-1.5 shrink-0">
               <div className="flex gap-0.5 p-0.5 bg-muted/80 rounded-xl">
                 <button onClick={() => setViewMode("card")}
-                  className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+                  className={`p-1.5 rounded-lg transition-all active:opacity-70 ${effectiveViewMode === "card" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
                   <LayoutGrid className="w-3.5 h-3.5" />
                 </button>
                 <button onClick={() => setViewMode("list")}
-                  className={`p-1.5 rounded-lg transition-all active:scale-90 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
+                  className={`p-1.5 rounded-lg transition-all active:opacity-70 ${effectiveViewMode === "list" ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"}`}>
                   <List className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -356,7 +356,7 @@ function ShiftsTab({
                     if (shiftKind === "hall") { setHallSelecting(v => !v); setHallSelected(new Set()); }
                     else { setStationSelecting(v => !v); setStationSelected(new Set()); }
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all active:scale-90 ${
+                  className={`px-3 py-1.5 rounded-xl text-caption font-bold transition-all active:opacity-70 ${
                     isSelecting ? "text-primary bg-primary/10" : "text-muted-foreground"
                   }`}>
                   {isSelecting ? "Done" : "Select"}
@@ -385,7 +385,7 @@ function ShiftsTab({
         <div className="relative -mx-4">
           <div className="flex gap-2 overflow-x-auto px-4 pb-1" style={{ scrollbarWidth: "none" }}>
             <button onClick={() => setSelectedPerson("__all__")}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all active:scale-95 ${selectedPerson === "__all__" ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground"}`}>
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium border whitespace-nowrap shrink-0 transition-all active:opacity-80 ${selectedPerson === "__all__" ? "bg-foreground text-background border-foreground" : "bg-background border-border text-muted-foreground"}`}>
               <Users className="w-3.5 h-3.5" /> All
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedPerson === "__all__" ? "bg-white/20 text-background" : "bg-muted text-muted-foreground"}`}>{hallShifts.length}</span>
             </button>
@@ -446,7 +446,7 @@ function ShiftsTab({
         {/* Calendar view toggle — next to search */}
         <button
           onClick={() => setCalendarView(v => !v)}
-          className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-all active:scale-90 border ${
+          className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-all active:opacity-70 border ${
             calendarView
               ? "bg-primary text-primary-foreground border-primary shadow-sm"
               : "bg-background border-border/60 text-muted-foreground"

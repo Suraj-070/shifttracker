@@ -58,7 +58,7 @@ export function ShiftListView({ monthGroups, onToggleStatus, onDelete, onEdit }:
                     <span className="text-sm font-bold tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleStatus(shift); }}
-                      className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+                      className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:opacity-70 transition-opacity ${
                         isPaid
                           ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                           : "bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"

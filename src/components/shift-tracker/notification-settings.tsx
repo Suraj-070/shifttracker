@@ -154,7 +154,7 @@ function StationCard({ r, idx, savedNames, onChange, onDelete }: {
 
 
                 <button onClick={onDelete}
-                  className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                  className="w-full py-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold active:opacity-80 transition-all flex items-center justify-center gap-1.5">
                   <Trash2 className="w-3.5 h-3.5" /> Remove
                 </button>
               </div>
@@ -259,7 +259,7 @@ function Inner({ savedStationNames = [] }: { savedStationNames?: string[] }) {
             </p>
           </div>
           <button onClick={handleToggle} disabled={subLoading || permission === "unsupported"}
-            className={`px-4 py-2 rounded-xl text-xs font-bold active:scale-95 transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold active:opacity-80 transition-all ${
               isSubscribed ? "bg-muted border border-border" : "bg-emerald-500 text-white"
             }`}>
             {subLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : isSubscribed ? "Turn off" : "Enable"}

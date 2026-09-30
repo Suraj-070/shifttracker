@@ -84,7 +84,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
       {/* Month nav */}
       <div className="flex items-center justify-between">
         <button onClick={prevMonth}
-          className="w-9 h-9 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+          className="w-9 h-9 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="text-center">
@@ -100,7 +100,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
           )}
         </div>
         <button onClick={nextMonth}
-          className="w-9 h-9 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+          className="w-9 h-9 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
@@ -113,7 +113,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
           { key: "covered", label: "Covered" },
         ] as { key: ShiftFilter; label: string }[]).map(f => (
           <button key={f.key} onClick={() => { setFilter(f.key); setSelectedDay(null); }}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all active:opacity-80 ${
               filter === f.key
                 ? f.key === "covered"
                   ? "bg-amber-500 text-white shadow-sm"
@@ -156,7 +156,7 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
             return (
               <button key={day}
                 onClick={() => setSelectedDay(isSelected ? null : k)}
-                className={`relative flex flex-col items-center min-h-[54px] pt-2 pb-1.5 transition-all active:scale-95
+                className={`relative flex flex-col items-center min-h-[54px] pt-2 pb-1.5 transition-all active:opacity-80
                   ${!isLastCol ? "border-r border-border/20" : ""}
                   ${!isLastRow ? "border-b border-border/20" : ""}
                   ${isSelected ? "bg-primary/10" : hasShifts ? "active:bg-muted/60" : "active:bg-muted/30"}
@@ -216,12 +216,12 @@ function CalendarTab({ shifts, onShiftClick, onAddShift, userName = "Suraj" }: C
             <div className="flex items-center gap-2">
               {onAddShift && (
                 <button onClick={() => onAddShift?.(selectedDay)}
-                  className="h-8 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1 active:scale-90 transition-transform">
+                  className="h-8 px-3 rounded-xl bg-primary text-primary-foreground text-xs font-bold flex items-center gap-1 active:opacity-70 transition-opacity">
                   <Plus className="w-3.5 h-3.5" /> Add
                 </button>
               )}
               <button onClick={() => setSelectedDay(null)}
-                className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+                className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
                 <X className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </div>

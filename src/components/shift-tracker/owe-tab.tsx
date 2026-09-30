@@ -133,7 +133,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
           {personSummary.map(p => (
             <button key={p.name}
               onClick={() => setPersonFilter(personFilter === p.name ? "__all__" : p.name)}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:scale-95 ${
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:opacity-80 ${
                 personFilter === p.name
                   ? "bg-amber-200/60 dark:bg-amber-800/40 border-amber-300 dark:border-amber-700"
                   : "bg-white/60 dark:bg-white/5 border-amber-100 dark:border-amber-900"
@@ -161,7 +161,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         <div className="flex gap-1.5 flex-1">
           {(["all", "unpaid", "paid"] as OweFilter[]).map(f => (
             <button key={f} onClick={() => setStatusFilter(f)}
-              className={`flex-1 h-8 rounded-xl text-caption font-bold border transition-all active:scale-95 ${
+              className={`flex-1 h-8 rounded-xl text-caption font-bold border transition-all active:opacity-80 ${
                 statusFilter === f
                   ? f === "unpaid" ? "bg-amber-500 text-white border-amber-500"
                     : f === "paid" ? "bg-emerald-500 text-white border-emerald-500"
@@ -174,14 +174,14 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
         </div>
         {filtered.length > 0 && (
           <button onClick={() => { setSelecting(v => !v); setSelected(new Set()); }}
-            className={`px-3 h-8 rounded-xl text-caption font-bold transition-all active:scale-90 shrink-0 ${selecting ? "text-primary bg-primary/10" : "text-muted-foreground"}`}>
+            className={`px-3 h-8 rounded-xl text-caption font-bold transition-all active:opacity-70 shrink-0 ${selecting ? "text-primary bg-primary/10" : "text-muted-foreground"}`}>
             {selecting ? "Done" : "Select"}
           </button>
         )}
       </div>
 
       {/* Bulk paid bar */}
-      <div style={{ maxHeight: selecting && selected.size > 0 ? "60px" : "0px", overflow: "hidden", transition: "max-height 0.25s cubic-bezier(0.34,1.56,0.64,1)" }}>
+      <div style={{ maxHeight: selecting && selected.size > 0 ? "60px" : "0px", overflow: "hidden", transition: "max-height 0.25s cubic-bezier(0.2,0,0,1)" }}>
         <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800">
           <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-500 text-white">{selected.size}</span>
           <span className="text-sm font-medium flex-1">shift{selected.size !== 1 ? "s" : ""} selected</span>
@@ -191,7 +191,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
             try { await onBulkPaid(Array.from(selected)); setSelected(new Set()); setSelecting(false); }
             finally { setBulkLoading(false); }
           }} disabled={bulkLoading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-500 active:scale-95 disabled:opacity-60">
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-amber-500 active:opacity-80 disabled:opacity-60">
             {bulkLoading ? <span className="w-3 h-3 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "✓"}
             {bulkLoading ? "Saving…" : "Mark Paid"}
           </button>
@@ -249,7 +249,7 @@ function OweTab({ shifts, isLoading, onToggleStatus, onEditShift, onDeleteShift,
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className="text-sm font-black tabular-nums">{formatCurrency(effectiveAmount(shift))}</span>
                         <button onClick={e => { e.stopPropagation(); onToggleStatus(shift); }}
-                          className={`hit inline-flex items-center gap-1 text-caption font-bold px-2.5 py-1 rounded-full active:scale-90 transition-transform ${
+                          className={`hit inline-flex items-center gap-1 text-caption font-bold px-2.5 py-1 rounded-full active:opacity-70 transition-opacity ${
                             isPaid
                               ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
                               : "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400"

@@ -168,7 +168,7 @@ function SwipeWrapper({
         {children}
       </div>
       {/* Delete confirm */}
-      <div style={{ maxHeight: snapped === "left" ? "48px" : "0px", overflow: "hidden", transition: "max-height 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
+      <div style={{ maxHeight: snapped === "left" ? "48px" : "0px", overflow: "hidden", transition: "max-height 0.2s cubic-bezier(0.2,0,0,1)" }}>
         <div className="flex">
           <button onClick={confirmDelete}
             className="flex-1 py-3 text-xs font-bold text-white bg-rose-500 tracking-widest active:brightness-90 flex items-center justify-center gap-1.5 rounded-bl-2xl">
@@ -262,7 +262,7 @@ function ShiftCardInner({ shift, onToggleStatus, onEdit, onDelete, onLongPress, 
           <button
             onClick={e => { e.stopPropagation(); haptics(8); onToggleStatus(shift); }}
             aria-label={isPaid ? "Mark as unpaid" : "Mark as paid"}
-            className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:scale-90 transition-transform ${
+            className={`hit inline-flex items-center gap-1 text-caption font-bold px-3 py-1.5 rounded-full active:opacity-70 transition-opacity ${
               isPaid
                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
                 : "bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400"

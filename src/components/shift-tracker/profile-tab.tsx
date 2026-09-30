@@ -106,7 +106,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
       <SheetShell open={showReminders} onClose={() => setShowReminders(false)} label="Reminders" maxHeight="90dvh">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
           <h2 className="text-lg font-black">Reminders</h2>
-          <button onClick={() => setShowReminders(false)} aria-label="Close reminders" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
+          <button onClick={() => setShowReminders(false)} aria-label="Close reminders" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity"><X className="w-4 h-4" /></button>
         </div>
         <div className="p-4"><RemindersTab savedStationNames={[]} /></div>
       </SheetShell>
@@ -115,7 +115,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
       <SheetShell open={showSettings} onClose={() => setShowSettings(false)} label="Settings" maxHeight="90dvh">
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/40">
           <h2 className="text-lg font-black">Settings</h2>
-          <button onClick={() => setShowSettings(false)} aria-label="Close settings" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform"><X className="w-4 h-4" /></button>
+          <button onClick={() => setShowSettings(false)} aria-label="Close settings" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity"><X className="w-4 h-4" /></button>
         </div>
         <div className="px-4 pb-4"><SettingsTab /></div>
       </SheetShell>
@@ -129,11 +129,11 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         {/* Top row — action buttons */}
         <div className="flex justify-end gap-2 p-4 relative">
           <button onClick={() => setShowReminders(true)} aria-label="Reminders"
-            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:opacity-70 transition-opacity">
             <Bell className="w-4 h-4 text-white" />
           </button>
           <button onClick={() => setShowSettings(true)} aria-label="Settings"
-            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform">
+            className="hit w-9 h-9 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center active:opacity-70 transition-opacity">
             <Settings2 className="w-4 h-4 text-white" />
           </button>
         </div>
@@ -161,11 +161,11 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
                 className="w-full h-11 px-3.5 rounded-xl bg-white/20 text-white placeholder-white/50 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white backdrop-blur-sm" />
               <div className="flex gap-2 pt-1">
                 <button onClick={handleSave} disabled={isSaving}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white text-primary text-sm font-bold active:scale-95 transition-transform disabled:opacity-60">
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white text-primary text-sm font-bold active:opacity-80 transition-opacity disabled:opacity-60">
                   <Save className="w-3.5 h-3.5" /> Save
                 </button>
                 <button onClick={() => setIsEditing(false)}
-                  className="px-4 py-2.5 rounded-xl bg-white/20 text-white text-sm font-semibold active:scale-95 transition-transform">
+                  className="px-4 py-2.5 rounded-xl bg-white/20 text-white text-sm font-semibold active:opacity-80 transition-opacity">
                   Cancel
                 </button>
               </div>
@@ -176,7 +176,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               <p className="text-white/80 text-sm mt-0.5">@{profile.username||"unnamed"}</p>
               <p className="text-white/70 text-xs mt-0.5">Since {joinDate}</p>
               <button onClick={() => setIsEditing(true)}
-                className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold active:scale-95 transition-transform mx-auto">
+                className="mt-3 flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-semibold active:opacity-80 transition-opacity mx-auto">
                 <Pencil className="w-3 h-3" /> Edit profile
               </button>
             </div>
@@ -200,7 +200,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
       <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl">
         {(["overview","records"] as const).map(s => (
           <button key={s} onClick={() => setSection(s)}
-            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 capitalize ${
+            className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all active:opacity-80 capitalize ${
               section === s ? "bg-white dark:bg-card shadow-sm text-foreground" : "text-muted-foreground"
             }`}>
             {s === "overview" ? "Overview" : "Records"}

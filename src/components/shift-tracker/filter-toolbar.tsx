@@ -24,7 +24,7 @@ function Chip({ label, active, onClick, activeClass }: {
 }) {
   return (
     <button onClick={onClick}
-      className={`shrink-0 px-3.5 h-8 rounded-full text-caption font-semibold border transition-all active:scale-95 ${
+      className={`shrink-0 px-3.5 h-8 rounded-full text-caption font-semibold border transition-all active:opacity-80 ${
         active
           ? activeClass ?? "bg-primary text-primary-foreground border-primary"
           : "bg-background border-border/70 text-muted-foreground"
@@ -64,7 +64,7 @@ export function FilterToolbar({
             className="w-full h-11 pl-9 pr-9 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary transition-all"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground active:scale-90">
+            <button onClick={() => onSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground active:opacity-70">
               <X className="w-3.5 h-3.5" />
             </button>
           )}
@@ -73,7 +73,7 @@ export function FilterToolbar({
         {/* Filter icon button */}
         <button
           onClick={() => setFiltersOpen(v => !v)}
-          className={`h-11 w-11 rounded-xl border flex items-center justify-center transition-all active:scale-90 shrink-0 ${
+          className={`h-11 w-11 rounded-xl border flex items-center justify-center transition-all active:opacity-70 shrink-0 ${
             filtersOpen || hasFilters
               ? "bg-primary text-primary-foreground border-primary"
               : "bg-background border-border/70 text-muted-foreground"
@@ -85,7 +85,7 @@ export function FilterToolbar({
         {/* Results count + clear */}
         {hasFilters && (
           <button onClick={clearAll}
-            className="h-11 px-3 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 text-xs font-semibold flex items-center gap-1 active:scale-90 transition-transform shrink-0">
+            className="h-11 px-3 rounded-xl border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 text-xs font-semibold flex items-center gap-1 active:opacity-70 transition-opacity shrink-0">
             <X className="w-3 h-3" />
           </button>
         )}

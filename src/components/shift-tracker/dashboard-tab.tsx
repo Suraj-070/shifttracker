@@ -197,7 +197,7 @@ function DashboardTab({
               { key: "station", label: "Station", badge: stationCount, dot: null, active: "text-blue-700" },
             ].map(t => (
               <button key={t.key} onClick={() => setDashKind(t.key as DashKind)}
-                className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:opacity-80 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
                 {t.dot ? <span className={`w-2 h-2 rounded-full ${t.dot} shrink-0`} /> : <MapPin className="w-3.5 h-3.5 shrink-0" />}
                 {t.label}
                 <span className={`text-caption font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>

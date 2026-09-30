@@ -26,7 +26,7 @@ function PillGroup({ options, value, onChange, color = "emerald" }: {
     <div className="flex flex-wrap gap-1.5">
       {options.map(opt => (
         <button key={opt} type="button" onClick={() => onChange(value === opt ? "" : opt)}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95 ${value === opt ? activeClass : "bg-muted/60 border-transparent text-foreground"}`}>
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:opacity-80 ${value === opt ? activeClass : "bg-muted/60 border-transparent text-foreground"}`}>
           {opt.split(" ")[0]}
           {value === opt && <Check className="w-3 h-3" />}
         </button>
@@ -56,7 +56,7 @@ function StatusToggle({ value, onChange }: { value: ShiftStatus; onChange: (v: S
     <div className="flex gap-2">
       {(["Unpaid", "Paid"] as ShiftStatus[]).map(s => (
         <button key={s} type="button" onClick={() => onChange(s)}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all active:scale-95 ${
+          className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all active:opacity-80 ${
             value === s
               ? s === "Paid" ? "bg-emerald-500 text-white border-emerald-500" : "bg-rose-500 text-white border-rose-500"
               : "bg-background border-border/50 text-muted-foreground"
@@ -123,7 +123,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
 
       {/* Covered by toggle */}
       <button type="button" onClick={() => { setIsCovered(v => !v); if (isCovered) setCoveredBy(""); }}
-        className={`flex items-center gap-2.5 w-full px-4 py-3 rounded-2xl border-2 text-sm font-semibold transition-all active:scale-95 ${
+        className={`flex items-center gap-2.5 w-full px-4 py-3 rounded-2xl border-2 text-sm font-semibold transition-all active:opacity-80 ${
           isCovered ? "bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-950/30 dark:border-amber-700" : "bg-muted/40 border-transparent text-muted-foreground"
         }`}>
         <UserX className="w-4 h-4 shrink-0" />
@@ -139,7 +139,7 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
               {coveredBySuggestions.map(name => (
                 <button key={name} type="button"
                   onClick={() => setCoveredBy(coveredBy === name ? "" : name)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:scale-95 ${
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all active:opacity-80 ${
                     coveredBy === name
                       ? "bg-amber-500 text-white border-amber-500"
                       : "bg-muted/60 border-transparent text-foreground"
@@ -290,7 +290,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
         <div className="flex gap-2">
           {RATE_KEYS.map(k => (
             <button key={k} type="button" onClick={() => changeRateKey(k)}
-              className={`flex-1 flex flex-col items-center py-3 rounded-xl border-2 transition-all active:scale-95 ${
+              className={`flex-1 flex flex-col items-center py-3 rounded-xl border-2 transition-all active:opacity-80 ${
                 rateKey === k ? "bg-blue-500 text-white border-blue-500" : "bg-muted/40 border-transparent text-foreground"
               }`}>
               <span className="text-xs font-bold">{k}</span>
@@ -400,7 +400,7 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-black">Add Shift</h2>
-        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:scale-90 transition-transform">
+        <button onClick={() => onOpenChange(false)} aria-label="Close" className="hit w-8 h-8 rounded-full bg-muted flex items-center justify-center active:opacity-70 transition-opacity">
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
@@ -409,7 +409,7 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
       <div className="flex gap-1 p-1 bg-muted/80 rounded-2xl mb-5">
         {(["Hall", "Station"] as JobKind[]).map(k => (
           <button key={k} type="button" onClick={() => handleJobKindChange(k)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95 ${
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold transition-all active:opacity-80 ${
               jobKind === k
                 ? k === "Hall" ? "bg-white dark:bg-card text-emerald-700 shadow-sm" : "bg-white dark:bg-card text-blue-700 shadow-sm"
                 : "text-muted-foreground"
