@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export type PermissionState = "default" | "granted" | "denied" | "unsupported";
 
 /** Convert a VAPID base64url key into the byte array required by PushManager. */
-function urlBase64ToUint8Array(base64Url: string): Uint8Array {
+function urlBase64ToArrayBuffer(base64Url: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64Url.length % 4)) % 4);
   const base64 = (base64Url + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = window.atob(base64);
@@ -15,7 +15,7 @@ function urlBase64ToUint8Array(base64Url: string): Uint8Array {
     bytes[i] = raw.charCodeAt(i);
   }
 
-  return bytes;
+  return bytes.buffer as ArrayBuffer;
 }
 
 export function usePushNotifications() {
@@ -89,7 +89,7 @@ export function usePushNotifications() {
       const existing = await reg.pushManager.getSubscription();
       const sub = existing ?? await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+        applicationServerKey: urlBase64ToArrayBuffer(vapidKey),
       });
       if (!existing) createdSubscription = sub;
 
