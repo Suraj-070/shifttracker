@@ -182,7 +182,8 @@ function DashboardTab({
               { key: "station", label: "Station", badge: stationCount, dot: null, active: "text-blue-700" },
             ].map(t => (
               <button key={t.key} onClick={() => setDashKind(t.key as DashKind)}
-                aria-pressed={dashKind === t.key}\n                className={`flex min-h-10 items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
+                aria-pressed={dashKind === t.key}
+                className={`flex min-h-10 items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
                 {t.dot ? <span className={`w-2 h-2 rounded-full ${t.dot} shrink-0`} /> : <MapPin className="w-3.5 h-3.5 shrink-0" />}
                 {t.label}
                 <span className={`text-caption font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>
@@ -245,7 +246,7 @@ function DashboardTab({
                 <p className="text-sm font-bold">Recent Shifts</p>
                 <p className="text-caption text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
               </div>
-              <button onClick={onViewAllShifts} className="flex min-h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-transform hover:bg-primary/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              <button onClick={onViewAllShifts} className="flex min-h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-transform hover:bg-primary/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 See all <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -303,7 +304,7 @@ function DashboardTab({
                 <MapPin className="w-8 h-8 text-blue-400" />
               </div>
               <p className="text-base font-bold">No station shifts yet</p>
-              <button onClick={onAddShift} className="min-h-11 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              <button onClick={onAddShift} className="min-h-11 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 + Add Station Shift
               </button>
             </div>
