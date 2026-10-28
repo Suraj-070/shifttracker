@@ -224,14 +224,14 @@ export default function ShiftTrackerPage() {
     disabled: !isMobile,
     onSwipeLeft: () => {
       const idx = MOBILE_TABS.indexOf(activeTabRef.current);
-      if (idx < MOBILE_TABS.length - 1) {
+      if (idx >= 0 && idx < MOBILE_TABS.length - 1) {
         haptics(6);
         navigateTabWithDirection(MOBILE_TABS[idx + 1], "left");
       }
     },
     onSwipeRight: () => {
       const idx = MOBILE_TABS.indexOf(activeTabRef.current);
-      if (idx > 0) {
+      if (idx > 0 && idx < MOBILE_TABS.length) {
         haptics(6);
         navigateTabWithDirection(MOBILE_TABS[idx - 1], "right");
       }
