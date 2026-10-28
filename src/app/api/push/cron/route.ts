@@ -7,7 +7,6 @@ import Groq from "groq-sdk";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 function nowSydney() {
   const now = new Date();
@@ -91,6 +90,9 @@ Keep title under 40 chars, body under 80 chars.
 Return JSON only: {"title": "...", "body": "..."}`,
     };
 
+    // Created per request (not at module load) so builds don't need GROQ_API_KEY;
+    // a missing key throws here and falls through to the static messages below.
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [
