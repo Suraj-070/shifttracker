@@ -142,10 +142,10 @@ export function SettingsTab() {
   const fortnightAnchor    = store.fortnightAnchor;
   const setFortnightAnchor = store.setFortnightAnchor;
   const defaultRates = {
-    afternoonRate: 37.91, saturdayRate: 47.38, sundayRate: 60.94,
+    morningRate: 33.85, afternoonRate: 37.91, saturdayRate: 47.38, sundayRate: 60.94,
     taxRate: 0.0598, defaultHallAmount: 110,
   };
-  const [rates, setRates] = React.useState(store.payRates ?? defaultRates);
+  const [rates, setRates] = React.useState({ ...defaultRates, ...(store.payRates ?? {}) });
   const [ratesSaved, setRatesSaved] = React.useState(false);
   const { canInstall, installed, isIos, promptInstall } = usePwaInstall();
 
@@ -358,6 +358,7 @@ export function SettingsTab() {
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground">Update when your award rate changes</p>
           {[
+            { label: "Morning", key: "morningRate" as const },
             { label: "Afternoon (weekday)", key: "afternoonRate" as const },
             { label: "Saturday", key: "saturdayRate" as const },
             { label: "Sunday", key: "sundayRate" as const },
@@ -418,6 +419,7 @@ export function SettingsTab() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                   taxRate: rates.taxRate,
+                  morningRate: rates.morningRate,
                   afternoonRate: rates.afternoonRate,
                   saturdayRate: rates.saturdayRate,
                   sundayRate: rates.sundayRate,

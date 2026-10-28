@@ -18,6 +18,9 @@ import {
   buildStationNotes,
   parseStationTax,
   parseStationUserNote,
+  parseStationClockin,
+  parseStationClockout,
+  isMorningStationShift,
   parseHallFine,
   parseHallUserNote,
   buildHallNotes,
@@ -232,7 +235,7 @@ function HallEditForm({
 
 // ─── Station edit form ────────────────────────────────────────────────────────
 
-const RATE_KEYS: StationRateKey[] = ["Afternoon", "Saturday", "Sunday"];
+const RATE_KEYS: StationRateKey[] = ["Morning", "Afternoon", "Saturday", "Sunday"];
 
 function StationEditForm({
   shift,
@@ -253,7 +256,7 @@ function StationEditForm({
 
   const [stationName, setStationName] = useState(shift.coveringFor ?? "");
   const [date, setDate] = useState(shift.shiftDate);
-  const [rateKey, setRateKey] = useState<StationRateKey>("Afternoon");
+  const [rateKey, setRateKey] = useState<StationRateKey>(isMorningStationShift(shift.notes) ? "Morning" : "Afternoon");
   const [hours, setHours] = useState(String(shift.hoursWorked ?? 0));
   const [gross, setGross] = useState(shift.amountEarned);
   const [tax, setTax] = useState(existingTax.toFixed(2));
@@ -284,7 +287,7 @@ function StationEditForm({
       coveringFor: stationName.trim(),
       shiftDate: date,
       locationName: STATION_LOCATION,
-      notes: buildStationNotes(taxNum, notes),
+      notes: buildStationNotes(taxNum, notes, parseStationClockin(shift.notes) ?? undefined, parseStationClockout(shift.notes) ?? undefined, rateKey === "Morning" ? "Morning" : undefined),
       shiftDay: getDayFromDate(date),
       amountEarned: grossNum.toFixed(2),
       hoursWorked: Number(hours) || 0,
@@ -330,7 +333,7 @@ function StationEditForm({
       {/* Rate pills */}
       <div className="space-y-2">
         <label className="block text-label text-muted-foreground mb-2">Shift Type <span className="font-normal text-muted-foreground text-xs">(for reference — won't auto-recalc)</span></label>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {RATE_KEYS.map((k) => (
             <button key={k} type="button" onClick={() => setRateKey(k)}
               className={`flex-1 flex flex-col items-center py-2 rounded-lg border text-xs font-medium transition-all ${

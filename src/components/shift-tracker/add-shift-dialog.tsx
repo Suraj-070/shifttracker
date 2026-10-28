@@ -220,14 +220,14 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
 
 // ── Station Form ─────────────────────────────────────────────────────────────
 
-const RATE_KEYS: StationRateKey[] = ["Afternoon", "Saturday", "Sunday"];
+const RATE_KEYS: StationRateKey[] = ["Morning", "Afternoon", "Saturday", "Sunday"];
 
 function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: {
   shifts: Shift[]; defaultDate?: string; isSubmitting: boolean;
   onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void;
 }) {
   const { payRates } = useSettingsStore();
-  const dynamicRates = { Afternoon: payRates.afternoonRate, Saturday: payRates.saturdayRate, Sunday: payRates.sundayRate };
+  const dynamicRates = { Morning: payRates.morningRate ?? STATION_RATES.Morning, Afternoon: payRates.afternoonRate, Saturday: payRates.saturdayRate, Sunday: payRates.sundayRate };
   const today = new Date().toISOString().split("T")[0];
   const [stationName, setStationName] = useState("");
   const [rateKey,     setRateKey]     = useState<StationRateKey>("Afternoon");
@@ -263,7 +263,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
     if (!canSubmit) return;
     onSubmit({
       coveringFor: stationName.trim(), shiftDate: formDate,
-      locationName: STATION_LOCATION, notes: buildStationNotes(taxNum, notes),
+      locationName: STATION_LOCATION, notes: buildStationNotes(taxNum, notes, undefined, undefined, rateKey === "Morning" ? "Morning" : undefined),
       shiftDay: getDayFromDate(formDate), amountEarned: grossNum.toFixed(2),
       hoursWorked: Number(hours) || 0, status,
     });
@@ -287,7 +287,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
       {/* Rate type */}
       <FieldBox>
         <FieldLabel>Shift Type</FieldLabel>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-4 gap-1.5">
           {RATE_KEYS.map(k => (
             <button key={k} type="button" onClick={() => changeRateKey(k)}
               className={`flex-1 flex flex-col items-center py-3 rounded-xl border-2 transition-all active:opacity-80 ${

@@ -8,6 +8,7 @@ function parseHours(notes: string, hoursWorked: number): number {
 
 export async function POST(request: Request) {
   let taxRate = 0.0598;
+  let morningRate = 33.85;
   let afternoonRate = 37.91;
   let saturdayRate = 47.38;
   let sundayRate = 60.94;
@@ -15,6 +16,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     if (body.taxRate) taxRate = body.taxRate;
+    if (body.morningRate) morningRate = body.morningRate;
     if (body.afternoonRate) afternoonRate = body.afternoonRate;
     if (body.saturdayRate) saturdayRate = body.saturdayRate;
     if (body.sundayRate) sundayRate = body.sundayRate;
@@ -39,8 +41,10 @@ export async function POST(request: Request) {
     const day = (shift.shift_day ?? "").toLowerCase();
 
     // Determine rate by day
+    // Morning-tagged shifts keep the morning rate; everything else is priced by day
     let hourlyRate = afternoonRate;
-    if (day === "saturday") hourlyRate = saturdayRate;
+    if (/\|rate:Morning(\||$)/.test(notes.split("||")[0])) hourlyRate = morningRate;
+    else if (day === "saturday") hourlyRate = saturdayRate;
     else if (day === "sunday") hourlyRate = sundayRate;
 
     const newGross = hours > 0 ? hours * hourlyRate : parseFloat(shift.amount_earned) || 0;
@@ -70,7 +74,7 @@ export async function POST(request: Request) {
   return NextResponse.json({
     updated,
     total: shifts.length,
-    rates: { afternoonRate, saturdayRate, sundayRate, taxRate: `${(taxRate * 100).toFixed(2)}%` },
+    rates: { morningRate, afternoonRate, saturdayRate, sundayRate, taxRate: `${(taxRate * 100).toFixed(2)}%` },
     message: `Updated ${updated} of ${shifts.length} unpaid station shifts`,
   });
 }

@@ -125,11 +125,18 @@ export function buildStationNotes(
   userNote: string,
   clockin?: string,   // HH:MM
   clockout?: string,  // HH:MM
+  rate?: 'Morning',   // only the morning rate is tagged; weekday/weekend rates come from the day
 ): string {
   let meta = `__station__|tax:${tax.toFixed(2)}`;
+  if (rate === 'Morning') meta += `|rate:Morning`;
   if (clockin) meta += `|clockin:${clockin}`;
   if (clockout) meta += `|clockout:${clockout}`;
   return `${meta}||${userNote ?? ""}`;
+}
+
+/** True when a station shift was logged as a morning shift. */
+export function isMorningStationShift(notes: string | null): boolean {
+  return !!notes && /\|rate:Morning(\||$)/.test(notes.split('||')[0]);
 }
 
 export function parseStationClockin(notes: string | null): string | null {

@@ -14,6 +14,7 @@ export const CHART_CONFIG = {
 // CAS Afternoon: $37.91/hr (was $36.19)
 // Saturday/Sunday estimates scaled by same ratio (37.91/36.19 = 1.0475)
 export const STATION_RATES = {
+  Morning:    33.85,   // morning shift rate
   Afternoon: 37.91,
   Saturday:  47.38,   // 45.24 × 1.0475
   Sunday:    60.94,   // 58.16 × 1.0475

@@ -11,6 +11,7 @@ type SwipeSensitivity = 'low' | 'medium' | 'high'
 
 // ── Pay rate settings ────────────────────────────────────────────────────────
 export interface PayRateSettings {
+  morningRate: number;
   afternoonRate: number;
   saturdayRate: number;
   sundayRate: number;
@@ -93,6 +94,7 @@ export const useSettingsStore = create<SettingsState>()(
       setHapticsStrength: (strength) => set({ hapticsStrength: strength }),
 
       payRates: {
+        morningRate: 33.85,
         afternoonRate: 37.91,
         saturdayRate: 47.38,
         sundayRate: 60.94,
@@ -119,6 +121,13 @@ export const useSettingsStore = create<SettingsState>()(
       lastSyncTime: null,
       setLastSyncTime: (time) => set({ lastSyncTime: time }),
     }),
-    { name: 'shift-tracker-settings' }
+    {
+      name: 'shift-tracker-settings',
+      // Existing users have saved payRates without morningRate — merge defaults in
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<SettingsState>
+        return { ...current, ...p, payRates: { ...current.payRates, ...(p.payRates ?? {}) } }
+      },
+    }
   )
 )
