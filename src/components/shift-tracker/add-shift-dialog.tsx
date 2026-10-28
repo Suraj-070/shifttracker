@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useId, useRef } from "react";
-import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown } from "lucide-react";
+import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown, AlertTriangle } from "lucide-react";
 import { SheetShell } from "./sheet-shell";
 import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions, formatCurrency } from "@/lib/utils";
-import { STATION_LOCATION, buildStationNotes, isStationShift } from "@/types/database.types";
+import { STATION_LOCATION, buildStationNotes, isStationShift, parseStationTax, parseStationUserNote, isMorningStationShift, parseHallUserNote } from "@/types/database.types";
 import { DEFAULT_LOCATIONS, DEFAULT_COVER_NAMES, STATION_RATES, STATION_TAX_RATE, type StationRateKey } from "@/lib/constants";
 import type { ShiftStatus, ShiftCreateInput, Shift } from "@/types/database.types";
 import { ComboInput } from "./combo-input";
@@ -70,20 +70,21 @@ function StatusToggle({ value, onChange }: { value: ShiftStatus; onChange: (v: S
 
 // ── Hall Form ────────────────────────────────────────────────────────────────
 
-function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmitting, onSubmit, onCancel, userName }: {
-  shifts: Shift[]; defaultPerson?: string; defaultLocation?: string; defaultDate?: string;
+function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, repeatShift, isSubmitting, onSubmit, onCancel, userName }: {
+  shifts: Shift[]; defaultPerson?: string; defaultLocation?: string; defaultDate?: string; repeatShift?: Shift;
   isSubmitting: boolean; onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void; userName?: string;
 }) {
   const today = new Date().toISOString().split("T")[0];
   const { payRates } = useSettingsStore();
-  const [coveringFor, setCoveringFor] = useState(defaultPerson ?? "");
+  const repeatHallShift = repeatShift && !isStationShift(repeatShift) ? repeatShift : undefined;
+  const [coveringFor, setCoveringFor] = useState(repeatHallShift ? (repeatHallShift.coveredBy ? (userName ?? "Myself") : repeatHallShift.coveringFor) : defaultPerson ?? "");
   const [formDate,    setFormDate]    = useState(defaultDate ?? today);
-  const [location,    setLocation]    = useState(defaultLocation ?? "");
-  const [amount,      setAmount]      = useState(String(payRates.defaultHallAmount || 110));
-  const [notes,       setNotes]       = useState("");
+  const [location,    setLocation]    = useState(repeatHallShift?.locationName ?? defaultLocation ?? "");
+  const [amount,      setAmount]      = useState(repeatHallShift ? Number(repeatHallShift.amountEarned).toFixed(2) : String(payRates.defaultHallAmount || 110));
+  const [notes,       setNotes]       = useState(repeatHallShift ? parseHallUserNote(repeatHallShift.notes) : "");
   const [status,      setStatus]      = useState<ShiftStatus>("Unpaid");
-  const [isCovered,   setIsCovered]   = useState(false);
-  const [coveredBy,   setCoveredBy]   = useState("");
+  const [isCovered,   setIsCovered]   = useState(Boolean(repeatHallShift?.coveredBy));
+  const [coveredBy,   setCoveredBy]   = useState(repeatHallShift?.coveredBy ?? "");
 
   // Update date if defaultDate changes (from calendar)
   useEffect(() => { if (defaultDate) setFormDate(defaultDate); }, [defaultDate]);
@@ -105,6 +106,10 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
   const locationSuggestions = useMemo(() => buildSuggestions(hallShifts.map(s => s.locationName), DEFAULT_LOCATIONS), [hallShifts]);
 
   const canSubmit = (isCovered || !!coveringFor) && !!formDate && !!location && !!amount;
+  const possibleDuplicate = useMemo(() => {
+    if (!formDate || !location.trim()) return false;
+    return hallShifts.some(s => s.shiftDate === formDate && s.locationName.trim().toLowerCase() === location.trim().toLowerCase() && Boolean(s.coveredBy) === isCovered && (isCovered ? Boolean(coveredBy.trim()) && s.coveredBy?.trim().toLowerCase() === coveredBy.trim().toLowerCase() : Boolean(coveringFor.trim()) && s.coveringFor.trim().toLowerCase() === coveringFor.trim().toLowerCase()));
+  }, [hallShifts, formDate, location, isCovered, coveredBy, coveringFor]);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -189,6 +194,8 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
         </FieldBox>
       </div>
 
+      {possibleDuplicate && <p role="status" className="flex items-start gap-2 rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> A similar Hall shift already exists for this person, location and date. Check the details before adding another.</p>}
+
       {/* Status */}
       <FieldBox>
         <FieldLabel>Status</FieldLabel>
@@ -222,21 +229,22 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
 
 const RATE_KEYS: StationRateKey[] = ["Morning", "Afternoon", "Saturday", "Sunday"];
 
-function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: {
-  shifts: Shift[]; defaultDate?: string; isSubmitting: boolean;
+function StationForm({ shifts, defaultDate, repeatShift, isSubmitting, onSubmit, onCancel }: {
+  shifts: Shift[]; defaultDate?: string; repeatShift?: Shift; isSubmitting: boolean;
   onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void;
 }) {
   const { payRates } = useSettingsStore();
   const dynamicRates = { Morning: payRates.morningRate ?? STATION_RATES.Morning, Afternoon: payRates.afternoonRate, Saturday: payRates.saturdayRate, Sunday: payRates.sundayRate };
   const today = new Date().toISOString().split("T")[0];
-  const [stationName, setStationName] = useState("");
-  const [rateKey,     setRateKey]     = useState<StationRateKey>("Afternoon");
+  const repeatStationShift = repeatShift && isStationShift(repeatShift) ? repeatShift : undefined;
+  const [stationName, setStationName] = useState(repeatStationShift?.coveringFor ?? "");
+  const [rateKey,     setRateKey]     = useState<StationRateKey>(repeatStationShift && isMorningStationShift(repeatStationShift.notes) ? "Morning" : "Afternoon");
   const [formDate,    setFormDate]    = useState(defaultDate ?? today);
-  const [hours,       setHours]       = useState("5");
-  const [notes,       setNotes]       = useState("");
+  const [hours,       setHours]      = useState(repeatStationShift?.hoursWorked ? String(repeatStationShift.hoursWorked) : "5");
+  const [notes,       setNotes]      = useState(repeatStationShift ? parseStationUserNote(repeatStationShift.notes) : "");
   const [status,      setStatus]      = useState<ShiftStatus>("Unpaid");
-  const [grossOverride, setGrossOverride] = useState<string | null>(null);
-  const [taxOverride,   setTaxOverride]   = useState<string | null>(null);
+  const [grossOverride, setGrossOverride] = useState<string | null>(repeatStationShift ? Number(repeatStationShift.amountEarned).toFixed(2) : null);
+  const [taxOverride,   setTaxOverride]   = useState<string | null>(repeatStationShift ? parseStationTax(repeatStationShift.notes).toFixed(2) : null);
 
   useEffect(() => { if (defaultDate) setFormDate(defaultDate); }, [defaultDate]);
 
@@ -255,6 +263,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
   }, [shifts]);
 
   const canSubmit = stationName.trim().length > 0 && !!formDate && Number(hours) > 0 && grossNum > 0;
+  const possibleDuplicate = useMemo(() => Boolean(stationName.trim()) && shifts.some(s => isStationShift(s) && s.shiftDate === formDate && s.coveringFor.trim().toLowerCase() === stationName.trim().toLowerCase()), [shifts, stationName, formDate]);
 
   const changeRateKey = (k: StationRateKey) => { setRateKey(k); setGrossOverride(null); setTaxOverride(null); };
   const changeHours   = (h: string)         => { setHours(h);   setGrossOverride(null); setTaxOverride(null); };
@@ -315,6 +324,8 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
+
+      {possibleDuplicate && <p role="status" className="flex items-start gap-2 rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> A station shift for this station and date already exists. Check the details before adding another.</p>}
 
       {/* Net take-home (flat summary — sheets don't get hero cards) */}
       <div className="rounded-2xl p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
@@ -379,12 +390,14 @@ interface AddShiftDialogProps {
   defaultPerson?: string;
   defaultLocation?: string;
   defaultDate?: string;
+  repeatShift?: Shift;
   userName?: string;
 }
 
-export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, userName }: AddShiftDialogProps) {
+export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, repeatShift, userName }: AddShiftDialogProps) {
   const [jobKind, setJobKind] = useState<JobKind>(() => {
     if (typeof window !== "undefined") {
+      if (repeatShift) return isStationShift(repeatShift) ? "Station" : "Hall";
       return (localStorage.getItem("lastJobKind") as JobKind) ?? "Hall";
     }
     return "Hall";
@@ -421,8 +434,8 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
       </div>
 
       {jobKind === "Hall"
-        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
-        : <StationForm shifts={shifts} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} userName={userName} />
+        : <StationForm shifts={shifts} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
       }
     </div>
     </SheetShell>

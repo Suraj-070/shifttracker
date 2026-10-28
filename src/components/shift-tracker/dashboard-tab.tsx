@@ -2,7 +2,7 @@
 import { useSettingsStore } from "@/stores/settings-store";
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList } from "lucide-react";
+import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList, RotateCcw } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote, effectiveAmount } from "@/types/database.types";
@@ -65,6 +65,7 @@ interface DashboardTabProps {
   onAddShift: () => void;
   onViewAllShifts: () => void;
   onEditShift: (shift: Shift) => void;
+  onRepeatShift: (shift: Shift) => void;
   allShifts: Shift[];
   userName?: string;
   compact?: boolean;
@@ -74,10 +75,10 @@ interface DashboardTabProps {
 
 function StatCard({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl p-4 ${accent ? "bg-primary text-primary-foreground" : "bg-card border border-border/50"}`}>
-      <p className={`text-caption font-bold uppercase tracking-widest mb-2 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{label}</p>
-      <p className={`text-xl font-black tabular-nums ${accent ? "text-primary-foreground" : ""}`}>{value}</p>
-      {sub && <p className={`text-caption mt-1 ${accent ? "text-primary-foreground/60" : "text-muted-foreground"}`}>{sub}</p>}
+    <div className={`min-w-0 rounded-2xl p-4 sm:p-5 transition-colors ${accent ? "bg-primary text-primary-foreground" : "bg-card border border-border/50"}`}>
+      <p className={`mb-2 text-[11px] font-bold uppercase tracking-[0.12em] ${accent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{label}</p>
+      <p className={`break-words text-lg font-black tabular-nums sm:text-xl ${accent ? "text-primary-foreground" : ""}`}>{value}</p>
+      {sub && <p className={`mt-1 text-xs leading-relaxed ${accent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>{sub}</p>}
     </div>
   );
 }
@@ -121,7 +122,7 @@ function DashboardTab({
   summary, recentShifts, stationShifts, hallShifts,
   isLoading, onToggleStatus, onBulkMarkPaid,
   onAddShift, onViewAllShifts, onEditShift,
-  allShifts, userName = "Suraj",
+  allShifts, userName = "Suraj", onRepeatShift,
 }: DashboardTabProps) {
   const [dashKind, setDashKind]             = useState<DashKind>("hall");
   const [expandedFortnight, setExpanded]    = useState<number | null>(null);
@@ -162,7 +163,7 @@ function DashboardTab({
           <p className="text-xl font-black mb-1">No shifts yet</p>
           <p className="text-sm text-muted-foreground leading-relaxed">Add your first shift to start tracking your earnings</p>
         </div>
-        <button onClick={onAddShift} className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-primary-foreground text-sm font-bold active:scale-95 transition-transform shadow-lg shadow-primary/25">
+        <button onClick={onAddShift} className="flex min-h-11 items-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
           + Add First Shift
         </button>
       </div>
@@ -182,7 +183,8 @@ function DashboardTab({
               { key: "station", label: "Station", badge: stationCount, dot: null, active: "text-blue-700" },
             ].map(t => (
               <button key={t.key} onClick={() => setDashKind(t.key as DashKind)}
-                className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold transition-all active:opacity-80 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
+                aria-pressed={dashKind === t.key}
+                className={`flex min-h-10 items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all active:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${dashKind === t.key ? `bg-white dark:bg-card ${t.active} shadow-sm` : "text-muted-foreground"}`}>
                 {t.dot ? <span className={`w-2 h-2 rounded-full ${t.dot} shrink-0`} /> : <MapPin className="w-3.5 h-3.5 shrink-0" />}
                 {t.label}
                 <span className={`text-caption font-bold tabular-nums ${dashKind === t.key ? "" : "opacity-40"}`}>{t.badge}</span>
@@ -204,7 +206,7 @@ function DashboardTab({
               <div className="absolute right-8 bottom-0 w-20 h-20 rounded-full opacity-10 bg-white" style={{ transform: "translate(0%, 40%)" }} />
               <div className="relative">
                 <p className="text-label text-white/80 mb-1">Unpaid</p>
-                <AnimatedCurrency value={summary.totalUnpaid} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
+                <AnimatedCurrency value={summary.totalUnpaid} className="break-words text-4xl font-black text-white tabular-nums tracking-tight sm:text-5xl" duration={600} />
                 <p className="text-white/80 text-xs mt-1.5">{summary.unpaidShifts} shift{summary.unpaidShifts !== 1 ? "s" : ""} outstanding</p>
                 {/* Progress bar showing paid % */}
                 <div className="mt-4">
@@ -223,7 +225,7 @@ function DashboardTab({
               <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
               <div className="relative">
                 <p className="text-label text-white/80 mb-1">All Paid 🎉</p>
-                <p className="text-4xl font-black text-white tabular-nums">{formatCurrency(summary.totalEarned)}</p>
+                <p className="break-words text-3xl font-black text-white tabular-nums sm:text-4xl">{formatCurrency(summary.totalEarned)}</p>
                 <p className="text-white/80 text-xs mt-1.5">{summary.totalShifts} shifts · fully collected</p>
               </div>
             </div>
@@ -245,9 +247,12 @@ function DashboardTab({
                 <p className="text-sm font-bold">Recent Shifts</p>
                 <p className="text-caption text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
               </div>
-              <button onClick={onViewAllShifts} className="flex items-center gap-1 text-xs text-primary font-bold px-3 py-1.5 rounded-xl bg-primary/10 active:scale-95 transition-transform">
-                See all <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {recentShifts[0] && <button onClick={() => onRepeatShift(recentShifts[0])} className="flex min-h-9 items-center gap-1 rounded-xl bg-muted px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"><RotateCcw className="h-3.5 w-3.5" /> Repeat</button>}
+                <button onClick={onViewAllShifts} className="flex min-h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-transform hover:bg-primary/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  See all <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             {recentShifts.length === 0 ? (
               <div className="py-10 text-center text-sm text-muted-foreground">No shifts yet</div>
@@ -262,7 +267,7 @@ function DashboardTab({
                   const nameColor = isCovered ? "text-amber-700 dark:text-amber-400" : "";
                   return (
                     <button key={shift.id} onClick={() => onEditShift(shift)}
-                      className="w-full flex items-center gap-3 px-4 py-3 active:bg-muted/40 transition-colors text-left">
+                      className="w-full min-w-0 flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30 active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
                       <div className={`w-1 h-9 rounded-full shrink-0 ${stripe}`} />
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm font-semibold truncate ${nameColor}`}>{name}</p>
@@ -303,7 +308,7 @@ function DashboardTab({
                 <MapPin className="w-8 h-8 text-blue-400" />
               </div>
               <p className="text-base font-bold">No station shifts yet</p>
-              <button onClick={onAddShift} className="px-5 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-bold active:scale-95 transition-transform">
+              <button onClick={onAddShift} className="min-h-11 rounded-xl bg-blue-500 px-5 py-2.5 text-sm font-bold text-white transition-transform hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 + Add Station Shift
               </button>
             </div>
@@ -313,8 +318,11 @@ function DashboardTab({
               <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
                 <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
                 <div className="relative">
-                  <p className="text-label text-white/80 mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
-                  <AnimatedCurrency value={stationNet} className="text-5xl font-black text-white tabular-nums tracking-tight" duration={600} />
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <p className="text-label text-white/80">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
+                    {stationShifts[0] && <button onClick={() => onRepeatShift([...stationShifts].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))[0])} className="flex min-h-9 items-center gap-1 rounded-xl bg-white/15 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"><RotateCcw className="h-3.5 w-3.5" /> Repeat</button>}
+                  </div>
+                  <AnimatedCurrency value={stationNet} className="break-words text-4xl font-black text-white tabular-nums tracking-tight sm:text-5xl" duration={600} />
                   <p className="text-white/80 text-xs mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
                 </div>
               </div>

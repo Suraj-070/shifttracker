@@ -296,7 +296,7 @@ export default function ShiftTrackerPage() {
   const [shiftToDelete, setShiftToDelete]   = useState<Shift | null>(null);
   const [shiftToEdit,   setShiftToEdit]     = useState<Shift | null>(null);
   const [isSubmitting,  setIsSubmitting]    = useState(false);
-  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; date?: string }>({});
+  const [addShiftDefaults, setAddShiftDefaults] = useState<{ person?: string; location?: string; date?: string; repeatShift?: Shift }>({});
   const [showSuccessBurst, setShowSuccessBurst] = useState(false);
   const [longPressShift, setLongPressShift] = useState<Shift | null>(null);
 
@@ -395,6 +395,7 @@ export default function ShiftTrackerPage() {
         if (res.ok) {
           const data = await res.json();
           setShifts((prev) => [data.shift, ...prev]);
+          setAddShiftDefaults({});
           // Close dialog + pop its history entry
           addOpenRef.current = false;
           setAddDialogOpenRaw(false);
@@ -789,6 +790,12 @@ export default function ShiftTrackerPage() {
                 onAddShift={() => setAddDialogOpen(true)}
                 onViewAllShifts={() => navigateTabWithDirection("shifts", "left")}
                 onEditShift={(shift) => { setShiftToEdit(shift); setEditDialogOpen(true); }}
+                onRepeatShift={(shift) => {
+                  const now = new Date();
+                  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+                  setAddShiftDefaults({ date, repeatShift: shift });
+                  setAddDialogOpen(true);
+                }}
                 allShifts={shifts}
                 compact={compactDashboard}
               />
@@ -882,7 +889,7 @@ export default function ShiftTrackerPage() {
 
         {/* Dialogs */}
         <AddShiftDialog
-          key={`add-${addShiftDefaults.date ?? "default"}`}
+          key={`add-${addShiftDefaults.date ?? "default"}-${addShiftDefaults.repeatShift?.id ?? "new"}`}
           open={addDialogOpen}
           onOpenChange={(v) => {
             if (!v && addOpenRef.current) {
@@ -901,6 +908,7 @@ export default function ShiftTrackerPage() {
           defaultPerson={addShiftDefaults.person}
           defaultLocation={addShiftDefaults.location}
           defaultDate={addShiftDefaults.date}
+          repeatShift={addShiftDefaults.repeatShift}
           userName={userName}
         />
         <EditShiftDialog
