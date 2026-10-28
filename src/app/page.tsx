@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { LayoutDashboard, CalendarDays, Calendar, Bell, BarChart3, User, Settings, Plus, Clock, HandCoins, AlertCircle } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Calendar, Bell, BarChart3, User, Settings, Plus, Clock, HandCoins, AlertCircle, Ellipsis } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppToast } from "@/components/shift-tracker/app-toast";
 import { useSession } from "next-auth/react";
@@ -79,7 +79,7 @@ export default function ShiftTrackerPage() {
   const getInitialTab = (): TabKey => {
     if (typeof window === "undefined") return defaultTab;
     const hash = window.location.hash.replace("#", "") as TabKey;
-    const valid: TabKey[] = ["dashboard", "shifts", "owe", "profile"];
+    const valid: TabKey[] = ["dashboard", "shifts", "owe", "analytics", "calendar", "reminders", "profile", "settings"];
     return valid.includes(hash) ? hash : defaultTab;
   };
 
@@ -237,14 +237,6 @@ export default function ShiftTrackerPage() {
       }
     },
   });
-
-  // Redirect away from analytics on mobile
-  useEffect(() => {
-    if (activeTab === "analytics") {
-      const t = setTimeout(() => navigateTab("dashboard"), 0);
-      return () => clearTimeout(t);
-    }
-  }, [isMobile, activeTab, navigateTab]);
 
   // ── Dialog state with ref mirrors ───────────────────────────────────────
   const [addDialogOpen,    setAddDialogOpenRaw]    = useState(false);
@@ -871,12 +863,16 @@ export default function ShiftTrackerPage() {
         <div className="md:hidden">
           <GlassmorphismNav
             onFabPress={() => setAddDialogOpen(true)}
-            tabs={TABS.filter((t) => t.key !== "analytics" && t.key !== "settings" && t.key !== "reminders" && t.key !== "calendar").map((t) => ({
-              ...t,
-              badge: t.key === "shifts"
-                ? shifts.filter((s) => s.status === "Unpaid").length
-                : undefined,
-            }))}
+            tabs={[
+              ...TABS.filter((t) => t.key === "dashboard" || t.key === "shifts" || t.key === "owe").map((t) => ({
+                ...t,
+                badge: t.key === "shifts"
+                  ? shifts.filter((s) => s.status === "Unpaid").length
+                  : undefined,
+              })),
+              { key: "more", label: "More", icon: Ellipsis },
+            ]}
+            moreTabs={TABS.filter((t) => t.key !== "dashboard" && t.key !== "shifts" && t.key !== "owe")}
             activeTab={activeTab}
             onTabChange={(key) => {
               navigateTab(key as TabKey);
