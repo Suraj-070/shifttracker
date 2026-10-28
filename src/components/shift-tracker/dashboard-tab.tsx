@@ -10,37 +10,22 @@ import { AnimatedCurrency } from "./animated-number";
 import { EarningsChart } from "./earnings-chart";
 import type { Shift, AnalyticsSummary } from "@/types/database.types";
 import { rowButtonProps } from "@/lib/a11y";
+import { parseLocalDate, dayDiff, startOfToday, fortnightBounds, fortnightIndexForShift, currentFortnightIndex } from "@/lib/fortnight";
 
-// ─── Fortnight logic ──────────────────────────────────────────────────────────
-const DAY_MS       = 86400000;
-const FORTNIGHT_MS = DAY_MS * 14;
-
+// ─── Fortnight logic (DST-safe helpers live in lib/fortnight.ts) ──────────────
 function getAnchor(anchorStr: string) {
-  return new Date(anchorStr + "T00:00:00");
-}
-function fortnightBounds(index: number, anchor: Date) {
-  const payslipMs = anchor.getTime() + index * FORTNIGHT_MS;
-  return {
-    payslipDate: new Date(payslipMs),
-    start:       new Date(payslipMs - FORTNIGHT_MS),
-    end:         new Date(payslipMs - DAY_MS),
-    payDate:     new Date(payslipMs + DAY_MS),
-  };
-}
-function fortnightIndexForDate(date: Date, anchor: Date) {
-  return Math.floor((date.getTime() - anchor.getTime()) / FORTNIGHT_MS) + 1;
+  return parseLocalDate(anchorStr);
 }
 function isInFortnight(shiftDate: string, index: number, anchor: Date) {
   const { start, end } = fortnightBounds(index, anchor);
-  const d = new Date(shiftDate + "T00:00:00");
+  const d = parseLocalDate(shiftDate);
   return d >= start && d <= end;
 }
 function fmt(d: Date) {
   return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
 }
 function daysUntil(d: Date) {
-  const now = new Date(); now.setHours(0,0,0,0);
-  return Math.ceil((d.getTime() - now.getTime()) / DAY_MS);
+  return dayDiff(startOfToday(), d);
 }
 
 interface FortnightData {
@@ -50,12 +35,12 @@ interface FortnightData {
 
 function buildFortnightData(stationShifts: Shift[], anchorStr: string): FortnightData[] {
   const anchor = getAnchor(anchorStr);
-  const today  = new Date(); today.setHours(0,0,0,0);
-  const currentIdx = fortnightIndexForDate(today, anchor);
+  const today  = startOfToday();
+  const currentIdx = currentFortnightIndex(today, anchor);
   const indices = new Set<number>();
   for (let i = currentIdx - 5; i <= currentIdx; i++) indices.add(i);
   for (const s of stationShifts) {
-    indices.add(fortnightIndexForDate(new Date(s.shiftDate + "T00:00:00"), anchor));
+    indices.add(fortnightIndexForShift(parseLocalDate(s.shiftDate), anchor));
   }
   return Array.from(indices).sort((a,b) => b-a).map(idx => {
     const { start, end, payslipDate, payDate } = fortnightBounds(idx, anchor);
@@ -371,13 +356,13 @@ function DashboardTab({
                     <div>
                       <div className="flex justify-between text-caption text-muted-foreground mb-1.5">
                         <span>{fmt(currentFN.start)}</span>
-                        <span>{Math.min(14, Math.max(0, Math.ceil((Date.now() - currentFN.start.getTime()) / DAY_MS)))} / 14 days</span>
+                        <span>{Math.min(14, Math.max(0, dayDiff(currentFN.start, startOfToday()) + 1))} / 14 days</span>
                         <span>{fmt(currentFN.end)}</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-blue-100 dark:bg-blue-900 overflow-hidden">
                         <motion.div className="h-full rounded-full bg-blue-500"
                           initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, Math.max(0, Math.ceil((Date.now() - currentFN.start.getTime()) / DAY_MS) / 14 * 100))}%` }}
+                          animate={{ width: `${Math.min(100, Math.max(0, (dayDiff(currentFN.start, startOfToday()) + 1) / 14 * 100))}%` }}
                           transition={{ duration: 0.9, ease: "easeOut" }} />
                       </div>
                     </div>
