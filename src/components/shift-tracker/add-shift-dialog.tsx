@@ -5,7 +5,7 @@ import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown, 
 import { SheetShell } from "./sheet-shell";
 import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions, formatCurrency } from "@/lib/utils";
-import { STATION_LOCATION, buildStationNotes, isStationShift } from "@/types/database.types";
+import { STATION_LOCATION, buildStationNotes, isStationShift, parseStationTax, parseStationUserNote, isMorningStationShift, parseHallUserNote } from "@/types/database.types";
 import { DEFAULT_LOCATIONS, DEFAULT_COVER_NAMES, STATION_RATES, STATION_TAX_RATE, type StationRateKey } from "@/lib/constants";
 import type { ShiftStatus, ShiftCreateInput, Shift } from "@/types/database.types";
 import { ComboInput } from "./combo-input";
@@ -70,20 +70,21 @@ function StatusToggle({ value, onChange }: { value: ShiftStatus; onChange: (v: S
 
 // ── Hall Form ────────────────────────────────────────────────────────────────
 
-function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmitting, onSubmit, onCancel, userName }: {
-  shifts: Shift[]; defaultPerson?: string; defaultLocation?: string; defaultDate?: string;
+function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, repeatShift, isSubmitting, onSubmit, onCancel, userName }: {
+  shifts: Shift[]; defaultPerson?: string; defaultLocation?: string; defaultDate?: string; repeatShift?: Shift;
   isSubmitting: boolean; onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void; userName?: string;
 }) {
   const today = new Date().toISOString().split("T")[0];
   const { payRates } = useSettingsStore();
-  const [coveringFor, setCoveringFor] = useState(defaultPerson ?? "");
+  const repeatHallShift = repeatShift && !isStationShift(repeatShift) ? repeatShift : undefined;
+  const [coveringFor, setCoveringFor] = useState(repeatHallShift ? (repeatHallShift.coveredBy ? (userName ?? "Myself") : repeatHallShift.coveringFor) : defaultPerson ?? "");
   const [formDate,    setFormDate]    = useState(defaultDate ?? today);
-  const [location,    setLocation]    = useState(defaultLocation ?? "");
-  const [amount,      setAmount]      = useState(String(payRates.defaultHallAmount || 110));
-  const [notes,       setNotes]       = useState("");
+  const [location,    setLocation]    = useState(repeatHallShift?.locationName ?? defaultLocation ?? "");
+  const [amount,      setAmount]      = useState(repeatHallShift ? Number(repeatHallShift.amountEarned).toFixed(2) : String(payRates.defaultHallAmount || 110));
+  const [notes,       setNotes]       = useState(repeatHallShift ? parseHallUserNote(repeatHallShift.notes) : "");
   const [status,      setStatus]      = useState<ShiftStatus>("Unpaid");
-  const [isCovered,   setIsCovered]   = useState(false);
-  const [coveredBy,   setCoveredBy]   = useState("");
+  const [isCovered,   setIsCovered]   = useState(Boolean(repeatHallShift?.coveredBy));
+  const [coveredBy,   setCoveredBy]   = useState(repeatHallShift?.coveredBy ?? "");
 
   // Update date if defaultDate changes (from calendar)
   useEffect(() => { if (defaultDate) setFormDate(defaultDate); }, [defaultDate]);
@@ -228,21 +229,22 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
 
 const RATE_KEYS: StationRateKey[] = ["Morning", "Afternoon", "Saturday", "Sunday"];
 
-function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: {
-  shifts: Shift[]; defaultDate?: string; isSubmitting: boolean;
+function StationForm({ shifts, defaultDate, repeatShift, isSubmitting, onSubmit, onCancel }: {
+  shifts: Shift[]; defaultDate?: string; repeatShift?: Shift; isSubmitting: boolean;
   onSubmit: (d: ShiftCreateInput) => void; onCancel: () => void;
 }) {
   const { payRates } = useSettingsStore();
   const dynamicRates = { Morning: payRates.morningRate ?? STATION_RATES.Morning, Afternoon: payRates.afternoonRate, Saturday: payRates.saturdayRate, Sunday: payRates.sundayRate };
   const today = new Date().toISOString().split("T")[0];
-  const [stationName, setStationName] = useState("");
-  const [rateKey,     setRateKey]     = useState<StationRateKey>("Afternoon");
+  const repeatStationShift = repeatShift && isStationShift(repeatShift) ? repeatShift : undefined;
+  const [stationName, setStationName] = useState(repeatStationShift?.coveringFor ?? "");
+  const [rateKey,     setRateKey]     = useState<StationRateKey>(repeatStationShift && isMorningStationShift(repeatStationShift.notes) ? "Morning" : "Afternoon");
   const [formDate,    setFormDate]    = useState(defaultDate ?? today);
-  const [hours,       setHours]       = useState("5");
-  const [notes,       setNotes]       = useState("");
+  const [hours,       setHours]      = useState(repeatStationShift?.hoursWorked ? String(repeatStationShift.hoursWorked) : "5");
+  const [notes,       setNotes]      = useState(repeatStationShift ? parseStationUserNote(repeatStationShift.notes) : "");
   const [status,      setStatus]      = useState<ShiftStatus>("Unpaid");
-  const [grossOverride, setGrossOverride] = useState<string | null>(null);
-  const [taxOverride,   setTaxOverride]   = useState<string | null>(null);
+  const [grossOverride, setGrossOverride] = useState<string | null>(repeatStationShift ? Number(repeatStationShift.amountEarned).toFixed(2) : null);
+  const [taxOverride,   setTaxOverride]   = useState<string | null>(repeatStationShift ? parseStationTax(repeatStationShift.notes).toFixed(2) : null);
 
   useEffect(() => { if (defaultDate) setFormDate(defaultDate); }, [defaultDate]);
 
@@ -388,12 +390,14 @@ interface AddShiftDialogProps {
   defaultPerson?: string;
   defaultLocation?: string;
   defaultDate?: string;
+  repeatShift?: Shift;
   userName?: string;
 }
 
-export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, userName }: AddShiftDialogProps) {
+export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shifts, defaultPerson, defaultLocation, defaultDate, repeatShift, userName }: AddShiftDialogProps) {
   const [jobKind, setJobKind] = useState<JobKind>(() => {
     if (typeof window !== "undefined") {
+      if (repeatShift) return isStationShift(repeatShift) ? "Station" : "Hall";
       return (localStorage.getItem("lastJobKind") as JobKind) ?? "Hall";
     }
     return "Hall";
@@ -430,8 +434,8 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
       </div>
 
       {jobKind === "Hall"
-        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
-        : <StationForm shifts={shifts} defaultDate={defaultDate} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+        : <StationForm shifts={shifts} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
       }
     </div>
     </SheetShell>
