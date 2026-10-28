@@ -2,7 +2,7 @@
 import { useSettingsStore } from "@/stores/settings-store";
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList } from "lucide-react";
+import { DollarSign, ChevronRight, MapPin, StickyNote, Clock, ChevronDown, TrendingUp, Check, ArrowLeftRight, ClipboardList, RotateCcw } from "lucide-react";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import { DashboardSkeleton } from "./loading-skeleton";
 import { parseStationTax, parseStationUserNote, effectiveAmount } from "@/types/database.types";
@@ -65,6 +65,7 @@ interface DashboardTabProps {
   onAddShift: () => void;
   onViewAllShifts: () => void;
   onEditShift: (shift: Shift) => void;
+  onRepeatShift: (shift: Shift) => void;
   allShifts: Shift[];
   userName?: string;
   compact?: boolean;
@@ -121,7 +122,7 @@ function DashboardTab({
   summary, recentShifts, stationShifts, hallShifts,
   isLoading, onToggleStatus, onBulkMarkPaid,
   onAddShift, onViewAllShifts, onEditShift,
-  allShifts, userName = "Suraj",
+  allShifts, userName = "Suraj", onRepeatShift,
 }: DashboardTabProps) {
   const [dashKind, setDashKind]             = useState<DashKind>("hall");
   const [expandedFortnight, setExpanded]    = useState<number | null>(null);
@@ -246,9 +247,12 @@ function DashboardTab({
                 <p className="text-sm font-bold">Recent Shifts</p>
                 <p className="text-caption text-muted-foreground">{recentShifts.length} of {summary.totalShifts}</p>
               </div>
-              <button onClick={onViewAllShifts} className="flex min-h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-transform hover:bg-primary/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                See all <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {recentShifts[0] && <button onClick={() => onRepeatShift(recentShifts[0])} className="flex min-h-9 items-center gap-1 rounded-xl bg-muted px-2.5 py-1.5 text-xs font-semibold transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"><RotateCcw className="h-3.5 w-3.5" /> Repeat</button>}
+                <button onClick={onViewAllShifts} className="flex min-h-9 items-center gap-1 rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-transform hover:bg-primary/15 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                  See all <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             {recentShifts.length === 0 ? (
               <div className="py-10 text-center text-sm text-muted-foreground">No shifts yet</div>
@@ -314,7 +318,10 @@ function DashboardTab({
               <div className="rounded-3xl p-5 relative overflow-hidden" style={{ background: "linear-gradient(135deg, oklch(0.52 0.15 255), oklch(0.40 0.13 255))" }}>
                 <div className="absolute right-0 top-0 w-32 h-32 rounded-full opacity-10 bg-white" style={{ transform: "translate(30%, -30%)" }} />
                 <div className="relative">
-                  <p className="text-label text-white/80 mb-1">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <p className="text-label text-white/80">{stationUnpaid > 0 ? "Unpaid Net" : "Net Take-home"}</p>
+                    {stationShifts[0] && <button onClick={() => onRepeatShift([...stationShifts].sort((a, b) => b.shiftDate.localeCompare(a.shiftDate))[0])} className="flex min-h-9 items-center gap-1 rounded-xl bg-white/15 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"><RotateCcw className="h-3.5 w-3.5" /> Repeat</button>}
+                  </div>
                   <AnimatedCurrency value={stationNet} className="break-words text-4xl font-black text-white tabular-nums tracking-tight sm:text-5xl" duration={600} />
                   <p className="text-white/80 text-xs mt-1.5">{stationCount} shifts · {formatCurrency(stationTax)} tax withheld</p>
                 </div>
