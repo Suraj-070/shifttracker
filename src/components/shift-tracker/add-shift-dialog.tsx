@@ -434,7 +434,7 @@ export function AddShiftDialog({ open, onOpenChange, onSubmit, isSubmitting, shi
       </div>
 
       {jobKind === "Hall"
-        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
+        ? <HallForm shifts={shifts} defaultPerson={defaultPerson} defaultLocation={defaultLocation} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} userName={userName} />
         : <StationForm shifts={shifts} defaultDate={defaultDate} repeatShift={repeatShift} isSubmitting={isSubmitting} onSubmit={onSubmit} onCancel={() => onOpenChange(false)} />
       }
     </div>
