@@ -855,8 +855,7 @@ export default function ShiftTrackerPage() {
 
               <div style={{ display: activeTab === "analytics" ? "block" : "none", contain: "layout style" }}>
                 <AnalyticsTab
-                  summary={summary}
-                  monthlyEarnings={monthlyEarnings}
+                  shifts={hallShifts}
                   isLoading={isLoading}
                 />
               </div>
