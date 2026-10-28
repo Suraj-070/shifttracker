@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect, useId, useRef } from "react";
-import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown } from "lucide-react";
+import { Plus, Loader2, User, MapPin, StickyNote, Check, UserX, X, ChevronDown, AlertTriangle } from "lucide-react";
 import { SheetShell } from "./sheet-shell";
 import { useSettingsStore } from "@/stores/settings-store";
 import { getDayFromDate, buildSuggestions, formatCurrency } from "@/lib/utils";
@@ -105,6 +105,10 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
   const locationSuggestions = useMemo(() => buildSuggestions(hallShifts.map(s => s.locationName), DEFAULT_LOCATIONS), [hallShifts]);
 
   const canSubmit = (isCovered || !!coveringFor) && !!formDate && !!location && !!amount;
+  const possibleDuplicate = useMemo(() => {
+    if (!formDate || !location.trim()) return false;
+    return hallShifts.some(s => s.shiftDate === formDate && s.locationName.trim().toLowerCase() === location.trim().toLowerCase() && Boolean(s.coveredBy) === isCovered && (isCovered ? Boolean(coveredBy.trim()) && s.coveredBy?.trim().toLowerCase() === coveredBy.trim().toLowerCase() : Boolean(coveringFor.trim()) && s.coveringFor.trim().toLowerCase() === coveringFor.trim().toLowerCase()));
+  }, [hallShifts, formDate, location, isCovered, coveredBy, coveringFor]);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -189,6 +193,8 @@ function HallForm({ shifts, defaultPerson, defaultLocation, defaultDate, isSubmi
         </FieldBox>
       </div>
 
+      {possibleDuplicate && <p role="status" className="flex items-start gap-2 rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> A similar Hall shift already exists for this person, location and date. Check the details before adding another.</p>}
+
       {/* Status */}
       <FieldBox>
         <FieldLabel>Status</FieldLabel>
@@ -255,6 +261,7 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
   }, [shifts]);
 
   const canSubmit = stationName.trim().length > 0 && !!formDate && Number(hours) > 0 && grossNum > 0;
+  const possibleDuplicate = useMemo(() => Boolean(stationName.trim()) && shifts.some(s => isStationShift(s) && s.shiftDate === formDate && s.coveringFor.trim().toLowerCase() === stationName.trim().toLowerCase()), [shifts, stationName, formDate]);
 
   const changeRateKey = (k: StationRateKey) => { setRateKey(k); setGrossOverride(null); setTaxOverride(null); };
   const changeHours   = (h: string)         => { setHours(h);   setGrossOverride(null); setTaxOverride(null); };
@@ -315,6 +322,8 @@ function StationForm({ shifts, defaultDate, isSubmitting, onSubmit, onCancel }: 
             className="w-full h-11 px-3 rounded-xl border border-border/60 bg-background text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-primary font-bold tabular-nums" />
         </FieldBox>
       </div>
+
+      {possibleDuplicate && <p role="status" className="flex items-start gap-2 rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" /> A station shift for this station and date already exists. Check the details before adding another.</p>}
 
       {/* Net take-home (flat summary — sheets don't get hero cards) */}
       <div className="rounded-2xl p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900">
