@@ -83,7 +83,7 @@ function AnalyticsTab({ shifts, isLoading }: AnalyticsTabProps) {
         effectiveAmount(shift), shift.status, parseHallUserNote(shift.notes),
       ].map(csvCell).join(",");
     });
-    const blob = new Blob(["\\uFEFF", [headers.map(csvCell).join(","), ...rows].join("\\r\\n")], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\uFEFF", [headers.map(csvCell).join(","), ...rows].join("\r\n")], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
