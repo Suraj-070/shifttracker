@@ -285,7 +285,7 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold">Pay rates & preferences</p>
-                <p className="text-caption text-muted-foreground">Station rates: ${payRates.morningRate.toFixed(2)}–${payRates.sundayRate.toFixed(2)}/hr · Edit in Settings</p>
+                <p className="text-caption text-muted-foreground">Station rates: {"$"}{payRates.morningRate.toFixed(2)}–{"$"}{payRates.sundayRate.toFixed(2)}/hr · Edit in Settings</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" aria-hidden="true" />
             </button>
