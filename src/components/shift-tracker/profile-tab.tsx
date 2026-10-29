@@ -11,6 +11,7 @@ import { signOut } from "next-auth/react";
 import { SettingsTab } from "./settings-tab";
 import { RemindersTab } from "./reminders-tab";
 import { isStationShift, effectiveAmount } from "@/types/database.types";
+import { useSettingsStore } from "@/stores/settings-store";
 import type { Shift, UserProfile } from "@/types/database.types";
 
 interface ProfileTabProps {
@@ -32,6 +33,31 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
   const [editUsername,setEditUsername]= useState("");
   const [isSaving,    setIsSaving]    = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const payRates = useSettingsStore((state) => state.payRates);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | "unsupported" | "checking">("checking");
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      setNotificationPermission(
+        typeof window !== "undefined" && "Notification" in window
+          ? Notification.permission
+          : "unsupported"
+      );
+    });
+  }, []);
+
+  const currentMonth = useMemo(() => {
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const monthShifts = shifts.filter((shift) => shift.shiftDate.startsWith(monthKey) && !shift.coveredBy);
+    return {
+      earnings: monthShifts.reduce((total, shift) => total + effectiveAmount(shift), 0),
+      hours: monthShifts.reduce((total, shift) => total + (Number(shift.hoursWorked) || 0), 0),
+      shiftCount: monthShifts.length,
+    };
+  }, [shifts]);
+
+  const currentMonthLabel = new Date().toLocaleDateString("en-AU", { month: "long", year: "numeric" });
 
   useEffect(() => {
     if (profile) { setEditName(profile.name||""); setEditUsername(profile.username||""); }
@@ -196,6 +222,30 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
         </div>
       </div>
 
+      {/* ── Compact work snapshot ── */}
+      <section aria-label="This month at a glance" className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold">This month</h2>
+            <p className="text-caption text-muted-foreground">{currentMonthLabel} · {currentMonth.shiftCount} shift{currentMonth.shiftCount === 1 ? "" : "s"}</p>
+          </div>
+          <Calendar className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-muted/60 p-3 min-w-0">
+            <p className="text-caption text-muted-foreground">Earnings logged</p>
+            <p className="mt-1 text-lg font-black tabular-nums truncate">{formatCurrency(currentMonth.earnings)}</p>
+          </div>
+          <div className="rounded-xl bg-muted/60 p-3 min-w-0">
+            <p className="text-caption text-muted-foreground">Hours recorded</p>
+            <p className="mt-1 text-lg font-black tabular-nums">{currentMonth.hours > 0 ? `${Number(currentMonth.hours.toFixed(2))}h` : "—"}</p>
+          </div>
+        </div>
+        {currentMonth.hours === 0 && (
+          <p className="text-caption text-muted-foreground">Hours appear when they’re recorded on your shifts.</p>
+        )}
+      </section>
+
       {/* ── Section pill ── */}
       <div className="flex gap-0.5 p-1 bg-muted/80 rounded-2xl">
         {(["overview","records"] as const).map(s => (
@@ -225,6 +275,40 @@ function ProfileTab({ profile, isLoading, onRefresh, totalShifts, totalEarnings,
               </div>
               <span className="text-sm text-muted-foreground">Joined {joinDate}</span>
             </div>
+          </div>
+
+          {/* Quick preferences */}
+          <div className="rounded-2xl bg-card border border-border/50 overflow-hidden divide-y divide-border/40">
+            <button type="button" onClick={() => setShowSettings(true)} className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted/40 transition-colors">
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                <DollarSign className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">Pay rates & preferences</p>
+                <p className="text-caption text-muted-foreground">Station rates: ${payRates.morningRate.toFixed(2)}–${payRates.sundayRate.toFixed(2)}/hr · Edit in Settings</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" aria-hidden="true" />
+            </button>
+            <button type="button" onClick={() => setShowReminders(true)} className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-muted/40 transition-colors">
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                <Bell className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold">Notifications & reminders</p>
+                <p className="text-caption text-muted-foreground">
+                  {notificationPermission === "checking"
+                    ? "Checking browser permission…"
+                    : notificationPermission === "unsupported"
+                      ? "Browser notifications unavailable"
+                      : notificationPermission === "granted"
+                        ? "Browser permission allowed"
+                        : notificationPermission === "denied"
+                          ? "Blocked in browser settings"
+                          : "Permission not requested"}
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0" aria-hidden="true" />
+            </button>
           </div>
 
           {/* Actions */}
