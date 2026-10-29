@@ -841,7 +841,7 @@ export default function ShiftTrackerPage() {
                   onRefresh={fetchProfile}
                   totalShifts={summary.totalShifts}
                   totalEarnings={summary.totalEarned}
-                  shifts={hallShifts}
+                  shifts={shifts}
                 />
               </div>
 
